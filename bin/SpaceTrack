@@ -1,0 +1,85 @@
+#!/usr/local/bin/perl
+#	Title:	SpaceTrack
+#	Author:	T. R. Wyant
+#	Date:	07-Mar-2005
+#	Modified:
+#		24-Nov-2005	T. R. Wyant
+#			Added version.
+#			Added POD.
+#	Remarks:
+#		This Perl script is just a really simple encapsulation
+#		of the Astro::SpaceTrack shell subroutine. Note that the
+#		command line arguments are passed, so you can do things
+#		like
+#		$ perl SpaceTrack 'set username me password secret'
+#		followed by whatever commands you like at the SpaceTrack
+#		prompt.
+#
+#		Copyright 2005 by Thomas R. Wyant, III
+#		(wyant at cpan dot org). All rights reserved.
+
+
+use strict;
+use warnings;
+
+our $VERSION = '0.013';
+
+use Astro::SpaceTrack qw{shell};
+
+shell (@ARGV);
+
+__END__
+
+
+=head1 NAME
+
+SpaceTrack - Perl application to fetch satellite orbit data.
+
+=head1 SYNOPSIS
+
+This application provides a command-line interface to the
+Astro::SpaceTrack module, based on the Astro::SpaceTrack::shell
+subroutine.
+
+This gives you interactive access to all Astro::SpaceTrack methods,
+plus pseudo output redirection (with tilde expansion) if you want your
+output to go to a file.
+
+Please see L<Astro::SpaceTrack> for the details.
+
+=head1 MODIFICATIONS
+
+ (no version) T. R. Wyant
+   initial release.
+ 0.013 25-Nov-2005 T. R. Wyant
+   Added version.
+   Added POD.
+
+=head1 ACKNOWLEDGMENTS
+
+The author wishes to thank Dr. T. S. Kelso of
+L<http://celestrak.com/> and the staff of L<http://www.space-track.org/>
+(whose names are unfortunately unknown to me) for their co-operation,
+assistance and encouragement in the development of the Astro::SpaceTrack
+module.
+
+=head1 AUTHOR
+
+Thomas R. Wyant, III (F<wyant at cpan dot org>). All rights reserved.
+
+=head1 COPYRIGHT
+
+Copyright 2005 by Thomas R. Wyant, III
+(F<wyant at cpan dot org>). All rights reserved.
+
+This script is free software; you can use it, redistribute it
+and/or modify it under the same terms as Perl itself.
+
+The data obtained by this script is subject to the Space
+Track user agreement (L<http://www.space-track.org/perl/user_agreement.pl>).
+
+This software is provided without any warranty of any kind, express or
+implied. The author will not be liable for any damages of any sort
+relating in any way to this software.
+
+=cut

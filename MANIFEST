@@ -1,0 +1,11 @@
+bin/SpaceTrack
+bin/SpaceTrackTk
+Changes
+MANIFEST
+Makefile.PL
+SpaceTrack.pm
+SpaceTrack/Parser.pm
+README
+t/basic.t
+t/pod.t
+t/pod_coverage.t
