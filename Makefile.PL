@@ -19,13 +19,28 @@ eod
 my @exe_files;
 my @clean_files;
 
-print <<eod;
+my @possible_exes = ('SpaceTrack');
+my $tk = eval {require Tk} and push @possible_exes, 'SpaceTrackTk';
+print $tk ? <<eod : <<eod;
 
-You have the option of installing the following executables:
+The following scripts will be installed:
 
   SpaceTrack is an interactive interface to Astro::SpaceTrack;
   SpaceTrackTk is a windowed interface to Astro::SpaceTrack, using
     Perl/Tk.
+eod
+
+The following script will be installed:
+
+   SpaceTrack is an interactive interface to Astro::SpaceTrack.
+
+SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
+but will not be installed because you do not have the Tk package
+installed. If you want this, install Tk and then rerun Makefile.PL.
+eod
+print <<eod;
+
+If you do not want this, run Makefile.PL with the -n option.
 
 Unless you are running MSWin32 or VMS (which are special-cased),
 I will assume you're running some version of U*ix, and behave
@@ -33,7 +48,7 @@ accordingly.
 
 eod
 
-my @possible_exes = qw{SpaceTrack SpaceTrackTk};
+
 if ($opt{n}) {
     print "Because you have asserted -n, the executables will not be installed.\n\n";
     }
@@ -44,7 +59,8 @@ if ($opt{n}) {
   else {
     foreach (@possible_exes) {
 	push @exe_files, $_
-	    if prompt ("Do you want to install $_?", 'n') =~ m/^y/i;
+##	    if prompt ("Do you want to install $_?", 'n') =~ m/^y/i
+	    ;
 	}
     }
 
