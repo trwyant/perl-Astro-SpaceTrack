@@ -22,11 +22,28 @@
 use strict;
 use warnings;
 
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 
 use Astro::SpaceTrack qw{shell};
+use Getopt::Long;
 
-shell (@ARGV);
+my %opt = (
+    filter => 0,
+    );
+
+GetOptions (\%opt, qw{filter}) or die <<eod;
+
+SpaceTrack - Retrieve orbital elements from the Space Track database.
+
+usage: SpaceTrack [option] [command ...]
+
+with the only legal option being
+  -filter
+    to supress all output to stdout except orbital data.
+eod
+
+my $st = Astro::SpaceTrack->new (filter => $opt{filter});
+$st->shell (@ARGV);
 
 __END__
 
@@ -45,6 +62,17 @@ This gives you interactive access to all Astro::SpaceTrack methods,
 plus pseudo output redirection (with tilde expansion) if you want your
 output to go to a file.
 
+Commands can be passed in on the command line. After all command-line
+commands have been processed, you get an interactive prompt unless one
+of the command-line commands was 'exit'. Beginning with 0.014, commands
+can also be piped in, or redirected in from a file.
+
+The one and only option is -filter, which sets the 'filter' attribute
+of the Astro::SpaceTrack object. This prevents informational output
+(such as the banner and 'OK' messages) to stdout. The idea is that
+with -filter asserted, you can pipe the output to another program,
+and only have orbital elements written to the pipe.
+
 Please see L<Astro::SpaceTrack> for the details.
 
 =head1 MODIFICATIONS
@@ -54,6 +82,8 @@ Please see L<Astro::SpaceTrack> for the details.
  0.013 25-Nov-2005 T. R. Wyant
    Added version.
    Added POD.
+ 0.014 28-Jan-2006 T. R. Wyant
+   Added and documented -filter.
 
 =head1 ACKNOWLEDGMENTS
 
@@ -65,11 +95,11 @@ module.
 
 =head1 AUTHOR
 
-Thomas R. Wyant, III (F<wyant at cpan dot org>). All rights reserved.
+Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 COPYRIGHT
 
-Copyright 2005 by Thomas R. Wyant, III
+Copyright 2005, 2006 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This script is free software; you can use it, redistribute it
