@@ -83,6 +83,11 @@ If you set environment variable SPACETRACK_USER to your Space Track
 username and password, separated by a slash ("/") character, that
 username and password will be used, and you will not be prompted.
 
+You may also supress prompts by setting the AUTOMATED_TESTING
+environment variable to any value Perl takes as true. This is
+equivalent to not specifying a username, and tests that require a
+username will be skipped.
+
 eod
 
     my $user = prompt ("Space-Track username: ");
