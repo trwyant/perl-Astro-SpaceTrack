@@ -83,7 +83,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.013";
+$VERSION = "0.014";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -172,6 +172,7 @@ my %mutator = (	# Mutators for the various attributes.
     cookie_expires => \&_mutate_attrib,
     direct => \&_mutate_attrib,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
+    filter => \&_mutate_attrib,
     max_range => \&_mutate_number,
     password => \&_mutate_attrib,
     session_cookie => \&_mutate_cookie,
@@ -198,6 +199,32 @@ set these up.
 
 =cut
 
+my @inifil;
+
+=begin comment
+
+At some point I thought that an initialization file would be a good
+idea. But it seems unlikely to me that anyone will want commands
+other than 'set' commands issued every time an object is instantiated,
+and the 'set' commands are handled by the environment variables. So
+I changed my mind.
+
+my $inifil = $^O eq 'MSWin32' || $^O eq 'VMS' || $^O eq 'MacOS' ?
+    'SpaceTrack.ini' : '.SpaceTrack';
+
+$inifil = $^O eq 'VMS' ? "SYS\$LOGIN:$inifil" :
+    $^O eq 'MacOS' ? $inifil :
+    $ENV{HOME} ? "$ENV{HOME}/$inifil" :
+    $ENV{LOGDIR} ? "$ENV{LOGDIR}/$inifil" : undef or warn <<eod;
+Warning - Can't find home directory. Initialization file will not be
+        executed.
+eod
+@inifil = __PACKAGE__->_source ($inifil) if $inifil && -e $inifil;
+
+=end comment
+
+=cut
+
 sub new {
 my $class = shift;
 $class = ref $class if ref $class;
@@ -207,6 +234,7 @@ my $self = {
     banner => 1,	# shell () displays banner if true.
     cookie_expires => undef,
     dump_headers => 0,	# No dumping.
+    filter => 0,	# Filter mode.
     max_range => 500,	# Sanity limit on range size.
     password => undef,	# Login password.
     session_cookie => undef,
@@ -217,6 +245,12 @@ my $self = {
 bless $self, $class;
 
 $self->{agent}->env_proxy;
+
+if (@inifil) {
+    $self->{filter} = 1;
+    $self->shell (@inifil, 'exit');
+    $self->{filter} = 0;
+    }
 
 $ENV{SPACETRACK_OPT} and
     $self->set (grep {defined $_} split '\s+', $ENV{SPACETRACK_OPT});
@@ -258,8 +292,8 @@ and you must abide by that site's restrictions, which include
 not making the data available to a third party without prior
 permission.
 
-Copyright 2005 T. R. Wyant (wyant at cpan dot org). All rights
-reserved.
+Copyright 2005, 2006 T. R. Wyant (wyant at cpan dot org). All
+rights reserved.
 
 This module is free software; you can use it, redistribute it
 and/or modify it under the same terms as Perl itself.
@@ -398,7 +432,7 @@ sub get {
 my $self = shift;
 delete $self->{_content_type};
 my $name = shift;
-croak "Attribute $name may not be set. Legal attributes are ",
+croak "Attribute $name may not be gotten. Legal attributes are ",
 	join (', ', sort keys %mutator), ".\n"
     unless $mutator{$name};
 my $resp = HTTP::Response->new (RC_OK, undef, undef, $self->{$name});
@@ -449,13 +483,15 @@ The following commands are defined:
     Sets the given attributes. Legal attributes are
       addendum = extra text for the shell () banner;
       banner = false to supress the shell () banner;
+      cookie_expires = Perl date the session cookie expires;
       direct = true to fetch orbital elements directly
         from a redistributor. Currently this only affects the
         celestrak() method. The default is false.
-      cookie_expires = Perl date the session cookie expires;
       dump_headers is unsupported, and intended for debugging -
         don't be suprised at anything it does, and don't rely
         on anything it does;
+      filter = true supresses all output to stdout except
+        orbital elements;
       max_range = largest range of numbers that can be re-
         trieved (default: 500);
       password = the Space-Track password;
@@ -868,7 +904,7 @@ Unlike most of the other methods, this one returns nothing.
 
 =cut
 
-my ($read, $print, $out);
+my ($read, $print, $out, $rdln);
 
 sub shell {
 my $self = shift if UNIVERSAL::isa $_[0], __PACKAGE__;
@@ -877,27 +913,32 @@ $self ||= Astro::SpaceTrack->new (addendum => <<eod);
 'help' gets you a list of valid commands.
 eod
 
-################
-
 my $prompt = 'SpaceTrack> ';
-eval {
-    require Term::ReadLine;
-    my $rdln = Term::ReadLine->new ('SpaceTrack orbital element access');
-    $out = $rdln->OUT || \*STDOUT;
-    $read = sub {$rdln->readline ($prompt)};
-    };
 
-$out ||= \*STDOUT;
-$read ||= sub {print $out $prompt; <STDIN>};
+$out = \*STDOUT;
 $print = sub {
 	my $hndl = UNIVERSAL::isa ($_[0], 'FileHandle') ? shift : $out;
 	print $hndl @_};
 
-################
-
-$read && $print or croak "Sorry, no I/O routines available";
-unshift @_, 'banner' if $self->{banner};
-while (defined (my $buffer = @_ ? shift : $read->())) {
+unshift @_, 'banner' if $self->{banner} && !$self->{filter};
+while (1) {
+    my $buffer;
+    if (@_) {
+	$buffer = shift;
+	}
+      else {
+	unless ($read) {
+	    -t STDIN ? eval {
+		require Term::ReadLine;
+		$rdln ||= Term::ReadLine->new ('SpaceTrack orbital element access');
+		$out = $rdln->OUT || \*STDOUT;
+		$read = sub {$rdln->readline ($prompt)};
+		} || ($read = sub {print $out $prompt; <STDIN>}):
+		eval {$read = sub {<STDIN>}};
+	    }
+	$buffer = $read->();
+	}
+    last unless defined $buffer;
 
     chomp $buffer;
     $buffer =~ s/^\s+//;
@@ -933,14 +974,18 @@ eod
     my $rslt = eval {$self->$verb (@args)};
     $@ and do {warn $@; next; };
     if ($rslt->is_success) {
-	$print->(@fh, $rslt->content);
+	my $content = $rslt->content;
+	chomp $content;
+	$print->(@fh, "$content\n")
+	    if !$self->{filter} || $self->content_type ();
 	}
       else {
-	$print->($rslt->status_line);
+	my $status = $rslt->status_line;
+	chomp $status;
+	warn $status, "\n";
 	}
-    $print->("\n");
     }
-$print->("\n");
+$print->("\n") if -t STDIN && !$self->{filter};
 }
 
 
@@ -1384,7 +1429,7 @@ The default is an empty string.
 This attribute specifies whether or not the shell() method should emit
 the banner text on invocation.
 
-The default is true.
+The default is true (i.e. 1).
 
 =item cookie_expires (number)
 
@@ -1398,7 +1443,15 @@ This attribute specifies that orbital elements should be fetched
 directly from the redistributor if possible. At the moment the only
 methods affected by this are celestrak() and spaceflight().
 
-The default is false.
+The default is false (i.e. 0).
+
+=item filter (boolean)
+
+If true, this attribute specifies that the shell is being run in filter
+mode, and prevents any output to STDOUT except orbital elements -- that
+is, if I found all the places that needed modification.
+
+The default is false (i.e. 0).
 
 =item max_range (number)
 
@@ -1431,7 +1484,7 @@ verbose (boolean)
 
 This attribute specifies verbose error messages.
 
-The default is false.
+The default is false (i.e. 0).
 
 =item with_name (boolean)
 
@@ -1440,7 +1493,7 @@ include the common name of the body (three-line format) or not
 (two-line format). It is ignored if the 'direct' attribute is true;
 in this case you get whatever the redistributor provides.
 
-The default is false.
+The default is false (i.e. 0).
 
 =back
 
@@ -1548,6 +1601,9 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Added spaceflight() method.
    Added "All rights reserved." to banner() output.
    Spiffed up the documentation.
+ 0.014 28-Jan-2006 T. R. Wyant
+   Added filter attribute.
+   Jocky the Term::ReadLine code yet again.
 
 =head1 ACKNOWLEDGMENTS
 
@@ -1562,7 +1618,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT
 
-Copyright 2005 by Thomas R. Wyant, III
+Copyright 2005, 2006 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This module is free software; you can use it, redistribute it
