@@ -83,7 +83,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.014";
+$VERSION = "0.015";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -178,6 +178,7 @@ my %mutator = (	# Mutators for the various attributes.
     session_cookie => \&_mutate_cookie,
     username => \&_mutate_attrib,
     verbose => \&_mutate_attrib,
+    webcmd => \&_mutate_attrib,
     with_name => \&_mutate_attrib,
     );
 # Maybe I really want a cookie_file attribute, which is used to do
@@ -240,6 +241,7 @@ my $self = {
     session_cookie => undef,
     username => undef,	# Login username.
     verbose => undef,	# Verbose error messages for catalogs.
+    webcmd => undef,	# Command to get web help.
     with_name => undef,	# True to retrieve three-line element sets.
     };
 bless $self, $class;
@@ -449,8 +451,15 @@ convenient (to the author) to include.
 =cut
 
 sub help {
+my $self = shift;
 delete $_[0]->{_content_type};
-HTTP::Response->new (RC_OK, undef, undef, <<eod);
+if ($self->{webcmd}) {
+    system (join ' ', $self->{webcmd},
+	"http://search.cpan.org/~wyant/Astro-SpaceTrack-$VERSION/");
+    HTTP::Response->new (RC_OK, undef, undef, 'OK');
+    }
+  else {
+    HTTP::Response->new (RC_OK, undef, undef, <<eod);
 The following commands are defined:
   celestrak name
     Retrieves the named catalog of IDs from Celestrak. If the
@@ -498,6 +507,7 @@ The following commands are defined:
       session_cookie = the text of the session cookie;
       username = the Space-Track username;
       verbose = true for verbose catalog error messages;
+      webcmd = command to launch a URL (for web-based help);
       with_name = true to retrieve common names as well.
     The session_cookie and cookie_expires attributes should
     only be set to previously-retrieved, matching values.
@@ -513,6 +523,7 @@ The following commands are defined:
 The shell supports a pseudo-redirection of standard output,
 using the usual Unix shell syntax (i.e. '>output_file').
 eod
+    }
 }
 
 
@@ -1480,11 +1491,20 @@ This attribute specifies the Space-Track username.
 
 The default is an empty string.
 
-verbose (boolean)
+=item verbose (boolean)
 
 This attribute specifies verbose error messages.
 
 The default is false (i.e. 0).
+
+=item webcmd (string)
+
+This attribute specifies a system command that can be used to launch
+a URL into a browser. If specified, the 'help' command will append
+a space and the search.cpan.org URL for the documentation for this
+version of Astro::SpaceTrack, and spawn that command to the operating
+system. You can use 'open' under Mac OS X, and 'start' under Windows.
+Anyone else will probably need to name an actual browser.
 
 =item with_name (boolean)
 
@@ -1604,6 +1624,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
  0.014 28-Jan-2006 T. R. Wyant
    Added filter attribute.
    Jocky the Term::ReadLine code yet again.
+ 0.015 01-Feb-2006 T. R. Wyant
+   Added webcmd attribute, and use it in help().
 
 =head1 ACKNOWLEDGMENTS
 
