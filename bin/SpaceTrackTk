@@ -2,21 +2,12 @@
 #	Title:	SpaceTrackTk
 #	Author:	T. R. Wyant
 #	Date:	07-Mar-2005
-#	Modified:
-#		24-Nov-2005	T. R. Wyant
-#			Added login bypass ('direct' support).
-#			Added spaceflight() support.
-#			Added version.
-#			Added POD.
 #	Remarks:
 #		This Perl script provides a Perl/Tk interface to the
 #		Astro::SpaceTrack package. Command arguments are passed to
 #		the instantiated object, so that you can do things like
 #		$ perl SpaceTrackTk 'set username me password secret'
 #		to initialize your session.
-#
-#		Copyright 2005 by Thomas R. Wyant, III
-#		(wyant at cpan dot org). All rights reserved.
 
 use strict;
 use warnings;
@@ -24,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -140,12 +131,14 @@ $mw->Optionmenu (-options =>
 	([  ['Celestrak catalog' => 'celestrak'],
 	    ['Space Track catalog' => 'spacetrack'],
 	    ['Human Space Flight data' => 'spaceflight'],
+	    ['Iridium Status' => 'iridium_status'],
 	    ['Local file catalog' => 'file'],
 	    ['Space Track name lookup' => 'search_name'],
 	    ['Space Track international designator lookup' => 'search_id'],
 	    ['Space Track satellite IDs' => 'retrieve'],
 	    ],
 	 [  ['Celestrak catalog' => 'celestrak'],
+	    ['Iridium Status' => 'iridium_status'],
 	    ['Human Space Flight data' => 'spaceflight'],
 	    ],
 	)[$st->get ('direct')->content ? 1 : 0],
@@ -275,6 +268,8 @@ Please see L<Astro::SpaceTrack> for the details.
    Added support for direct-fetching of data.
    Added ability to skip login.
    Added POD.
+ 0.014 22-Feb-2006 T. R. Wyant
+   Support iridium_status.
 
 =head1 ACKNOWLEDGMENTS
 
@@ -290,7 +285,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT
 
-Copyright 2005 by Thomas R. Wyant, III
+Copyright 2005, 2006 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This script is free software; you can use it, redistribute it
