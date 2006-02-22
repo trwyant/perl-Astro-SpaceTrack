@@ -2,10 +2,6 @@
 #	Title:	SpaceTrack
 #	Author:	T. R. Wyant
 #	Date:	07-Mar-2005
-#	Modified:
-#		24-Nov-2005	T. R. Wyant
-#			Added version.
-#			Added POD.
 #	Remarks:
 #		This Perl script is just a really simple encapsulation
 #		of the Astro::SpaceTrack shell subroutine. Note that the
@@ -14,15 +10,12 @@
 #		$ perl SpaceTrack 'set username me password secret'
 #		followed by whatever commands you like at the SpaceTrack
 #		prompt.
-#
-#		Copyright 2005 by Thomas R. Wyant, III
-#		(wyant at cpan dot org). All rights reserved.
 
 
 use strict;
 use warnings;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 use Astro::SpaceTrack qw{shell};
 use Getopt::Long;
@@ -84,6 +77,8 @@ Please see L<Astro::SpaceTrack> for the details.
    Added POD.
  0.014 28-Jan-2006 T. R. Wyant
    Added and documented -filter.
+ 0.015 20-Feb-2006 T. R. Wyant
+   Removed redundant front matter.
 
 =head1 ACKNOWLEDGMENTS
 
