@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 13);
+plan (tests => 14);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -43,6 +43,8 @@ use constant NOACCESS => 'Site not accessible.';
 
 my $skip_celestrak = NOACCESS
     unless $agt->get ('http://celestrak.com/')->is_success;
+my $skip_mccants = NOACCESS
+    unless $agt->get ('http://users2.ev1.net/~mmccants/tles/iridium.html')->is_success;
 my $skip_spaceflight = NOACCESS
     unless $agt->get ('http://spaceflight.nasa.gov/')->is_success;
 
@@ -150,3 +152,8 @@ skip ($skip_celestrak, $skip_celestrak || $st->content_type () eq 'orbit');
 $test_num++;
 print "# Test $test_num - Try to retrieve data from Human Space Flight.\n";
 skip ($skip_spaceflight, $skip_spaceflight || $st->spaceflight()->is_success);
+
+$test_num++;
+print "# Test $test_num - Get Iridium status.\n";
+skip ($skip_celestrak || $skip_mccants,
+    $skip_celestrak || $skip_mccants || $st->iridium_status()->is_success);
