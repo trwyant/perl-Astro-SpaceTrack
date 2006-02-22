@@ -73,6 +73,8 @@ The following methods should be considered public:
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 use strict;
 use warnings;
 
@@ -83,7 +85,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.015";
+$VERSION = "0.016";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -115,7 +117,7 @@ use constant SESSION_KEY => 'spacetrack_session';
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
-	'tle-new' => {name => q{Last 30 Days' Launches}},
+	'tle-new' => {name => "Last 30 Days' Launches"},
 	stations => {name => 'International Space Station'},
 	visual => {name => '100 (or so) brightest'},
 	weather => {name => 'Weather'},
@@ -165,6 +167,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	special => {name => 'Special satellites', number => 23},
 	},
     );
+
 
 my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
@@ -220,6 +223,9 @@ $inifil = $^O eq 'VMS' ? "SYS\$LOGIN:$inifil" :
 Warning - Can't find home directory. Initialization file will not be
         executed.
 eod
+
+# Help for syntax-highlighting editor that does not understand here documents '
+
 @inifil = __PACKAGE__->_source ($inifil) if $inifil && -e $inifil;
 
 =end comment
@@ -281,6 +287,8 @@ benefit of the shell method.
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 sub banner {
 my $self = shift;
 HTTP::Response->new (RC_OK, undef, undef, <<eod);
@@ -301,6 +309,9 @@ This module is free software; you can use it, redistribute it
 and/or modify it under the same terms as Perl itself.
 @{[$self->{addendum} || '']}
 eod
+
+# Help for syntax-highlighting editor that does not understand here documents '
+
 }
 
 
@@ -325,6 +336,8 @@ added to the HTTP::Response object returned.
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 {	# Local symbol block.
 
 my %valid_type = ('text/plain' => 1, 'text/text' => 1);
@@ -345,6 +358,7 @@ $self->_convert_content ($resp);
 if ($self->{direct}) {
     $self->{_content_type} = 'orbit';
     $resp->push_header (pragma => 'spacetrack-type = orbit');
+    $self->_dump_headers ($resp) if $self->{dump_headers};
     return $resp;
     }
   else {
@@ -361,9 +375,11 @@ This method takes the given HTTP::Response object and returns the
 data type specified by the 'Pragma: spacetrack-type =' header. The
 following values are supported:
 
+ 'get': The content is a parameter value.
+ 'help': The content is help text.
  'orbit': The content is NORAD data sets.
  undef: No spacetrack-type pragma was specified. The
-        content is something else.
+        content is something else (typically 'OK').
 
 If the response object is not provided, it returns the data type
 from the last method call that returned an HTTP::Response object.
@@ -430,6 +446,8 @@ See L</Attributes> for the names and functions of the attributes.
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 sub get {
 my $self = shift;
 delete $self->{_content_type};
@@ -438,6 +456,9 @@ croak "Attribute $name may not be gotten. Legal attributes are ",
 	join (', ', sort keys %mutator), ".\n"
     unless $mutator{$name};
 my $resp = HTTP::Response->new (RC_OK, undef, undef, $self->{$name});
+$self->{_content_type} = 'get';
+$resp->push_header (pragma => 'spacetrack-type = get');
+$self->_dump_headers ($resp) if $self->{dump_headers};
 return wantarray ? ($resp, $self->{$name}) : $resp;
 }
 
@@ -450,6 +471,8 @@ convenient (to the author) to include.
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 sub help {
 my $self = shift;
 delete $_[0]->{_content_type};
@@ -459,7 +482,7 @@ if ($self->{webcmd}) {
     HTTP::Response->new (RC_OK, undef, undef, 'OK');
     }
   else {
-    HTTP::Response->new (RC_OK, undef, undef, <<eod);
+    my $resp = HTTP::Response->new (RC_OK, undef, undef, <<eod);
 The following commands are defined:
   celestrak name
     Retrieves the named catalog of IDs from Celestrak. If the
@@ -475,6 +498,8 @@ The following commands are defined:
     Get the value of a single attribute.
   help
     Display this help text.
+  iridium_status
+    Status of Iridium satellites, from Mike McCants.
   login
     Acquire a session cookie. You must have already set the
     username and password attributes. This will be called
@@ -523,9 +548,75 @@ The following commands are defined:
 The shell supports a pseudo-redirection of standard output,
 using the usual Unix shell syntax (i.e. '>output_file').
 eod
+    $self->{_content_type} = 'help';
+    $resp->push_header (pragma => 'spacetrack-type = help');
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $resp;
     }
 }
 
+
+=item $resp = $st->iridium_status ();
+
+This method queries Mike McCants' "Status of Iridium Payloads" web
+page, http://users2.ev1.net/~mmccants/tles/iridium.html (which gives
+status on non-function Iridium satellites) and the Celestrak list of
+all Iridium satellites. It returns an HTTP::Response object. If the
+query was successful, the content of the object is the status table
+from Mike McCants' page, with the Celestrak data merged in so that
+all Iridium satellites are represented. The Celestrak data are
+identified with the word 'Celestrak' in the comment field. Any other
+comment indicates data from Mike McCants.
+
+As of 20-Feb-2006 Mike's web page documented the possible statuses as
+follows:
+
+ blank - object is operational
+ 'tum' - tumbling
+ '?' - not at operational altitude
+ 'man' - maneuvering, at least slightly.
+
+In addition, the data from Celestrak may contain the fillowing
+status:
+
+ 'dum' - Dummy mass
+
+=cut
+
+# Help editor that does not understand POD. '
+
+sub iridium_status {
+my $self = shift;
+delete $self->{_content_type};
+my %rslt;
+my $resp = $self->{agent}->get ("http://celestrak.com/SpaceTrack/query/iridium.txt");
+$resp->is_success or return $resp;
+foreach my $buffer (split '\n', $resp->content) {
+    $buffer =~ s/\s+$//;
+    my $id = substr ($buffer, 0, 5) + 0;
+    my $name = substr ($buffer, 5);
+    my $status = $name =~ m/^IRIDIUM/i ? '' : 'dum';
+    $name = ucfirst lc $name;
+    $rslt{$id} = sprintf "%6d   %-15s%-8s Celestrak\n",
+	$id, $name, $status;
+    }
+$resp = $self->{agent}->get ('http://users2.ev1.net/~mmccants/tles/iridium.html');
+$resp->is_success or return $resp;
+foreach my $buffer (split '\n', $resp->content) {
+    $buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
+    my $id = $1 + 0;
+    $buffer =~ s/\s+$//;
+    $rslt{$id} = $buffer . "\n";
+#0         1         2         3         4         5         6         7
+#01234567890123456789012345678901234567890123456789012345678901234567890
+# 24836   Iridium 914    tum      Failed; was called Iridium 14
+    }
+$resp->content (join '', map {$rslt{$_}} sort {$a <=> $b} keys %rslt);
+$self->{_content_type} = 'iridium-status';
+$resp->push_header (pragma => 'spacetrack-type = iridium-status');
+$self->_dump_headers ($resp) if $self->{dump_headers};
+$resp;
+}
 
 =item $resp = $st->login ( ... )
 
@@ -629,6 +720,9 @@ If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
 =cut
+
+# Help for syntax-highlighting editor that does not understand POD '
+
 
 use constant RETRIEVAL_SIZE => 50;
 
@@ -915,6 +1009,8 @@ Unlike most of the other methods, this one returns nothing.
 
 =cut
 
+# Help for syntax-highlighting editor that does not understand POD '
+
 my ($read, $print, $out, $rdln);
 
 sub shell {
@@ -1082,6 +1178,7 @@ $content or
 my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
 $self->{_content_type} = 'orbit';
 $resp->push_header (pragma => 'spacetrack-type = orbit');
+$self->_dump_headers ($resp) if $self->{dump_headers};
 $resp;
 }
 
@@ -1320,6 +1417,13 @@ foreach (map {split '\n', $_} @_) {
     push @data, [$id, substr $_, 5];
     }
 my $resp = $self->retrieve (sort {$a <=> $b} @catnum);
+if ($resp->is_success) {
+    unless ($self->{_content_type}) {
+	$self->{_content_type} = 'orbit';
+	$resp->push_header (pragma => 'spacetrack-type = orbit');
+	}
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    }
 return wantarray ? ($resp, \@data) : $resp;
 }
 
@@ -1593,7 +1697,7 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
  0.007 15-Apr-2005 T. R. Wyant
    Document attributes (under set() method)
    Have login return actual failure on HTTP error. Used
-     to return 401 any time we didn't get the cookie.
+     to return 401 any time we did not get the cookie.
  0.008 19-Jul-2005 T. R. Wyant
    Consolidate dump code.
    Have file() method take open handle as arg.
@@ -1626,6 +1730,10 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Jocky the Term::ReadLine code yet again.
  0.015 01-Feb-2006 T. R. Wyant
    Added webcmd attribute, and use it in help().
+ 0.016 11-Feb-2006 T. R. Wyant
+   Added content types 'help' and 'get', so -filter
+   does not supress output.
+   Added iridium_status, & content type 'iridium-status'.
 
 =head1 ACKNOWLEDGMENTS
 
