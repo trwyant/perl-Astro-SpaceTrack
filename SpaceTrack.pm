@@ -55,7 +55,8 @@ In addition, the celestrak method queries L<http://celestrak.com/> for
 a named data set, and then queries L<http://www.space-track.org> for
 the orbital elements of the objects in the data set.
 
-There is no provision for the retrieval of historical data.
+Beginning with version 0.017, there is provision for retrieval of
+historical data.
 
 Nothing is exported by default, but the shell method/subroutine
 can be exported if you so desire.
@@ -85,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.016";
+$VERSION = "0.017";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -93,6 +94,7 @@ use Carp;
 use Compress::Zlib ();
 use Config;
 use FileHandle;
+use Getopt::Long;
 use HTTP::Response;	# Not in the base, but comes with LWP.
 use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
@@ -700,11 +702,48 @@ return ($resp, \@list);
 
 This method retrieves the latest element set for each of the given
 catalog numbers. Non-numeric catalog numbers are ignored, as are
-(at a later stage) numbers that don't actually represent a satellite.
+(at a later stage) numbers that do not actually represent a satellite.
 
 Number ranges are represented as 'start-end', where both 'start' and
 'end' are catalog numbers. If 'start' > 'end', the numbers will be
 taken in the reverse order. Non-numeric ranges are ignored.
+
+You can specify options for the retrieval as either command-type
+options (e.g. -last5) or as a leading hash reference (e.g.
+{last5 => 1}, ...). If you specify the hash reference, option
+names must be specified in full, without the leading '-', and the
+argument list will not be parsed for command-type options. If you
+specify command-type options, they may be abbreviated, as long as
+the abbreviation is unique. Errors in either sort result in an
+exception being thrown.
+
+The legal options are:
+
+ descending
+   specifies the data be returned in descending order.
+ end_epoch date
+   specifies the end epoch for the desired data.
+ last5
+   specifies the last 5 element sets be retrieved.
+   Ignored if start_epoch or end_epoch specified.
+ start_epoch date
+   specifies the start epoch for the desired data.
+ sort type
+   specifies how to sort the data. Legal types are
+   'catnum' and 'epoch', with 'catnum' the default.
+
+If you specify either start_epoch or end_epoch, you get data with
+epochs at least equal to the start epoch, but less than the end
+epoch (i.e. the interval is closed at the beginning but open at
+the end). If you specify only one of these, you get a one-day
+interval. Dates are specified either numerically (as a Perl date)
+or as numeric year-month-day, punctuated by any non-numeric string.
+It is an error to specify an end_epoch before the start_epoch.
+
+If you are passing the options as a hash reference, you must specify
+a value the boolean options 'descending' and 'last5'. This value is
+interpreted in the Perl sense - that is, undef, 0, and '' are false,
+and anything else is true.
 
 In order not to load the Space Track web site too heavily, data are
 retrieved in batches of 50. Ranges will be subdivided and handled in
@@ -721,22 +760,53 @@ added to the HTTP::Response object returned.
 
 =cut
 
-# Help for syntax-highlighting editor that does not understand POD '
-
-
 use constant RETRIEVAL_SIZE => 50;
 
 sub retrieve {
 my $self = shift;
 delete $self->{_content_type};
 
-=begin comment
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
 
-@_ = grep {m/^\d+$/} @_;
+foreach my $key (qw{end_epoch start_epoch}) {
+    next unless $opt->{$key};
+    next if ref $opt->{$key};
+    $opt->{$key} !~ m/\D/ or
+	$opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
+	    $opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
+	croak <<eod;
+Error - Illegal date '$opt->{$key}'. Valid dates are a number
+	(interpreted as a Perl date) or numeric year-month-day.
+eod
+    my ($opp, $off) = $key eq 'start_epoch' ?
+	(end_epoch => 1) : (start_epoch => -1);
+    unless ($opt->{$opp}) {
+	$opt->{$opp} = [gmtime (86400 * $off + $opt->{$key})];
+	}
+    $opt->{$key} = [gmtime  ($opt->{$key})];
+    }
 
-=end comment
+$opt->{sort} ||= 'catnum';
 
-=cut
+$opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch' or die <<eod;
+Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
+        (the default) or 'epoch'.
+eod
+
+my @params = $opt->{start_epoch} ?
+    (timeframe => 'timespan',
+	start_year => $opt->{start_epoch}[5] + 1900,
+	start_month => $opt->{start_epoch}[4] + 1,
+	start_day => $opt->{start_epoch}[3],
+	end_year => $opt->{end_epoch}[5] + 1900,
+	end_month => $opt->{end_epoch}[4] + 1,
+	end_day => $opt->{end_epoch}[3],
+	) :
+    $opt->{last5} ? (timeframe => 'last5') : (timeframe => 'latest');
+push @params, common_name => $self->{with_name} ? 'yes' : '';
+push @params, sort => $opt->{sort};
+push @params, descending => $opt->{descending} ? 'yes' : '';
 
 @_ = grep {m/^\d+(?:-\d+)?$/} @_;
 
@@ -745,15 +815,6 @@ my $content = '';
 local $_;
 my $resp;
 while (@_) {
-
-=begin comment
-
-    my @batch = splice @_, 0, 50;
-
-=end comment
-
-=cut
-
     my @batch;
     my $ids = 0;
     while (@_ && $ids < RETRIEVAL_SIZE) {
@@ -781,10 +842,7 @@ eod
     next unless @batch;
     $resp = $self->_post ('perl/id_query.pl',
 	ids => "@batch",
-	timeframe => 'latest',
-	common_name => $self->{with_name} ? 'yes' : '',
-	sort => 'catnum',
-	descending => '',	# or 'yes'
+	@params,
 	ascii => 'yes',		# or ''
 	_sessionid => '',
 	_submitted => 1,
@@ -834,14 +892,20 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
+You can specify the L<retrieve> options on this method as well.
+
 =cut
 
 sub search_id {
 my $self = shift;
 delete $self->{_content_type};
-my $p = Astro::SpaceTrack::Parser->new ();
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
 @_ or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
 
+my $p = Astro::SpaceTrack::Parser->new ();
 my @table;
 my %id;
 foreach my $name (@_) {
@@ -874,7 +938,7 @@ foreach my $name (@_) {
 	push @table, $row unless $id{$row->[0]}++;
 	}
     }
-my $resp = $self->retrieve (sort {$a <=> $b} keys %id);
+my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
 wantarray ? ($resp, \@table) : $resp;
 }
 
@@ -900,13 +964,19 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
+You can specify the L<retrieve> options on this method as well.
+
 =cut
 
 sub search_name {
 my $self = shift;
 delete $self->{_content_type};
-my $p = Astro::SpaceTrack::Parser->new ();
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
 @_ or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+my $p = Astro::SpaceTrack::Parser->new ();
 
 my @table;
 my %id;
@@ -937,7 +1007,7 @@ foreach my $name (@_) {
 	push @table, $row unless $id{$row->[0]}++;
 	}
     }
-my $resp = $self->retrieve (sort {$a <=> $b} keys %id);
+my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
 wantarray ? ($resp, \@table) : $resp;
 }
 
@@ -980,7 +1050,7 @@ This method implements a simple shell. Any public method name except
 'new' or 'shell' is a command, and its arguments if any are parameters.
 We use Text::ParseWords to parse the line, and blank lines or lines
 beginning with a hash mark ('#') are ignored. Input is via
-Term::ReadLine if that's available. If not, we do the best we can.
+Term::ReadLine if that is available. If not, we do the best we can.
 
 We also recognize 'bye' and 'exit' as commands.
 
@@ -1130,6 +1200,9 @@ method.
 
 
 =cut
+
+
+# Help editor that does not understand POD '
 
 sub spaceflight {
 my $self = shift;
@@ -1474,6 +1547,34 @@ return HTTP::Response->new (RC_NOT_FOUND,
     join '', "$lead Try one of:\n", $resp->content);
 }
 
+#	_parse_retrieve_args parses the retrieve() options off its
+#	arguments, prefixes a reference to the resultant options
+#	hash to the remaining arguments, and returns the resultant
+#	list. If the first argument is a hash reference, it simply
+#	returns its argument list, under the assumption that it
+#	has already been called.
+
+sub _parse_retrieve_args {
+unless (ref ($_[0]) eq 'HASH') {
+    my $opt = {};
+    local @ARGV = @_;
+
+    GetOptions ($opt, qw{descending end_epoch=s last5
+	sort=s start_epoch=s}) or croak <<eod;
+Error - Legal options are
+  -descending (direction of sort)
+  -end_epoch date
+  -last5 (ignored if -start_epoch or -end_epoch specified)
+  -sort type ('catnum' or 'epoch', with 'catnum' the default)
+  -start_epoch date
+with dates being either Perl times, or numeric year-month-day, with any
+non-numeric character valid as punctuation.
+eod
+    @_ = ($opt, @ARGV);
+    }
+@_;
+}
+
 #	_post is just like _get, except for the method used. DO NOT use
 #	this method in the login () method, or you get a bottomless
 #	recursion.
@@ -1734,6 +1835,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Added content types 'help' and 'get', so -filter
    does not supress output.
    Added iridium_status, & content type 'iridium-status'.
+ 0.017 27-Apr-2006 T. R. Wyant
+   Added retrieve() options.
 
 =head1 ACKNOWLEDGMENTS
 
