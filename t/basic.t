@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 14);
+plan (tests => 15);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -157,3 +157,7 @@ $test_num++;
 print "# Test $test_num - Get Iridium status.\n";
 skip ($skip_celestrak || $skip_mccants,
     $skip_celestrak || $skip_mccants || $st->iridium_status()->is_success);
+
+$test_num++;
+print "# Test $test_num - Retrieve historical elements.\n";
+skip ($skip_spacetrack, $skip_spacetrack || $st->retrieve (-start_epoch => '2006/04/01', 25544)->is_success);
