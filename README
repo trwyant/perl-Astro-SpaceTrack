@@ -1,4 +1,4 @@
-Astro::SpaceTrack version 0.015
+Astro::SpaceTrack
 
 This library logs in to the Space Track web site and downloads orbital
 elements. It does nothing that you can't do with a web browser, but it
