@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -131,6 +131,7 @@ $mw->Optionmenu (-options =>
 	([  ['Celestrak catalog' => 'celestrak'],
 	    ['Space Track catalog' => 'spacetrack'],
 	    ['Human Space Flight data' => 'spaceflight'],
+	    ['Radio Amateur Satellite Corporation data' => 'amsat'],
 	    ['Iridium Status' => 'iridium_status'],
 	    ['Local file catalog' => 'file'],
 	    ['Space Track name lookup' => 'search_name'],
@@ -140,6 +141,7 @@ $mw->Optionmenu (-options =>
 	 [  ['Celestrak catalog' => 'celestrak'],
 	    ['Iridium Status' => 'iridium_status'],
 	    ['Human Space Flight data' => 'spaceflight'],
+	    ['Radio Amateur Satellite Corporation data' => 'amsat'],
 	    ],
 	)[$st->get ('direct')->content ? 1 : 0],
     -variable => \$command, -command => sub {
@@ -270,6 +272,8 @@ Please see L<Astro::SpaceTrack> for the details.
    Added POD.
  0.014 22-Feb-2006 T. R. Wyant
    Support iridium_status.
+ 0.015 30-May-2006 T. R. Wyant
+   Support spaceflight and amsat.
 
 =head1 ACKNOWLEDGMENTS
 
