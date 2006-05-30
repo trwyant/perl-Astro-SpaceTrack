@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.017";
+$VERSION = "0.018";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -278,6 +278,57 @@ $self->{agent}->cookie_jar ({})
 $self->_check_cookie ();
 
 return $self;
+}
+
+
+=for comment Help syntax-highlighting editor. "
+
+=item $resp = $st->amsat ()
+
+This method downloads current orbital elements from the Radio Amateur
+Satellite Corporation's web page, L<http://www.amsat.org/>. This lists
+satellites of interest to radio amateurs, and appears to be updated
+weekly.
+
+No Space Track account is needed to access this data, even if the
+'direct' attribute is false. But if the 'direct' attribute is true,
+the setting of the 'with_name' attribute is ignored.
+
+This method is a web page scraper. any change in the location of the
+web page will break this method.
+
+=for comment Help syntax-highlighting editor. "
+
+=cut
+
+sub amsat {
+my $self = shift;
+delete $self->{_content_type};
+my $content = '';
+my $now = time ();
+foreach my $url (
+	'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
+	) {
+    my $resp = $self->{agent}->get ($url);
+    return $resp unless $resp->is_success;
+    my ($tle, @data, $epoch);
+    foreach (split '\n', $resp->content) {
+	push @data, "$_\n";
+	@data == 3 or next;
+	shift @data unless $self->{direct} || $self->{with_name};
+	$content .= join '', @data;
+	@data = ();
+	}
+    }
+
+$content or
+    return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
+
+my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+$self->{_content_type} = 'orbit';
+$resp->push_header (pragma => 'spacetrack-type = orbit');
+$self->_dump_headers ($resp) if $self->{dump_headers};
+$resp;
 }
 
 
@@ -709,10 +760,10 @@ Number ranges are represented as 'start-end', where both 'start' and
 taken in the reverse order. Non-numeric ranges are ignored.
 
 You can specify options for the retrieval as either command-type
-options (e.g. -last5) or as a leading hash reference (e.g.
-{last5 => 1}, ...). If you specify the hash reference, option
-names must be specified in full, without the leading '-', and the
-argument list will not be parsed for command-type options. If you
+options (e.g. retrieve ('-last5', ...)) or as a leading hash reference
+(e.g. retrieve ({last5 => 1}, ...)). If you specify the hash reference,
+option names must be specified in full, without the leading '-', and
+the argument list will not be parsed for command-type options. If you
 specify command-type options, they may be abbreviated, as long as
 the abbreviation is unique. Errors in either sort result in an
 exception being thrown.
@@ -741,7 +792,7 @@ or as numeric year-month-day, punctuated by any non-numeric string.
 It is an error to specify an end_epoch before the start_epoch.
 
 If you are passing the options as a hash reference, you must specify
-a value the boolean options 'descending' and 'last5'. This value is
+a value for the boolean options 'descending' and 'last5'. This value is
 interpreted in the Perl sense - that is, undef, 0, and '' are false,
 and anything else is true.
 
@@ -892,7 +943,7 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L<retrieve> options on this method as well.
+You can specify the L</retrieve> options on this method as well.
 
 =cut
 
@@ -964,7 +1015,7 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L<retrieve> options on this method as well.
+You can specify the L</retrieve> options on this method as well.
 
 =cut
 
@@ -1837,6 +1888,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Added iridium_status, & content type 'iridium-status'.
  0.017 27-Apr-2006 T. R. Wyant
    Added retrieve() options.
+ 0.018 30-May-2006 T. R. Wyant
+   Added amsat() method.
 
 =head1 ACKNOWLEDGMENTS
 
