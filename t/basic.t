@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 15);
+plan (tests => 16);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -47,6 +47,8 @@ my $skip_mccants = NOACCESS
     unless $agt->get ('http://users2.ev1.net/~mmccants/tles/iridium.html')->is_success;
 my $skip_spaceflight = NOACCESS
     unless $agt->get ('http://spaceflight.nasa.gov/')->is_success;
+my $skip_amsat = NOACCESS
+    unless $agt->get ('http://www.amsat.org/')->is_success;
 
 if (!$agt->get ('http://www.space-track.org/')->is_success) {
     $skip_spacetrack = NOACCESS;
@@ -161,3 +163,7 @@ skip ($skip_celestrak || $skip_mccants,
 $test_num++;
 print "# Test $test_num - Retrieve historical elements.\n";
 skip ($skip_spacetrack, $skip_spacetrack || $st->retrieve (-start_epoch => '2006/04/01', 25544)->is_success);
+
+$test_num++;
+print "# Test $test_num - Try to retrieve data from the Radio Amateur Satellite Corporation.\n";
+skip ($skip_amsat, $skip_amsat || $st->amsat()->is_success);
