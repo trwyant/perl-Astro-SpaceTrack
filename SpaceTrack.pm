@@ -52,7 +52,7 @@ restrictions, which include not making the data available to a
 third party.
 
 In addition, the celestrak method queries L<http://celestrak.com/> for
-a named data set, and then queries L<http://www.space-track.org> for
+a named data set, and then queries L<http://www.space-track.org/> for
 the orbital elements of the objects in the data set.
 
 Beginning with version 0.017, there is provision for retrieval of
@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.018";
+$VERSION = "0.019_01";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -387,6 +387,8 @@ HTTP::Response from login ().
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
+You can specify the L</retrieve> options on this method as well.
+
 =cut
 
 # Help for syntax-highlighting editor that does not understand POD '
@@ -398,6 +400,10 @@ my %valid_type = ('text/plain' => 1, 'text/text' => 1);
 sub celestrak {
 my $self = shift;
 delete $self->{_content_type};
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
 my $name = shift;
 my $resp = $self->{direct} ?
     $self->{agent}->get ("http://celestrak.com/NORAD/elements/$name.txt") :
@@ -415,7 +421,7 @@ if ($self->{direct}) {
     return $resp;
     }
   else {
-    return $self->_handle_observing_list ($resp->content);
+    return $self->_handle_observing_list ($opt, $resp->content);
     }
 }
 
@@ -472,10 +478,16 @@ characters do not look like a right-justified number will be ignored.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
+You can specify the L</retrieve> options on this method as well.
+
 =cut
 
 sub file {
 my $self = shift;
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
 delete $self->{_content_type};
 my $name = shift;
 ref $name and fileno ($name) and return $self->_handle_observing_list (<$name>);
@@ -484,11 +496,13 @@ my $fh = FileHandle->new ($name) or
     return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR, "Can't open $name: $!");
 local $/;
 $/ = undef;
-return $self->_handle_observing_list (<$fh>)
+return $self->_handle_observing_list ($opt, <$fh>)
 }
 
 
 =item $resp = $st->get (attrib)
+
+=for comment help syntax-highlighting editor "
 
 B<This method returns an HTTP::Response object> whose content is the value
 of the given attribute. If called in list context, the second element
@@ -497,9 +511,9 @@ to winkle it out of the response object. We croak on a bad attribute name.
 
 See L</Attributes> for the names and functions of the attributes.
 
-=cut
+=for comment help syntax-highlighting editor "
 
-# Help for syntax-highlighting editor that does not understand POD '
+=cut
 
 sub get {
 my $self = shift;
@@ -518,13 +532,15 @@ return wantarray ? ($resp, $self->{$name}) : $resp;
 
 =item $resp = $st->help ()
 
+=for comment help syntax-highlighting editor "
+
 This method exists for the convenience of the shell () method. It
 always returns success, with the content being whatever it's
 convenient (to the author) to include.
 
-=cut
+=for comment help syntax-highlighting editor "
 
-# Help for syntax-highlighting editor that does not understand POD '
+=cut
 
 sub help {
 my $self = shift;
@@ -611,6 +627,8 @@ eod
 
 =item $resp = $st->iridium_status ();
 
+=for comment help syntax-highlighting editor "
+
 This method queries Mike McCants' "Status of Iridium Payloads" web
 page, http://users2.ev1.net/~mmccants/tles/iridium.html (which gives
 status on non-function Iridium satellites) and the Celestrak list of
@@ -634,9 +652,9 @@ status:
 
  'dum' - Dummy mass
 
-=cut
+=for comment help syntax-highlighting editor "
 
-# Help editor that does not understand POD. '
+=cut
 
 sub iridium_status {
 my $self = shift;
@@ -673,6 +691,8 @@ $resp;
 
 =item $resp = $st->login ( ... )
 
+=for comment help syntax-highlighting editor "
+
 If any arguments are given, this method passes them to the set ()
 method. Then it executes a login. The return is normally the
 HTTP::Response object from the login. But if no session cookie was
@@ -681,6 +701,8 @@ and the code set to RC_UNAUTHORIZED from HTTP::Status (a.k.a. 401). If
 a login is attempted without the username and password being set, the
 return is an HTTP::Response with an appropriate message and the
 code set to RC_PRECONDITION_FAILED from HTTP::Status (a.k.a. 412).
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -720,11 +742,15 @@ HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 
 =item $resp = $st->names (source)
 
+=for comment help syntax-highlighting editor "
+
 This method retrieves the names of the catalogs for the given source,
 either 'celestrak' or 'spacetrack', in the content of the given
 HTTP::Response object. In list context, you also get a reference to
 a list of two-element lists; each inner list contains the description
 and the catalog name (suitable for inserting into a Tk Optionmenu).
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -818,25 +844,7 @@ my $self = shift;
 delete $self->{_content_type};
 
 @_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
-my $opt = shift;
-
-foreach my $key (qw{end_epoch start_epoch}) {
-    next unless $opt->{$key};
-    next if ref $opt->{$key};
-    $opt->{$key} !~ m/\D/ or
-	$opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
-	    $opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
-	croak <<eod;
-Error - Illegal date '$opt->{$key}'. Valid dates are a number
-	(interpreted as a Perl date) or numeric year-month-day.
-eod
-    my ($opp, $off) = $key eq 'start_epoch' ?
-	(end_epoch => 1) : (start_epoch => -1);
-    unless ($opt->{$opp}) {
-	$opt->{$opp} = [gmtime (86400 * $off + $opt->{$key})];
-	}
-    $opt->{$key} = [gmtime  ($opt->{$key})];
-    }
+my $opt = _parse_retrieve_dates (shift);
 
 $opt->{sort} ||= 'catnum';
 
@@ -917,6 +925,8 @@ $resp;
 
 =item $resp = $st->search_id (id ...)
 
+=for comment help syntax-highlighting editor "
+
 This method searches the database for objects having the given
 international IDs. The international ID is the last two digits
 of the launch year (in the range 1957 through 2056), the
@@ -944,6 +954,8 @@ If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
 You can specify the L</retrieve> options on this method as well.
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -995,6 +1007,8 @@ wantarray ? ($resp, \@table) : $resp;
 
 =item $resp = $st->search_name (name ...)
 
+=for comment help syntax-highlighting editor "
+
 This method searches the database for the named objects. Matches
 are case-insensitive and all matches are returned. There is no
 mechanism to restrict the search to a given date range, on-orbit
@@ -1016,6 +1030,8 @@ If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
 You can specify the L</retrieve> options on this method as well.
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1065,6 +1081,8 @@ wantarray ? ($resp, \@table) : $resp;
 
 =item $st->set ( ... )
 
+=for comment help syntax-highlighting editor "
+
 This is the mutator method for the object. It can be called explicitly,
 but other methods as noted may call it implicitly also. It croaks if
 you give it an odd number of arguments, or if given an attribute that
@@ -1075,6 +1093,8 @@ object with a success status if all goes well. But if we encounter an
 error we croak.
 
 See L</Attributes> for the names and functions of the attributes.
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1096,6 +1116,8 @@ HTTP::Response->new (RC_OK, undef, undef, COPACETIC);
 
 
 =item $st->shell ()
+
+=for comment help syntax-highlighting editor "
 
 This method implements a simple shell. Any public method name except
 'new' or 'shell' is a command, and its arguments if any are parameters.
@@ -1128,9 +1150,9 @@ one of the arguments was 'exit'.
 
 Unlike most of the other methods, this one returns nothing.
 
-=cut
+=for comment help syntax-highlighting editor "
 
-# Help for syntax-highlighting editor that does not understand POD '
+=cut
 
 my ($read, $print, $out, $rdln);
 
@@ -1146,7 +1168,8 @@ my $prompt = 'SpaceTrack> ';
 $out = \*STDOUT;
 $print = sub {
 	my $hndl = UNIVERSAL::isa ($_[0], 'FileHandle') ? shift : $out;
-	print $hndl @_};
+	print $hndl @_
+	};
 
 unshift @_, 'banner' if $self->{banner} && !$self->{filter};
 while (1) {
@@ -1234,6 +1257,8 @@ $self->shell ($self->_source (@_), 'exit');
 
 =item $resp = $st->spaceflight ()
 
+=for comment help syntax-highlighting editor "
+
 This method downloads current orbital elements from NASA's human
 spaceflight site, L<http://spaceflight.nasa.gov/>. As of November 2005
 you get the International Space Station. An attempt is made to get the
@@ -1249,24 +1274,37 @@ This method is a web page scraper. any change in the location of the
 web pages, or any substantial change in their format, will break this
 method.
 
+You can specify the L</retrieve> options on this method as well.
+
+=for comment help syntax-highlighting editor "
 
 =cut
 
 
-# Help editor that does not understand POD '
-
 sub spaceflight {
 my $self = shift;
 delete $self->{_content_type};
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = _parse_retrieve_dates (shift);
+
+$opt->{sort} ||= 'catnum';
+
+$opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch' or die <<eod;
+Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
+        (the default) or 'epoch'.
+eod
+
 my $content = '';
 my $now = time ();
+my %tle;
 foreach my $url (
 	'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
 	'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
 	) {
     my $resp = $self->{agent}->get ($url);
     return $resp unless $resp->is_success;
-    my ($tle, @data, $epoch, $acquire);
+    my (@data, $acquire);
     foreach (split '\n', $resp->content) {
 	chomp;
 	m/TWO LINE MEAN ELEMENT SET/ and do {
@@ -1282,19 +1320,34 @@ foreach my $url (
 	    @data == 2 || @data == 3 or next;
 	    shift @data
 		if @data == 3 && !$self->{direct} && !$self->{with_name};
-	    my $yr = substr ($data[@data - 2], 18, 2);
-	    my $da = substr ($data[@data - 2], 20, 12);
+	    my $ix = @data - 2;
+	    my $id = substr ($data[$ix], 2, 5) + 0;
+	    my $yr = substr ($data[$ix], 18, 2);
+	    my $da = substr ($data[$ix], 20, 12);
 	    $yr += 100 if $yr < 57;
 	    my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
-	    next if $ep > $now;
-	    next if defined $epoch && $ep < $epoch;
-	    $tle = join '', @data;
+	    unless ($opt->{start_epoch} ?
+		    $ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch} :
+		    $ep > $now) {
+		$tle{$id} ||= [];
+		my @keys = $opt->{descending} ? (-$id, -$ep) : ($id, $ep);
+		@keys = reverse @keys if $opt->{sort} eq 'epoch';
+		push @{$tle{$id}}, [@keys, join '', @data];
+		}
 	    @data = ();
-	    $epoch = $ep;
 	    };
 	}
-    $content .= $tle if $tle;
     }
+
+unless ($opt->{start_epoch}) {
+    my $left = $opt->{last5} ? 5 : 1;
+    foreach (values %tle) {splice @$_, $left}
+    }
+$content .= join '',
+    map {$_->[2]}
+    sort {$a->[0] <=> $b->[0] || $a->[1] <=> $b->[1]}
+    map {@$_} values %tle;
+
 
 $content or
     return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
@@ -1403,8 +1456,7 @@ return $expir || 0;
 my $lookfor = $^O eq 'MacOS' ? qr{\012|\015+} : qr{\r\n};
 sub _convert_content {
 my $self = shift;
-local $/;
-$/ = undef;	# Slurp mode.
+local $/ = undef;	# Slurp mode.
 foreach my $resp (@_) {
     my $buffer = $resp->content;
     $buffer =~ s|$lookfor|\n|gms;
@@ -1533,6 +1585,10 @@ $cgi and substr ($cgi, 0, 1) = '?';
 sub _handle_observing_list {
 my $self = shift;
 my (@catnum, @data);
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
 foreach (map {split '\n', $_} @_) {
     s/\s+$//;
     my ($id) = m/^([\s\d]{5})/ or next;
@@ -1540,7 +1596,7 @@ foreach (map {split '\n', $_} @_) {
     push @catnum, $id;
     push @data, [$id, substr $_, 5];
     }
-my $resp = $self->retrieve (sort {$a <=> $b} @catnum);
+my $resp = $self->retrieve ($opt, sort {$a <=> $b} @catnum);
 if ($resp->is_success) {
     unless ($self->{_content_type}) {
 	$self->{_content_type} = 'orbit';
@@ -1624,6 +1680,50 @@ eod
     @_ = ($opt, @ARGV);
     }
 @_;
+}
+
+#	$opt = _parse_retrieve_dates ($opt);
+
+#	This subroutine looks for keys start_epoch and end_epoch in the
+#	given option hash, parses them as YYYY-MM-DD (where the letters
+#	are digits and the dashes are any non-digit punctuation), and
+#	replaces those keys' values with a reference to a list
+#	containing the output of timegm() for the given time. If only
+#	one epoch is provided, the other is defaulted to provide a
+#	one-day date range. If the syntax is invalid, we croak.
+#
+#	The return is the same hash reference that was passed in.
+
+sub _parse_retrieve_dates {
+my $opt = shift;
+
+my $found;
+foreach my $key (qw{end_epoch start_epoch}) {
+    next unless $opt->{$key};
+    $opt->{$key} !~ m/\D/ or
+	$opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
+	    $opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
+	croak <<eod;
+Error - Illegal date '$opt->{$key}'. Valid dates are a number
+	(interpreted as a Perl date) or numeric year-month-day.
+eod
+    $found++;
+    }
+
+if ($found) {
+    if ($found == 1) {
+	$opt->{start_epoch} ||= $opt->{end_epoch} - 86400;
+	$opt->{end_epoch} ||= $opt->{start_epoch} + 86400;
+	}
+    $opt->{start_epoch} <= $opt->{end_epoch} or croak <<eod;
+Error - End epoch must not be before start epoch.
+eod
+    foreach my $key (qw{start_epoch end_epoch}) {
+	$opt->{$key} = [gmtime ($opt->{$key})];
+	}
+    }
+
+$opt;
 }
 
 #	_post is just like _get, except for the method used. DO NOT use
@@ -1890,6 +1990,11 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Added retrieve() options.
  0.018 30-May-2006 T. R. Wyant
    Added amsat() method.
+ 0.019 11-Jun-2006 T. R. Wyant
+   Added the retrieve() options to celestrak() and file().
+ 0.019_01 15-Jun-2006 T. R. Wyant
+   Add the retrieve() qualifiers to spaceflight().
+   Tweak docs.
 
 =head1 ACKNOWLEDGMENTS
 
