@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.019_01";
+$VERSION = "0.019_02";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -588,7 +588,7 @@ The following commands are defined:
       banner = false to supress the shell () banner;
       cookie_expires = Perl date the session cookie expires;
       direct = true to fetch orbital elements directly
-        from a redistributor. Currently this only affects the
+        from a redistributer. Currently this only affects the
         celestrak() method. The default is false.
       dump_headers is unsupported, and intended for debugging -
         don't be suprised at anything it does, and don't rely
@@ -647,7 +647,7 @@ follows:
  '?' - not at operational altitude
  'man' - maneuvering, at least slightly.
 
-In addition, the data from Celestrak may contain the fillowing
+In addition, the data from Celestrak may contain the following
 status:
 
  'dum' - Dummy mass
@@ -1807,7 +1807,7 @@ matches the cookie.
 =item direct (boolean)
 
 This attribute specifies that orbital elements should be fetched
-directly from the redistributor if possible. At the moment the only
+directly from the redistributer if possible. At the moment the only
 methods affected by this are celestrak() and spaceflight().
 
 The default is false (i.e. 0).
@@ -1867,7 +1867,7 @@ Anyone else will probably need to name an actual browser.
 This attribute specifies whether the returned element sets should
 include the common name of the body (three-line format) or not
 (two-line format). It is ignored if the 'direct' attribute is true;
-in this case you get whatever the redistributor provides.
+in this case you get whatever the redistributer provides.
 
 The default is false (i.e. 0).
 
@@ -1995,6 +1995,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
  0.019_01 15-Jun-2006 T. R. Wyant
    Add the retrieve() qualifiers to spaceflight().
    Tweak docs.
+ 0.019_02 28-Jun-2006 T. R. Wyant
+   Correct spelling.
 
 =head1 ACKNOWLEDGMENTS
 
