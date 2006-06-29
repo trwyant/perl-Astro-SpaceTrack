@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.019_02";
+$VERSION = "0.019_03";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -169,7 +169,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	special => {name => 'Special satellites', number => 23},
 	},
     );
-
 
 my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
@@ -281,9 +280,9 @@ return $self;
 }
 
 
-=for comment Help syntax-highlighting editor. "
-
 =item $resp = $st->amsat ()
+
+=for comment Help syntax-highlighting editor. "
 
 This method downloads current orbital elements from the Radio Amateur
 Satellite Corporation's web page, L<http://www.amsat.org/>. This lists
@@ -331,16 +330,26 @@ $self->_dump_headers ($resp) if $self->{dump_headers};
 $resp;
 }
 
+=item @names = $st->attribute_names
+
+This method returns a list of legal attribute names.
+
+=cut
+
+sub attribute_names {sort keys %mutator}
+
 
 =item $resp = banner ();
+
+=for comment help for syntax-highlighting editor "
 
 This method is a convenience/nuisance: it simply returns a fake
 HTTP::Response with standard banner text. It's really just for the
 benefit of the shell method.
 
-=cut
+=for comment help for syntax-highlighting editor "
 
-# Help for syntax-highlighting editor that does not understand POD '
+=cut
 
 sub banner {
 my $self = shift;
@@ -390,8 +399,6 @@ added to the HTTP::Response object returned.
 You can specify the L</retrieve> options on this method as well.
 
 =cut
-
-# Help for syntax-highlighting editor that does not understand POD '
 
 {	# Local symbol block.
 
@@ -1997,6 +2004,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Tweak docs.
  0.019_02 28-Jun-2006 T. R. Wyant
    Correct spelling.
+ 0.019_03 29-Jun-2006 T. R. Wyant
+   Add attribute_names method.
 
 =head1 ACKNOWLEDGMENTS
 
