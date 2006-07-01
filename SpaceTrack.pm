@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.019_03";
+$VERSION = "0.019_04";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -1293,7 +1293,7 @@ my $self = shift;
 delete $self->{_content_type};
 
 @_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
-my $opt = _parse_retrieve_dates (shift);
+my $opt = _parse_retrieve_dates (shift, {perldate => 1});
 
 $opt->{sort} ||= 'catnum';
 
@@ -1703,6 +1703,7 @@ eod
 
 sub _parse_retrieve_dates {
 my $opt = shift;
+my $ctl = shift || {};
 
 my $found;
 foreach my $key (qw{end_epoch start_epoch}) {
@@ -1725,8 +1726,10 @@ if ($found) {
     $opt->{start_epoch} <= $opt->{end_epoch} or croak <<eod;
 Error - End epoch must not be before start epoch.
 eod
-    foreach my $key (qw{start_epoch end_epoch}) {
-	$opt->{$key} = [gmtime ($opt->{$key})];
+    unless ($ctl->{perldate}) {
+	foreach my $key (qw{start_epoch end_epoch}) {
+	    $opt->{$key} = [gmtime ($opt->{$key})];
+	    }
 	}
     }
 
@@ -2006,6 +2009,9 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Correct spelling.
  0.019_03 29-Jun-2006 T. R. Wyant
    Add attribute_names method.
+ 0.019_04 01-Jul-2006 T. R. Wyant
+   Fix bug in handling of retrieve() qualifiers in
+   spaceflight().
 
 =head1 ACKNOWLEDGMENTS
 
