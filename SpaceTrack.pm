@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.019_04";
+$VERSION = "0.020";
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -2002,16 +2002,10 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Added amsat() method.
  0.019 11-Jun-2006 T. R. Wyant
    Added the retrieve() options to celestrak() and file().
- 0.019_01 15-Jun-2006 T. R. Wyant
+ 0.020 01-Jul-2006 T. R. Wyant
    Add the retrieve() qualifiers to spaceflight().
-   Tweak docs.
- 0.019_02 28-Jun-2006 T. R. Wyant
-   Correct spelling.
- 0.019_03 29-Jun-2006 T. R. Wyant
-   Add attribute_names method.
- 0.019_04 01-Jul-2006 T. R. Wyant
-   Fix bug in handling of retrieve() qualifiers in
-   spaceflight().
+   Add the attribute_names() method.
+   Tweak docs, correct spelling.
 
 =head1 ACKNOWLEDGMENTS
 
