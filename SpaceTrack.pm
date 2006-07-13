@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.020_01';
+$VERSION = '0.020_02';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -925,6 +925,64 @@ $resp;
 }
 
 
+=item $resp = $st->search_date (date ...)
+
+=for comment help syntax-highlighting editor "
+
+This method searches the database for objects launched on the given
+date. The date is specified as year-month-day, with any non-digit being
+legal as the separator. You can omit -day or specify it as 0 to get
+all launches for the given month. You can omit -month (or specify it
+as 0) as well to get all launches for the given year. There is no
+mechanism to restrict the search to a given date range, on-orbit
+status, or to filter out debris or rocket bodies.
+
+This method implicitly calls the login () method if the session cookie
+is missing or expired. If login () fails, you will get the
+HTTP::Response from login ().
+
+On success, this method returns an HTTP::Response object whose content
+is the relevant element sets. If called in list context, the first
+element of the list is the aforementioned HTTP::Response object, and
+the second element is a list reference to list references  (i.e. a list
+of lists). The first list reference contains the header text for all
+columns returned, and the subsequent list references contain the data
+for each match.
+
+If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
+added to the HTTP::Response object returned.
+
+You can specify the L</retrieve> options on this method as well.
+
+=for comment help syntax-highlighting editor "
+
+=cut
+
+sub search_date {
+my $self = shift;
+$self->_search_generic (sub {
+    my ($self, $name) = @_;
+    my ($year, $month, $day) =
+	$name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
+	    or return undef;
+    $year += $year < 57 ? 2000 : $year < 100 ? 1900 : 0;
+    $month ||= 0;
+    $day ||= 0;
+    my $resp = $self->_post ('perl/launch_query.pl',
+	date_spec => 'month',
+	launch_year => $year,
+	launch_month => $month,
+	launch_day => $day,
+	status => 'all',	# or 'onorbit' or 'decayed'.
+##	exclude => '',		# or 'debris' or 'rocket' or both.
+	_sessionid => '',
+	_submit => 'submit',
+	_submitted => 1,
+	);
+    }, @_);
+}
+
+
 =item $resp = $st->search_id (id ...)
 
 =for comment help syntax-highlighting editor "
@@ -963,23 +1021,13 @@ You can specify the L</retrieve> options on this method as well.
 
 sub search_id {
 my $self = shift;
-delete $self->{_content_type};
-
-@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
-my $opt = shift;
-
-@_ or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
-
-my $p = Astro::SpaceTrack::Parser->new ();
-my @table;
-my %id;
-foreach my $name (@_) {
-# Note that the only difference between this and search_name is
-# the code from here vvvvvvvv
+$self->_search_generic (sub {
+    my ($self, $name) = @_;
     my ($year, $number, $piece) =
-	$name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or next;
+	$name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or return undef;
     $year += $year < 57 ? 2000 : 1900;
     my $resp = $self->_post ('perl/launch_query.pl',
+	date_spec => 'number',
 	launch_year => $year,
 	launch_number => $number || '',
 	piece => uc ($piece || ''),
@@ -989,22 +1037,7 @@ foreach my $name (@_) {
 	_submit => 'submit',
 	_submitted => 1,
 	);
-# to here ^^^^^^^^^^^^^^^^
-    return $resp unless $resp->is_success;
-    my $content = $resp->content;
-    next if $content =~ m/No results found/i;
-    my @this_page = @{$p->parse_string (table => $content)};
-    my @data = @{$this_page[0]};
-    foreach my $row (@data) {
-	pop @$row; pop @$row;
-	}
-    if (@table) {shift @data} else {push @table, shift @data};
-    foreach my $row (@data) {
-	push @table, $row unless $id{$row->[0]}++;
-	}
-    }
-my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
-wantarray ? ($resp, \@table) : $resp;
+    }, @_);
 }
 
 =item $resp = $st->search_name (name ...)
@@ -1039,20 +1072,9 @@ You can specify the L</retrieve> options on this method as well.
 
 sub search_name {
 my $self = shift;
-delete $self->{_content_type};
-
-@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
-my $opt = shift;
-
-@_ or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
-my $p = Astro::SpaceTrack::Parser->new ();
-
-my @table;
-my %id;
-foreach my $name (@_) {
-# Note that the only difference between this and search_id is
-# the code from here vvvvvvvv
-    my $resp = $self->_post ('perl/name_query.pl',
+$self->_search_generic (sub {
+    my ($self, $name) = @_;
+    $self->_post ('perl/name_query.pl',
 	name => $name,
 	launch_year_start => 1957,
 	launch_year_end => (gmtime)[5] + 1900,
@@ -1062,22 +1084,7 @@ foreach my $name (@_) {
 	_submit => 'Submit',
 	_submitted => 1,
 	);
-# to here ^^^^^^^^^^^^^^^^
-    return $resp unless $resp->is_success;
-    my $content = $resp->content;
-    next if $content =~ m/No results found/i;
-    my @this_page = @{$p->parse_string (table => $content)};
-    my @data = @{$this_page[0]};
-    foreach my $row (@data) {
-	pop @$row; pop @$row;
-	}
-    if (@table) {shift @data} else {push @table, shift @data};
-    foreach my $row (@data) {
-	push @table, $row unless $id{$row->[0]}++;
-	}
-    }
-my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
-wantarray ? ($resp, \@table) : $resp;
+    }, @_);
 }
 
 
@@ -1763,6 +1770,52 @@ my $path = shift;
     }	# end of single-iteration loop
 }
 
+#	_search wraps the specific search functions. It is called
+#	O-O style, with the first argument (after $self) being a
+#	reference to the code that actually requests the data from
+#	the server. This code takes two arguments ($self and $name,
+#	the latter being the thing to search for), and returns the
+#	HTTP::Response object from the request.
+#
+#	The referenced code is given three arguments: $self, the name
+#	of the object to search for, and the option hash. If the
+#	referenced code needs the name parsed further, it must do so
+#	itself, returning undef if the parse fails.
+
+
+sub _search_generic {
+my $self = shift;
+my $poster = shift;
+delete $self->{_content_type};
+
+@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+my $opt = shift;
+
+@_ or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+my $p = Astro::SpaceTrack::Parser->new ();
+
+my @table;
+my %id;
+foreach my $name (@_) {
+    defined (my $resp = $poster->($self, $name, $opt)) or next;
+    return $resp unless $resp->is_success;
+    my $content = $resp->content;
+    next if $content =~ m/No results found/i;
+    my @this_page = @{$p->parse_string (table => $content)};
+    my @data = @{$this_page[0]};
+    foreach my $row (@data) {
+	pop @$row; pop @$row;
+	}
+    if (@table) {shift @data} else {push @table, shift @data};
+    foreach my $row (@data) {
+	push @table, $row unless $id{$row->[0]}++;
+	}
+    }
+my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
+wantarray ? ($resp, \@table) : $resp;
+}
+
+
 #	_source takes a filename, and returns the contents of the file
 #	as a list. It dies if anything goes wrong.
 
@@ -2009,6 +2062,11 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Add the retrieve() qualifiers to spaceflight().
    Add the attribute_names() method.
    Tweak docs, correct spelling.
+ 0.020_01 13-Jul-2006 T. R. Wyant
+   Add -all qualifier to spaceflight().
+ 0.020_02 13-Jul-2006 T. R. Wyant
+   Centralize common search code.
+   Add search_date().
 
 =head1 ACKNOWLEDGMENTS
 
