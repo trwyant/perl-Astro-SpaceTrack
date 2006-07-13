@@ -2,6 +2,8 @@
 
 =head1 NAME
 
+=for comment help for syntax-highlighting editor that does not understand POD "
+
 Astro::SpaceTrack - Retrieve orbital data from www.space-track.org.
 
 =head1 SYNOPSIS
@@ -74,7 +76,7 @@ The following methods should be considered public:
 
 =cut
 
-# Help for syntax-highlighting editor that does not understand POD '
+# Help for syntax-highlighting editor that does not understand POD "
 
 use strict;
 use warnings;
@@ -86,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = "0.020";
+$VERSION = '0.020_01';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -853,13 +855,6 @@ delete $self->{_content_type};
 @_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
 my $opt = _parse_retrieve_dates (shift);
 
-$opt->{sort} ||= 'catnum';
-
-$opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch' or die <<eod;
-Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
-        (the default) or 'epoch'.
-eod
-
 my @params = $opt->{start_epoch} ?
     (timeframe => 'timespan',
 	start_year => $opt->{start_epoch}[5] + 1900,
@@ -1281,7 +1276,9 @@ This method is a web page scraper. any change in the location of the
 web pages, or any substantial change in their format, will break this
 method.
 
-You can specify the L</retrieve> options on this method as well.
+You can specify the L</retrieve> options on this method as well. In
+addition, you can specify -all to get all data. -all will be ignored
+if -start_epoch, -end_epoch, or -last5 is specified.
 
 =for comment help syntax-highlighting editor "
 
@@ -1292,15 +1289,11 @@ sub spaceflight {
 my $self = shift;
 delete $self->{_content_type};
 
-@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+@_ = _parse_retrieve_args ([all => 'retrieve all data'], @_)
+    unless ref $_[0] eq 'HASH';
 my $opt = _parse_retrieve_dates (shift, {perldate => 1});
 
-$opt->{sort} ||= 'catnum';
-
-$opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch' or die <<eod;
-Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
-        (the default) or 'epoch'.
-eod
+$opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
 
 my $content = '';
 my $now = time ();
@@ -1333,7 +1326,7 @@ foreach my $url (
 	    my $da = substr ($data[$ix], 20, 12);
 	    $yr += 100 if $yr < 57;
 	    my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
-	    unless ($opt->{start_epoch} ?
+	    unless (!$opt->{all} and $opt->{start_epoch} ?
 		    $ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch} :
 		    $ep > $now) {
 		$tle{$id} ||= [];
@@ -1346,7 +1339,7 @@ foreach my $url (
 	}
     }
 
-unless ($opt->{start_epoch}) {
+unless ($opt->{all} || $opt->{start_epoch}) {
     my $left = $opt->{last5} ? 5 : 1;
     foreach (values %tle) {splice @$_, $left}
     }
@@ -1668,22 +1661,32 @@ return HTTP::Response->new (RC_NOT_FOUND,
 #	returns its argument list, under the assumption that it
 #	has already been called.
 
+my @legal_retrieve_args = (descending => '(direction of sort)',
+		'end_epoch=s' => 'date',
+		last5 => '(ignored f -start_epoch or -end_epoch specified)',
+		'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
+		'start_epoch=s' => 'date',
+		);
 sub _parse_retrieve_args {
 unless (ref ($_[0]) eq 'HASH') {
+    my %lgl = (@legal_retrieve_args, ref $_[0] eq 'ARRAY' ? @{shift @_} : ());
     my $opt = {};
     local @ARGV = @_;
 
-    GetOptions ($opt, qw{descending end_epoch=s last5
-	sort=s start_epoch=s}) or croak <<eod;
-Error - Legal options are
-  -descending (direction of sort)
-  -end_epoch date
-  -last5 (ignored if -start_epoch or -end_epoch specified)
-  -sort type ('catnum' or 'epoch', with 'catnum' the default)
-  -start_epoch date
+    GetOptions ($opt, keys %lgl) or croak <<eod;
+Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
+	"\n  -$q $lgl{$_}"} sort keys %lgl]}
 with dates being either Perl times, or numeric year-month-day, with any
 non-numeric character valid as punctuation.
 eod
+
+    $opt->{sort} ||= 'catnum';
+
+    $opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch' or die <<eod;
+Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
+        (the default) or 'epoch'.
+eod
+
     @_ = ($opt, @ARGV);
     }
 @_;
