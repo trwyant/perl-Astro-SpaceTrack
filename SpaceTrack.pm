@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.020_02';
+$VERSION = '0.021';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -2062,10 +2062,8 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Add the retrieve() qualifiers to spaceflight().
    Add the attribute_names() method.
    Tweak docs, correct spelling.
- 0.020_01 13-Jul-2006 T. R. Wyant
+ 0.021 13-Jul-2006 T. R. Wyant
    Add -all qualifier to spaceflight().
- 0.020_02 13-Jul-2006 T. R. Wyant
-   Centralize common search code.
    Add search_date().
 
 =head1 ACKNOWLEDGMENTS

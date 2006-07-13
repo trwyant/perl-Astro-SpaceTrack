@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.015_01';
+our $VERSION = '0.016';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -277,7 +277,7 @@ Please see L<Astro::SpaceTrack> for the details.
    Support iridium_status.
  0.015 30-May-2006 T. R. Wyant
    Support spaceflight and amsat.
- 0.015 13-Jul-2006 T. R. Wyant
+ 0.016 13-Jul-2006 T. R. Wyant
    Support search_date().
 
 =head1 ACKNOWLEDGMENTS
