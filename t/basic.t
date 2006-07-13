@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 16);
+plan (tests => 17);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -137,6 +137,10 @@ skip ($skip_spacetrack, $skip_spacetrack || $st->search_name ('zarya')->is_succe
 $test_num++;
 print "# Test $test_num - Search by international designator.\n";
 skip ($skip_spacetrack, $skip_spacetrack || $st->search_id ('98067A')->is_success);
+
+$test_num++;
+print "# Test $test_num - Search by launch date.\n";
+skip ($skip_spacetrack, $skip_spacetrack || $st->search_date ('06-07-04')->is_success);
 
 $test_num++;
 print "# Test $test_num - Fetch a Celestrak data set.\n";
