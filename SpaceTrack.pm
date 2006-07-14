@@ -2,8 +2,6 @@
 
 =head1 NAME
 
-=for comment help for syntax-highlighting editor that does not understand POD "
-
 Astro::SpaceTrack - Retrieve orbital data from www.space-track.org.
 
 =head1 SYNOPSIS
@@ -29,6 +27,8 @@ or
  SpaceTrack> exit
 
 =head1 LEGAL NOTICE
+
+=for comment help for syntax-highlighting editor that does not understand POD "
 
 The following two paragraphs are quoted from the Space Track web site.
 
@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.021';
+$VERSION = '0.021_01';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -196,6 +196,8 @@ my %mutator = (	# Mutators for the various attributes.
 
 =item $st = Astro::SpaceTrack->new ( ... )
 
+=for html <a name="new"></a>
+
 This method instantiates a new Space-Track accessor object. If any
 arguments are passed, the set () method is called on the new object,
 and passed the arguments given.
@@ -281,6 +283,7 @@ $self->_check_cookie ();
 return $self;
 }
 
+=for html <a name="amsat"></a>
 
 =item $resp = $st->amsat ()
 
@@ -341,6 +344,8 @@ This method returns a list of legal attribute names.
 sub attribute_names {sort keys %mutator}
 
 
+=for html <a name="banner"></a>
+
 =item $resp = banner ();
 
 =for comment help for syntax-highlighting editor "
@@ -378,6 +383,8 @@ eod
 
 }
 
+
+=for html <a name="celestrak"></a>
 
 =item $resp = $st->celestrak ($name);
 
@@ -465,6 +472,8 @@ return;
 }
 
 
+=for html <a name="file"></a>
+
 =item $resp = $st->file ($name)
 
 This method takes the name of an observing list file, or a handle to
@@ -509,6 +518,8 @@ return $self->_handle_observing_list ($opt, <$fh>)
 }
 
 
+=for html <a name="get"></a>
+
 =item $resp = $st->get (attrib)
 
 =for comment help syntax-highlighting editor "
@@ -539,6 +550,8 @@ return wantarray ? ($resp, $self->{$name}) : $resp;
 }
 
 
+=for html <a name="help"></a>
+
 =item $resp = $st->help ()
 
 =for comment help syntax-highlighting editor "
@@ -546,6 +559,9 @@ return wantarray ? ($resp, $self->{$name}) : $resp;
 This method exists for the convenience of the shell () method. It
 always returns success, with the content being whatever it's
 convenient (to the author) to include.
+
+If the L<webcmd|/webcmd> attribute is set, the L<http://search.cpan.org/>
+web page for this version of Astro::Satpass is launched.
 
 =for comment help syntax-highlighting editor "
 
@@ -634,6 +650,8 @@ eod
 }
 
 
+=for html <a name="iridium_status"></a>
+
 =item $resp = $st->iridium_status ();
 
 =for comment help syntax-highlighting editor "
@@ -698,6 +716,9 @@ $self->_dump_headers ($resp) if $self->{dump_headers};
 $resp;
 }
 
+
+=for html <a name="login"></a>
+
 =item $resp = $st->login ( ... )
 
 =for comment help syntax-highlighting editor "
@@ -749,6 +770,8 @@ HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 }
 
 
+=for html <a name="names"></a>
+
 =item $resp = $st->names (source)
 
 =for comment help syntax-highlighting editor "
@@ -783,6 +806,8 @@ foreach my $cat (sort {$src->{$a}{name} cmp $src->{$b}{name}} keys %$src) {
 return ($resp, \@list);
 }
 
+
+=for html <a name="retrieve"></a>
 
 =item $resp = $st->retrieve (number_or_range ...)
 
@@ -925,6 +950,8 @@ $resp;
 }
 
 
+=for html <a name="search_date"></a>
+
 =item $resp = $st->search_date (date ...)
 
 =for comment help syntax-highlighting editor "
@@ -983,6 +1010,8 @@ $self->_search_generic (sub {
 }
 
 
+=for html <a name="search_id"></a>
+
 =item $resp = $st->search_id (id ...)
 
 =for comment help syntax-highlighting editor "
@@ -1040,6 +1069,9 @@ $self->_search_generic (sub {
     }, @_);
 }
 
+
+=for html <a name="search_name"></a>
+
 =item $resp = $st->search_name (name ...)
 
 =for comment help syntax-highlighting editor "
@@ -1088,6 +1120,8 @@ $self->_search_generic (sub {
 }
 
 
+=for html <a name="set"></a>
+
 =item $st->set ( ... )
 
 =for comment help syntax-highlighting editor "
@@ -1123,6 +1157,8 @@ while (@_) {
 HTTP::Response->new (RC_OK, undef, undef, COPACETIC);
 }
 
+
+=for html <a name="shell"></a>
 
 =item $st->shell ()
 
@@ -1249,6 +1285,8 @@ $print->("\n") if -t STDIN && !$self->{filter};
 }
 
 
+=for html <a name="source"></a>
+
 =item $st->source ($filename);
 
 This convenience method reads the given file, and passes the individual
@@ -1263,6 +1301,8 @@ $self ||= Astro::SpaceTrack->new ();
 $self->shell ($self->_source (@_), 'exit');
 }
 
+
+=for html <a name="spaceflight"></a>
 
 =item $resp = $st->spaceflight ()
 
@@ -1366,6 +1406,8 @@ $self->_dump_headers ($resp) if $self->{dump_headers};
 $resp;
 }
 
+
+=for html <a name="spacetrack"></a>
 
 =item $resp = $st->spacetrack ($name_or_number);
 
@@ -2065,6 +2107,9 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
  0.021 13-Jul-2006 T. R. Wyant
    Add -all qualifier to spaceflight().
    Add search_date().
+ 0.021_01 13-Jul-2006 T. R. Wyant
+   Fix POD (I hope).
+
 
 =head1 ACKNOWLEDGMENTS
 
