@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.021_01';
+$VERSION = '0.021_02';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -1309,11 +1309,9 @@ $self->shell ($self->_source (@_), 'exit');
 =for comment help syntax-highlighting editor "
 
 This method downloads current orbital elements from NASA's human
-spaceflight site, L<http://spaceflight.nasa.gov/>. As of November 2005
-you get the International Space Station. An attempt is made to get the
-current Space Shuttle mission if any, but as there is no way to test
-this unless there is a mission in progress, whether this works is
-anybody's guess.
+spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 2006
+you get the International Space Station, and the current Space Shuttle
+mission, if any.
 
 No Space Track account is needed to access this data, even if the
 'direct' attribute is false. But if the 'direct' attribute is true,
