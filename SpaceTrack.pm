@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022';
+$VERSION = '0.022_01';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -154,6 +154,14 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	radar => {name => 'Radar Calibration'},
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
+	},
+    spaceflight => {
+	iss => {name => 'International Space Station',
+		url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
+		},
+	shuttle => {name => 'Current shuttle mission',
+		url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
+		},
 	},
     spacetrack => {
 	md5 => {name => 'MD5 checksums', number => 0, special => 1},
@@ -1340,13 +1348,23 @@ my $opt = _parse_retrieve_dates (shift, {perldate => 1});
 
 $opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
 
+my @list;
+if (@_) {
+    foreach (@_) {
+	my $info = $catalogs{spaceflight}{lc $_} or
+	    return $self->_no_such_catalog (spaceflight => $_);
+	push @list, $info->{url};
+	}
+    }
+  else {
+    my $hash = $catalogs{spaceflight};
+    @list = map {$hash->{$_}{url}} sort keys %$hash;
+    }
+
 my $content = '';
 my $now = time ();
 my %tle;
-foreach my $url (
-	'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
-	'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
-	) {
+foreach my $url (@list) {
     my $resp = $self->{agent}->get ($url);
     return $resp unless $resp->is_success;
     my (@data, $acquire);
@@ -1403,7 +1421,6 @@ $resp->push_header (pragma => 'spacetrack-type = orbit');
 $self->_dump_headers ($resp) if $self->{dump_headers};
 $resp;
 }
-
 
 =for html <a name="spacetrack"></a>
 
@@ -1685,6 +1702,7 @@ goto &_mutate_attrib;
 
 my %no_such_lead = (
     celestrak => "No such CelesTrak catalog as '%s'.",
+    spaceflight => "No such Manned Spaceflight catalog as '%s'.",
     spacetrack => "No such Space Track catalog as '%s'.",
     );
 sub _no_such_catalog {
