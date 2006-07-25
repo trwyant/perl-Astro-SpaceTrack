@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022_01';
+$VERSION = '0.022_02';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -349,7 +349,7 @@ This method returns a list of legal attribute names.
 
 =cut
 
-sub attribute_names {sort keys %mutator}
+sub attribute_names {wantarray ? sort keys %mutator : [sort keys %mutator]}
 
 
 =for html <a name="banner"></a>
@@ -1277,7 +1277,10 @@ Error - Failed to open $redir
 eod
     my $rslt = eval {$self->$verb (@args)};
     $@ and do {warn $@; next; };
-    if ($rslt->is_success) {
+    if (ref $rslt eq 'ARRAY') {
+	foreach (@$rslt) {print "$_\n"}
+	}
+      elsif ($rslt->is_success) {
 	my $content = $rslt->content;
 	chomp $content;
 	$print->(@fh, "$content\n")
@@ -1413,7 +1416,7 @@ $content .= join '',
 
 
 $content or
-    return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
+    return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_RECORDS);
 
 my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
 $self->{_content_type} = 'orbit';
