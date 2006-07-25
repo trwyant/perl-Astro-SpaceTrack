@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.016_01';
+our $VERSION = '0.016_02';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -82,13 +82,13 @@ unless ($direct || ($rslt = $st->login ()) && $rslt->is_success) {
 #	logging in to Space Track.
 
 $direct = $st->get ('direct')->content ? 1 : 0;
-exit unless $st->get ('direct')->content || $rslt && $rslt->is_success;
+exit unless $direct || $rslt && $rslt->is_success;
 
 
 #	The following main window gets used for everything except
 #	actual data display.
 
-my ($command, $current, $data, $label, $names);
+my ($command, $current, $data, $label, $names, $settings);
 $command = $data = $label = '';
 $mw = MainWindow->new (-title => 'Retrieve satellite orbital data');
 
@@ -135,8 +135,27 @@ my %dswdgt = (
     spacetrack => $mw->Optionmenu (-options => ($st->names ('spacetrack'))[1],
 	-variable => \$dsdata{spacetrack}),
     file => $dsfile_widget,
-    spaceflight => $mw->Checkbutton (-variable => \$dsdata{spaceflight},
-	-relief => 'flat'),
+##    spaceflight => $mw->Checkbutton (-variable => \$dsdata{spaceflight},
+##	-relief => 'flat'),
+
+    spaceflight => eval {my $frame = $mw->Frame;
+		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{all},
+		-relief => 'flat')->grid (
+		    -row => 0, -column => 0, -sticky => 'w', @pad);
+		$frame->Label (-text => 'ISS:')->grid (
+		    -row => 0, -column => 1, -sticky => 'e', @pad);
+		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{iss},
+		    -relief => 'flat')->grid (
+		    -row => 0, -column => 2, -sticky => 'w', @pad);
+		$frame->Label (-text => 'Shuttle:')->grid (
+		    -row => 0, -column => 3, -sticky => 'e', @pad);
+		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{sts},
+		    -relief => 'flat')->grid (
+		    -row => 0, -column => 4, -sticky => 'w', @pad);
+		$dsdata{spaceflight}{iss} = $dsdata{spaceflight}{sts} = 1;
+		$frame
+		},
+
     search_name => $mw->Entry (-relief => 'sunken',
 	-textvariable => \$dsdata{search_name}),
     search_id => $mw->Entry (-relief => 'sunken',
@@ -147,7 +166,12 @@ my %dswdgt = (
 	-textvariable => \$dsdata{retrieve}),
     );
 my %dsxfrm = (
-    spaceflight => sub {$_[0] ? ('-all') : ()},
+    spaceflight => sub {
+	my @rslt;
+	push @rslt, '-all' if $dsdata{spaceflight}{all};
+	push @rslt, 'iss' if $dsdata{spaceflight}{iss};
+	push @rslt, 'shuttle' if $dsdata{spaceflight}{sts};
+	@rslt},
     retrieve => sub {(split '\s+', $_[0])},
     );
 
@@ -157,10 +181,7 @@ my %dsxfrm = (
 #	a redistributor - if so, we omit any option that comes
 #	directly from Space Track.
 
-$row = $col = 0;
-$mw->Label (-text => $direct ? 'Data source:' : 'Object ID source:')
-	->grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
-$mw->Optionmenu (-options =>
+my @mainopts = 
 	([  ['Celestrak catalog' => 'celestrak'],
 	    ['Space Track catalog' => 'spacetrack'],
 	    ['Human Space Flight data' => 'spaceflight'],
@@ -177,13 +198,18 @@ $mw->Optionmenu (-options =>
 	    ['Human Space Flight data' => 'spaceflight'],
 	    ['Radio Amateur Satellite Corporation data' => 'amsat'],
 	    ],
-	)[$direct],
+	);
+$row = $col = 0;
+$mw->Label (-text => $direct ? 'Data source:' : 'Object ID source:')
+	->grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+my $mainwdgt = $mw->Optionmenu (-options => $mainopts[$direct],
     -variable => \$command, -command => sub {
-	$current and $current->gridForget ();
-	$label = $dslbl{$command};
-	$current = $dswdgt{$command} or return;
+	$current and $current->gridForget ();	# Drop current detail widget
+	$label = $dslbl{$command};		# Change label text to suit
+	$current = $dswdgt{$command} or return;	# Get new detail widget.
 	$current->grid (-row => 1, -column => 1, -sticky => 'w', @pad);
-	})->grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+	},
+    )->grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
 
 
 #	Draw the detail widgets for the currently-selected source.
@@ -199,26 +225,34 @@ $current->grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
 #	If we're direct-fetching, turn on common names. Otherwise
 #	display the common-names checkbox.
 
-if ($st->get ('direct')->content) {
-    $names = 0;
-    $st->set (with_name => $names);
-    }
-  else {
-    $row++; $col = 0;
-    $mw->Label (-text => 'Include common names:')
-	->grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
-    $mw->Checkbutton (-variable => \$names, -relief => 'flat', -command => sub {
-	$st->set (with_name => $names);
-	})
-	->grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
-    $names = !!$st->get ('with_name')->content;
-    }
+{	# Begin local symbol block.
+    $row++;
+    my $widgetrow = $row;
+    my $label = $mw->Label (-text => 'Include common names:');
+    my $check = $mw->Checkbutton (-variable => \$names, -relief => 'flat',
+	-command => sub {$st->set (with_name => $names)});
+    sub common_names {
+	if ($direct) {
+	    $label->gridForget;
+	    $check->gridForget;
+	    }
+	  else {
+	    $label->grid (-row => $widgetrow, -column => 0,
+		-sticky => 'e', @pad);
+	    $check->grid (-row => $widgetrow, -column => 1,
+		-sticky => 'w', @pad);
+	    }
+	$names = !!$st->get ('with_name')->content;
+	}
+    }	# End local symbol block.
+$direct or common_names ();
 
 
 #	Insert the pushbuttons at the bottom of the window.
 
 $row++; $col = 0;
-my $bf = $mw->Frame->grid (-row => $row, -column => 0, -columnspan => 2, -sticky => 'ew');
+my $bf = $mw->Frame->grid (-row => $row, -column => 0,
+    -columnspan => 2, -sticky => 'ew');
 
 
 #	... Exit
@@ -230,18 +264,18 @@ $bf->Button (-text => 'Exit', -command => sub {$mw->destroy})
 #	... View data ...
 
 $bf->Button (-text => 'View data ...', -command => sub {
-	my $vw = $mw->Toplevel ();
-	my $tx = $vw->Scrolled ('Text', -relief => 'sunken',
-		-scrollbars => 'oe');
-	$tx->pack (-expand => 1, -fill => 'both');
-	$rslt = $st->$command ($dsxfrm{$command} ?
+	my @args = $dsxfrm{$command} ?
 		($dsxfrm{$command}->($dsdata{$command})) :
-		$dsdata{$command});
+		($dsdata{$command});
+	$rslt = $st->$command (@args);
 	if ($rslt->is_success) {
+	    my $vw = $mw->Toplevel ();
+	    my $tx = $vw->Scrolled ('Text', -relief => 'sunken',
+		    -scrollbars => 'oe');
+	    $tx->pack (-expand => 1, -fill => 'both');
 	    $tx->insert ('0.0', $rslt->content);
-	    $vw->title ($dsdata{$command} ?
-		"$command $dsdata{$command}" : $command);
-	    }
+	    $vw->title ("$command @args");
+	}
 	  else {
 	    $mw->messageBox (-icon => 'error', -type => 'OK',
 		-title => 'Data fetch error', -message => $rslt->status_line);
@@ -276,6 +310,26 @@ $bf->Button (-text => 'Save data ...', -command => sub {
 	})
 	->grid (-row => 0, -column => $col++, -sticky => 'ew', @pad);
 
+#	... Settings ...
+
+$bf->Button (-text => 'Settings ...', -command => \&settings)
+	->grid (-row => 0, -column => $col++, -sticky => 'ew', @pad);
+
+#	... Help ...
+
+$bf->Button (-text => 'Help ...', -command => sub {
+		$rslt = $st->help ();
+		if ($rslt->is_success && !$st->get ('webcmd')->content) {
+		    my $vw = $mw->Toplevel ();
+		    my $tx = $vw->Scrolled ('Text', -relief => 'sunken',
+			    -scrollbars => 'oe');
+		    $tx->pack (-expand => 1, -fill => 'both');
+		    $tx->insert ('0.0', $rslt->content);
+		    $vw->title ("help");
+		    }
+		})
+	->grid (-row => 0, -column => $col++, -sticky => 'ew', @pad);
+
 MainLoop;
 
 ########################################################################
@@ -299,6 +353,138 @@ MainLoop;
 
 1;
 }
+
+#	settings ()
+
+#	Display the settings window.
+
+sub settings {
+if ($settings && Exists ($settings)) {
+    $settings->raise;
+    return;
+    }
+my %authen = map {$_ => 1} qw{direct username password};
+my %data = (
+    direct => $st->get ('direct')->content,
+    max_range => $st->get ('max_range')->content,
+    password => $st->get ('password')->content,
+    username => $st->get ('username')->content,
+    verbose => $st->get ('verbose')->content,
+    webcmd => $st->get ('webcmd')->content,
+    );
+my %old = %data;
+$settings = $mw->Toplevel ();
+$settings->title ('Settings');
+
+my ($row, $col) = (0, 0);
+separator ($settings, $row++, 2, 'Access');
+
+$settings->Label (-text => 'Direct-fetch (no login):')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Checkbutton (-variable => \$data{direct}, -relief => 'flat')->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
+$settings->Label (-text => 'Username:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Entry (-relief => 'sunken',
+	-textvariable => \$data{username})->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+$row++; $col = 0;
+
+$settings->Label (-text => 'Password:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Entry (-relief => 'sunken',
+	-textvariable => \$data{password}, -show => '*')->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
+separator ($settings, $row++, 2, 'General settings');
+
+$settings->Label (-text => 'Max range:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Entry (-relief => 'sunken',
+	-textvariable => \$data{max_range})->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
+$settings->Label (-text => 'Verbose errors:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Checkbutton (-variable => \$data{verbose}, -relief => 'flat')->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
+$settings->Label (-text => 'Web command:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Entry (-relief => 'sunken',
+	-textvariable => \$data{webcmd})->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
+my $bf = $settings->Frame->grid (-row => $row, -column => 0,
+    -columnspan => 2, -sticky => 'ew');
+
+$bf->Button (-text => 'Save', -command => sub {
+		my $who;
+		foreach my $key (keys %data) {
+		    next if $data{$key} eq $old{$key};
+		    $who ||= $authen{$key};
+		    $st->set ($key, $data{$key});
+		    }
+		if ($who) {
+		    $direct = $data{direct} ? 1 : 0;
+		    unless ($direct) {
+			my $rslt = $st->login;
+			$rslt->is_success or do {
+			    $mw->messageBox (-icon => 'error', -type => 'OK',
+				-title => 'Data fetch error',
+				-message => $rslt->status_line);
+			    return;
+			    };
+			}
+		    }
+		$data{direct} eq $old{direct} or do {
+		    $mainwdgt->options ($mainopts[$direct]);
+		    common_names ();
+		    };
+		$settings->destroy;
+		})
+	->grid (-row => 0, -column => $col++, -sticky => 'ew', @pad);
+
+$bf->Button (-text => 'Cancel', -command => sub {$settings->destroy})
+	->grid (-row => 0, -column => $col++, -sticky => 'ew', @pad);
+
+=begin comment
+
+x addendum
+x banner
+  cookie_expires
+- direct
+x dump_headers
+x filter
+- max_range
+- password
+  session_cookie
+- username
+- verbose
+- webcmd
+x with_name
+
+=end comment
+
+=cut
+
+}
+
+sub separator {
+my ($parent, $row, $span, $text) = @_;
+my $pnl = $parent->Frame->grid (-row => $row, -column => 0,
+    -columnspan => $span, -sticky => 'ew');
+$pnl->Label (-text => $text)->
+    grid (-row => 0, -column => 0, -sticky => 'ew');
+$pnl;
+}
+
 __END__
 
 =head1 NAME
@@ -354,6 +540,9 @@ Please see L<Astro::SpaceTrack> for the details.
    Support spaceflight and amsat.
  0.016 13-Jul-2006 T. R. Wyant
    Support search_date().
+ 0.017 25-Jul-2006 T. R. Wyant
+   Support spaceflight -all, shuttle, iss.
+   Don't display data window when query fails.
 
 =head1 ACKNOWLEDGMENTS
 
