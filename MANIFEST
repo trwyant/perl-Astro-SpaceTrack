@@ -1,8 +1,10 @@
 bin/SpaceTrack
 bin/SpaceTrackTk
+Build.PL
 Changes
 MANIFEST
 Makefile.PL
+META.yml
 SpaceTrack.pm
 SpaceTrack/Parser.pm
 README
