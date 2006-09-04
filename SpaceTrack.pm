@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022_02';
+$VERSION = '0.022_03';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -691,38 +691,51 @@ status:
 
 =cut
 
-sub iridium_status {
-my $self = shift;
-delete $self->{_content_type};
-my %rslt;
-my $resp = $self->{agent}->get ("http://celestrak.com/SpaceTrack/query/iridium.txt");
-$resp->is_success or return $resp;
-foreach my $buffer (split '\n', $resp->content) {
-    $buffer =~ s/\s+$//;
-    my $id = substr ($buffer, 0, 5) + 0;
-    my $name = substr ($buffer, 5);
-    my $status = $name =~ m/^IRIDIUM/i ? '' : 'dum';
-    $name = ucfirst lc $name;
-    $rslt{$id} = sprintf "%6d   %-15s%-8s Celestrak\n",
-	$id, $name, $status;
+{	# Begin local symbol block.
+
+    my %status_map = (	# Map Kelso status to McCants status.
+	'S' => '?',	# spare
+	'-' => 'tum',	# tumbling
+	);
+
+    sub iridium_status {
+    my $self = shift;
+    delete $self->{_content_type};
+    my %rslt;
+    my $resp = $self->{agent}->get (
+	"http://celestrak.com/SpaceTrack/query/iridium.txt");
+    $resp->is_success or return $resp;
+    foreach my $buffer (split '\n', $resp->content) {
+	$buffer =~ s/\s+$//;
+	my $id = substr ($buffer, 0, 5) + 0;
+	my $name = substr ($buffer, 5);
+	$name =~ s/\s+\[([^\]]+)]\s*$//;
+	my $status = $status_map{$1 || ''} || '';
+	$status = 'dum' unless $name =~ m/^IRIDIUM/i;
+    ##    my $status = $name =~ m/^IRIDIUM/i ? '' : 'dum';
+	$name = ucfirst lc $name;
+	$rslt{$id} = sprintf "%6d   %-15s%-8s Celestrak\n",
+	    $id, $name, $status;
+	}
+    $resp = $self->{agent}->get (
+	'http://users2.ev1.net/~mmccants/tles/iridium.html');
+    $resp->is_success or return $resp;
+    foreach my $buffer (split '\n', $resp->content) {
+	$buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
+	my $id = $1 + 0;
+	$buffer =~ s/\s+$//;
+	$rslt{$id} = $buffer . "\n";
+    #0         1         2         3         4         5         6         7
+    #01234567890123456789012345678901234567890123456789012345678901234567890
+    # 24836   Iridium 914    tum      Failed; was called Iridium 14
+	}
+    $resp->content (join '', map {$rslt{$_}} sort {$a <=> $b} keys %rslt);
+    $self->{_content_type} = 'iridium-status';
+    $resp->push_header (pragma => 'spacetrack-type = iridium-status');
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $resp;
     }
-$resp = $self->{agent}->get ('http://users2.ev1.net/~mmccants/tles/iridium.html');
-$resp->is_success or return $resp;
-foreach my $buffer (split '\n', $resp->content) {
-    $buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
-    my $id = $1 + 0;
-    $buffer =~ s/\s+$//;
-    $rslt{$id} = $buffer . "\n";
-#0         1         2         3         4         5         6         7
-#01234567890123456789012345678901234567890123456789012345678901234567890
-# 24836   Iridium 914    tum      Failed; was called Iridium 14
-    }
-$resp->content (join '', map {$rslt{$_}} sort {$a <=> $b} keys %rslt);
-$self->{_content_type} = 'iridium-status';
-$resp->push_header (pragma => 'spacetrack-type = iridium-status');
-$self->_dump_headers ($resp) if $self->{dump_headers};
-$resp;
-}
+}	# End of local symbol block.
 
 
 =for html <a name="login"></a>
