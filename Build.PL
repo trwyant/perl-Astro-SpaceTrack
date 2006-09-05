@@ -11,14 +11,14 @@ my $bldr = Module::Build->new (
 	dist_author => 'Tom Wyant (wyant at cpan dot org)',
 	dist_abstract => 'Download satellite orbital elements from Space Track',
 	module_name => 'Astro::SpaceTrack',
-	dist_name => 'Astro-SpaceTrack',
-	dist_version_from => 'SpaceTrack.pm',
+##	dist_name => 'Astro-SpaceTrack',
+##	dist_version_from => 'SpaceTrack.pm',
 
 	get_options => {y => {}, n => {}},
-	pm_files => {
-	    'SpaceTrack.pm' => 'lib/Astro/SpaceTrack.pm',
-	    'SpaceTrack/Parser.pm' => 'lib/Astro/SpaceTrack/Parser.pm',
-	    },
+##	pm_files => {
+##	    'SpaceTrack.pm' => 'lib/Astro/SpaceTrack.pm',
+##	    'SpaceTrack/Parser.pm' => 'lib/Astro/SpaceTrack/Parser.pm',
+##	    },
 	dynamic_config => 1,
 	license => 'perl',
 	);

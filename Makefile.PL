@@ -97,7 +97,7 @@ my $vers = '';
 
 WriteMakefile (
 	NAME => 'Astro::SpaceTrack',
-	VERSION_FROM => 'SpaceTrack.pm',
+	VERSION_FROM => 'lib/Astro/SpaceTrack.pm',
 	PREREQ_PM => {
 			$^O eq 'MSWin32' ? () : (
 				'LWP::UserAgent' => 0,
