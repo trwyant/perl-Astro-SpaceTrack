@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022_03';
+$VERSION = '0.022_04';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -187,6 +187,7 @@ my %mutator = (	# Mutators for the various attributes.
     direct => \&_mutate_attrib,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
     filter => \&_mutate_attrib,
+    iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
     password => \&_mutate_attrib,
     session_cookie => \&_mutate_cookie,
@@ -255,6 +256,7 @@ my $self = {
     cookie_expires => undef,
     dump_headers => 0,	# No dumping.
     filter => 0,	# Filter mode.
+    iridium_status_format => 'mccants',	# For historical reasons.
     max_range => 500,	# Sanity limit on range size.
     password => undef,	# Login password.
     session_cookie => undef,
@@ -664,15 +666,31 @@ eod
 
 =for comment help syntax-highlighting editor "
 
-This method queries Mike McCants' "Status of Iridium Payloads" web
+This method queries its sources of Iridium status, returning an
+HTTP::Response object containing the relevant data (if all queries
+succeeded) or the status of the first failure. If the queries succeed,
+the content is a series of lines formatted by "%6d   %-15s%-8s %s\n",
+with NORAD ID, name, status, and comment substituted in. What actually
+appears in the status and comment depends on the contents of the
+L<|/iridium_status_format> attribute as follows:
+
+If the format is 'kelso', only celestrak.com is queried for the
+data. The possible status values are:
+
+    '[S]' - Spare;
+    '[-]' - Tumbling (or otherwise unservicable);
+    '' - In service and able to produce predictable flares.
+
+The comment will be 'Spare', 'Tumbling', or '' depending on the status.
+
+If the format is 'mccants', the primary source of information
+will be Mike McCants' "Status of Iridium Payloads" web
 page, http://users2.ev1.net/~mmccants/tles/iridium.html (which gives
-status on non-function Iridium satellites) and the Celestrak list of
-all Iridium satellites. It returns an HTTP::Response object. If the
-query was successful, the content of the object is the status table
-from Mike McCants' page, with the Celestrak data merged in so that
-all Iridium satellites are represented. The Celestrak data are
-identified with the word 'Celestrak' in the comment field. Any other
-comment indicates data from Mike McCants.
+status on non-functional Iridium satellites). The Celestrak list
+will be used to fill in the functioning satellites so that a complete
+list is generated. The comment will be whatever text is provided by
+Mike McCants' web page, or 'Celestrak' if the satellite data came
+from that source.
 
 As of 20-Feb-2006 Mike's web page documented the possible statuses as
 follows:
@@ -687,19 +705,36 @@ status:
 
  'dum' - Dummy mass
 
+A blank status indicates that the satellite is in service and
+therefore capable of producing flares.
+
+If the method is called in list context, the first element of the
+returned list will be the HTTP::Response object, and the second
+element will be a reference to a list of anonymous lists, each
+containing [$id, $name, $status, $comment] for an Iridium satellite.
+
 =for comment help syntax-highlighting editor "
 
 =cut
 
 {	# Begin local symbol block.
 
+    my %kelso_comment = (	# Expand Kelso status.
+	'[S]' => 'Spare',
+	'[-]' => 'Tumbling',
+	);
     my %status_map = (	# Map Kelso status to McCants status.
-	'S' => '?',	# spare
-	'-' => 'tum',	# tumbling
+	kelso => {
+	    mccants => {
+		'[S]' => '?',	# spare
+		'[-]' => 'tum',	# tumbling
+		},
+	    },
 	);
 
     sub iridium_status {
     my $self = shift;
+    my $fmt = $self->{iridium_status_format};
     delete $self->{_content_type};
     my %rslt;
     my $resp = $self->{agent}->get (
@@ -709,31 +744,44 @@ status:
 	$buffer =~ s/\s+$//;
 	my $id = substr ($buffer, 0, 5) + 0;
 	my $name = substr ($buffer, 5);
-	$name =~ s/\s+\[([^\]]+)]\s*$//;
-	my $status = $status_map{$1 || ''} || '';
-	$status = 'dum' unless $name =~ m/^IRIDIUM/i;
-    ##    my $status = $name =~ m/^IRIDIUM/i ? '' : 'dum';
+	$name =~ s/\s+(\[[^\]]+])\s*$//;
+	my $status = $1 || '';
+	my $comment;
+	if ($fmt eq 'kelso') {
+	    $comment = $kelso_comment{$status} || '';
+	    }
+	  else {
+	    $status = $status_map{kelso}{$fmt}{$status} || '';
+	    $status = 'dum' unless $name =~ m/^IRIDIUM/i;
+	    $comment = 'Celestrak';
+	    }
 	$name = ucfirst lc $name;
-	$rslt{$id} = sprintf "%6d   %-15s%-8s Celestrak\n",
-	    $id, $name, $status;
+##	$rslt{$id} = sprintf "%6d   %-15s%-8s %s\n",
+##	    $id, $name, $status, $comment;
+	$rslt{$id} = [$id, $name, $status, $comment];
+    }
+    if ($fmt eq 'mccants') {
+	$resp = $self->{agent}->get (
+	    'http://users2.ev1.net/~mmccants/tles/iridium.html');
+	$resp->is_success or return $resp;
+	foreach my $buffer (split '\n', $resp->content) {
+	    $buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
+	    my ($id, $name, $status, $comment) =
+	        map {s/\s+$//; s/^\s+//; $_ || ''}
+		$buffer =~ m/(.{8})(.{0,15})(.{0,9})(.*)/;
+	    $rslt{$id} = [$id, $name, $status, $comment];
+	#0         1         2         3         4         5         6         7
+	#01234567890123456789012345678901234567890123456789012345678901234567890
+	# 24836   Iridium 914    tum      Failed; was called Iridium 14
+	    }
 	}
-    $resp = $self->{agent}->get (
-	'http://users2.ev1.net/~mmccants/tles/iridium.html');
-    $resp->is_success or return $resp;
-    foreach my $buffer (split '\n', $resp->content) {
-	$buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
-	my $id = $1 + 0;
-	$buffer =~ s/\s+$//;
-	$rslt{$id} = $buffer . "\n";
-    #0         1         2         3         4         5         6         7
-    #01234567890123456789012345678901234567890123456789012345678901234567890
-    # 24836   Iridium 914    tum      Failed; was called Iridium 14
-	}
-    $resp->content (join '', map {$rslt{$_}} sort {$a <=> $b} keys %rslt);
+    $resp->content (join '', map {
+	    sprintf "%6d   %-15s%-8s %s\n", @{$rslt{$_}}}
+	sort {$a <=> $b} keys %rslt);
     $self->{_content_type} = 'iridium-status';
     $resp->push_header (pragma => 'spacetrack-type = iridium-status');
     $self->_dump_headers ($resp) if $self->{dump_headers};
-    $resp;
+    wantarray ? ($resp, [values %rslt]) : $resp;
     }
 }	# End of local symbol block.
 
@@ -1701,6 +1749,12 @@ $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
 goto &_mutate_attrib;
 }
 
+sub _mutate_iridium_status_format {
+die "Error - Illegal status format '$_[2]'"
+    unless $_[2] eq 'kelso' || $_[2] eq 'mccants';
+$_[0]->{$_[1]} = $_[2];
+}
+
 #	_mutate_number croaks if the value to be set is not numeric.
 #	Otherwise it sets the value. Only unsigned integers pass.
 
@@ -1959,6 +2013,14 @@ mode, and prevents any output to STDOUT except orbital elements -- that
 is, if I found all the places that needed modification.
 
 The default is false (i.e. 0).
+
+=item iridium_status_format (string)
+
+This attribute specifies the format of the data returned by the
+L<iridium_status> method. Valid values are 'kelso' and 'mccants'.
+See that method for more information.
+
+The default is 'mccants'.
 
 =item max_range (number)
 
