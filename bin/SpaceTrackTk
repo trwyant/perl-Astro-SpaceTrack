@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.016_02';
+our $VERSION = '0.016_03';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -266,7 +266,8 @@ $bf->Button (-text => 'Exit', -command => sub {$mw->destroy})
 $bf->Button (-text => 'View data ...', -command => sub {
 	my @args = $dsxfrm{$command} ?
 		($dsxfrm{$command}->($dsdata{$command})) :
-		($dsdata{$command});
+		defined $dsdata{$command} ? ($dsdata{$command}) :
+		();
 	$rslt = $st->$command (@args);
 	if ($rslt->is_success) {
 	    my $vw = $mw->Toplevel ();
@@ -366,6 +367,7 @@ if ($settings && Exists ($settings)) {
 my %authen = map {$_ => 1} qw{direct username password};
 my %data = (
     direct => $st->get ('direct')->content,
+    iridium_status_format => $st->get ('iridium_status_format')->content,
     max_range => $st->get ('max_range')->content,
     password => $st->get ('password')->content,
     username => $st->get ('username')->content,
@@ -401,6 +403,13 @@ $settings->Entry (-relief => 'sunken',
 $row++; $col = 0;
 separator ($settings, $row++, 2, 'General settings');
 
+$settings->Label (-text => 'Iridium status format:')->
+    grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
+$settings->Optionmenu (-options => [qw{kelso mccants}],
+    -variable => \$data{iridium_status_format})->
+    grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
+
+$row++; $col = 0;
 $settings->Label (-text => 'Max range:')->
     grid (-row => $row, -column => $col++, -sticky => 'e', @pad);
 $settings->Entry (-relief => 'sunken',
