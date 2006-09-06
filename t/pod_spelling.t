@@ -13,7 +13,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.001';
+our $VERSION = '0.001_01';
 
 if ($skip) {
     skip ($skip, 1);
@@ -24,9 +24,12 @@ if ($skip) {
 }
 __DATA__
 Celestrak
+com
 IDs
 Kelso
+kelso
 McCants
+mccants
 NORAD
 Optionmenu
 STDERR
