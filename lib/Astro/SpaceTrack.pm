@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 use base qw{Exporter};
 use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022_04';
+$VERSION = '0.022_05';
 @EXPORT_OK = qw{shell};
 
 use Astro::SpaceTrack::Parser;
@@ -1750,7 +1750,7 @@ goto &_mutate_attrib;
 }
 
 sub _mutate_iridium_status_format {
-die "Error - Illegal status format '$_[2]'"
+croak "Error - Illegal status format '$_[2]'"
     unless $_[2] eq 'kelso' || $_[2] eq 'mccants';
 $_[0]->{$_[1]} = $_[2];
 }
