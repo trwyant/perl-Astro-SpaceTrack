@@ -61,7 +61,8 @@ Beginning with version 0.017, there is provision for retrieval of
 historical data.
 
 Nothing is exported by default, but the shell method/subroutine
-can be exported if you so desire.
+and the BODY_STATUS constants (see L</iridium_status>) can be
+exported if you so desire.
 
 Most methods return an HTTP::Response object. See the individual
 method document for details. Methods which return orbital data on
@@ -86,10 +87,14 @@ use 5.006;
 package Astro::SpaceTrack;
 
 use base qw{Exporter};
-use vars qw{$VERSION @EXPORT_OK};
 
-$VERSION = '0.022_05';
-@EXPORT_OK = qw{shell};
+our $VERSION = '0.023';
+our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
+    BODY_STATUS_IS_TUMBLING};
+our %EXPORT_TAGS = (
+    status => [qw{BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
+	BODY_STATUS_IS_TUMBLING}],
+);
 
 use Astro::SpaceTrack::Parser;
 use Carp;
@@ -603,7 +608,8 @@ The following commands are defined:
   help
     Display this help text.
   iridium_status
-    Status of Iridium satellites, from Mike McCants.
+    Status of Iridium satellites, from Mike McCants and/or
+    T. S. Kelso.
   login
     Acquire a session cookie. You must have already set the
     username and password attributes. This will be called
@@ -672,7 +678,7 @@ succeeded) or the status of the first failure. If the queries succeed,
 the content is a series of lines formatted by "%6d   %-15s%-8s %s\n",
 with NORAD ID, name, status, and comment substituted in. What actually
 appears in the status and comment depends on the contents of the
-L<|/iridium_status_format> attribute as follows:
+L</iridium_status_format> attribute as follows:
 
 If the format is 'kelso', only celestrak.com is queried for the
 data. The possible status values are:
@@ -711,13 +717,30 @@ therefore capable of producing flares.
 If the method is called in list context, the first element of the
 returned list will be the HTTP::Response object, and the second
 element will be a reference to a list of anonymous lists, each
-containing [$id, $name, $status, $comment] for an Iridium satellite.
+containing [$id, $name, $status, $comment, $portable_status] for
+an Iridium satellite. The portable statuses are:
+
+  0 = BODY_STATUS_IS_OPERATIONAL means object is operational
+  1 = BODY_STATUS_IS_SPARE means object is a spare
+  2 = BODY_STATUS_IS_TUMBLING means object is tumbling
+      or otherwise unservicable.
+
+The correspondence between the Kelso statuses and the portable
+statuses is pretty much one-to-one. In the McCants statuses, '?'
+identifies a spare, and anything else is considered to be
+tumbling.
+
+The BODY_STATUS constants are exportable using the :status tag.
 
 =for comment help syntax-highlighting editor "
 
 =cut
 
 {	# Begin local symbol block.
+
+    use constant BODY_STATUS_IS_OPERATIONAL => 0;
+    use constant BODY_STATUS_IS_SPARE => 1;
+    use constant BODY_STATUS_IS_TUMBLING => 2;
 
     my %kelso_comment = (	# Expand Kelso status.
 	'[S]' => 'Spare',
@@ -731,6 +754,21 @@ containing [$id, $name, $status, $comment] for an Iridium satellite.
 		},
 	    },
 	);
+    my %status_portable = (	# Map statuses to portable.
+	kelso => {
+	    ''	=> BODY_STATUS_IS_OPERATIONAL,
+	    '[-]' => BODY_STATUS_IS_TUMBLING,
+	    '[S]' => BODY_STATUS_IS_SPARE,
+	},
+	mccants => {
+	    '' => BODY_STATUS_IS_OPERATIONAL,
+	    '?' => BODY_STATUS_IS_SPARE,
+	    'dum' => BODY_STATUS_IS_TUMBLING,
+	    'man' => BODY_STATUS_IS_TUMBLING,
+	    'tum' => BODY_STATUS_IS_TUMBLING,
+	    'tum?' => BODY_STATUS_IS_TUMBLING,
+	},
+    );
 
     sub iridium_status {
     my $self = shift;
@@ -746,6 +784,7 @@ containing [$id, $name, $status, $comment] for an Iridium satellite.
 	my $name = substr ($buffer, 5);
 	$name =~ s/\s+(\[[^\]]+])\s*$//;
 	my $status = $1 || '';
+	my $portable_status = $status_portable{kelso}{$status};
 	my $comment;
 	if ($fmt eq 'kelso') {
 	    $comment = $kelso_comment{$status} || '';
@@ -756,9 +795,8 @@ containing [$id, $name, $status, $comment] for an Iridium satellite.
 	    $comment = 'Celestrak';
 	    }
 	$name = ucfirst lc $name;
-##	$rslt{$id} = sprintf "%6d   %-15s%-8s %s\n",
-##	    $id, $name, $status, $comment;
-	$rslt{$id} = [$id, $name, $status, $comment];
+	$rslt{$id} = [$id, $name, $status, $comment,
+	    $portable_status];
     }
     if ($fmt eq 'mccants') {
 	$resp = $self->{agent}->get (
@@ -769,7 +807,12 @@ containing [$id, $name, $status, $comment] for an Iridium satellite.
 	    my ($id, $name, $status, $comment) =
 	        map {s/\s+$//; s/^\s+//; $_ || ''}
 		$buffer =~ m/(.{8})(.{0,15})(.{0,9})(.*)/;
-	    $rslt{$id} = [$id, $name, $status, $comment];
+	    my $portable_status =
+		exists $status_portable{mccants}{$status} ?
+		    $status_portable{mccants}{$status} :
+		    BODY_STATUS_IS_TUMBLING;
+	    $rslt{$id} = [$id, $name, $status, $comment,
+		$portable_status];
 	#0         1         2         3         4         5         6         7
 	#01234567890123456789012345678901234567890123456789012345678901234567890
 	# 24836   Iridium 914    tum      Failed; was called Iridium 14
@@ -2203,7 +2246,17 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
    Add search_date().
  0.022 20-Jul-2006 T. R. Wyant
     Documentation corrections.
-
+ 0.023 08-Sep-2006 T. R. Wyant
+    Added spaceflight() pseudo-catalogs 'iss' and 'station'.
+    Have spaceflight() return NO_RECORDS on failure, not
+      NO_CAT_ID.
+    Have attribute_names() return list ref in scalar context.
+    Add attribute iridium_status_format; have iridium_status()
+      use this to decide who to access and what format to
+      return, including support for the new Celestrak status
+      information.
+    Have iridium_status() return parsed data with 'portable'
+      status if called in list context.
 
 =head1 ACKNOWLEDGMENTS
 

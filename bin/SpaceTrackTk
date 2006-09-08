@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.016_03';
+our $VERSION = '0.018';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -552,6 +552,8 @@ Please see L<Astro::SpaceTrack> for the details.
  0.017 25-Jul-2006 T. R. Wyant
    Support spaceflight -all, shuttle, iss.
    Don't display data window when query fails.
+ 0.018 - 08-Sep-2006 T. R. Wyant
+   Add settings window and help window.
 
 =head1 ACKNOWLEDGMENTS
 
