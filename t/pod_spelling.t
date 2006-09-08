@@ -13,7 +13,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.001_01';
+our $VERSION = '0.002';
 
 if ($skip) {
     skip ($skip, 1);
@@ -25,6 +25,7 @@ if ($skip) {
 __DATA__
 Celestrak
 com
+exportable
 IDs
 Kelso
 kelso
