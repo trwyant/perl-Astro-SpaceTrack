@@ -5,6 +5,9 @@ MANIFEST
 README
 bin/SpaceTrack
 bin/SpaceTrackTk
+eg/README
+eg/celestrak
+eg/spaceflight
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
 t/basic.t
