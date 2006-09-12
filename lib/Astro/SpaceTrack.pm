@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.023';
+our $VERSION = '0.023_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -330,6 +330,7 @@ foreach my $url (
 	) {
     my $resp = $self->{agent}->get ($url);
     return $resp unless $resp->is_success;
+    $self->_dump_headers ($resp) if $self->{dump_headers};
     my ($tle, @data, $epoch);
     foreach (split '\n', $resp->content) {
 	push @data, "$_\n";
@@ -452,6 +453,7 @@ if ($self->{direct}) {
     return $resp;
     }
   else {
+    $self->_dump_headers ($resp) if $self->{dump_headers};
     return $self->_handle_observing_list ($opt, $resp->content);
     }
 }
@@ -1684,7 +1686,11 @@ sub _dump_headers {
 my $self = shift;
 my $resp = shift;
 local $Data::Dumper::Terse = 1;
-warn "\nHeaders:\n", $resp->headers->as_string, "\nCookies:\n";
+my $rqst = $resp->request;
+$rqst = ref $rqst ? $rqst->as_string : "undef\n";
+chomp $rqst;
+warn "\nRequest:\n$rqst\nHeaders:\n",
+    $resp->headers->as_string, "\nCookies:\n";
 $self->{agent}->cookie_jar->scan (sub {
     _dump_cookie ("\n", @_);
     });
