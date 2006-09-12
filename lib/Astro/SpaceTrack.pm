@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.023_01';
+our $VERSION = '0.024';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2263,6 +2263,10 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
       information.
     Have iridium_status() return parsed data with 'portable'
       status if called in list context.
+ 0.024 12-Sep-2006 T. R. Wyant
+    No substantive changes to this module, but retracted
+      t/pod_spelling.t, and tried to make Build.PL work with
+      ActiveState's build system.
 
 =head1 ACKNOWLEDGMENTS
 
