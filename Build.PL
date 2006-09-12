@@ -7,21 +7,24 @@ use Config;
 use FileHandle;
 use Module::Build;
 
+#	Try to deal with ActivePerl weirdness.
+
+@ARGV = () if @ARGV && $ARGV[0] eq 'Build';
+
+#	Generate a builder object.
+
 my $bldr = Module::Build->new (
 	dist_author => 'Tom Wyant (wyant at cpan dot org)',
 	dist_abstract => 'Download satellite orbital elements from Space Track',
 	module_name => 'Astro::SpaceTrack',
 ##	dist_name => 'Astro-SpaceTrack',
 ##	dist_version_from => 'SpaceTrack.pm',
-
 	get_options => {y => {}, n => {}},
-##	pm_files => {
-##	    'SpaceTrack.pm' => 'lib/Astro/SpaceTrack.pm',
-##	    'SpaceTrack/Parser.pm' => 'lib/Astro/SpaceTrack/Parser.pm',
-##	    },
 	dynamic_config => 1,
 	license => 'perl',
 	);
+
+#	Find out what the user wants to do.
 
 my %opt => $bldr->args ();
 
@@ -104,9 +107,13 @@ eod
 ##my $vers = $] >= 5.008 ? '-5.8' : '';
 my $vers = '';
 
+#	Tell Module::Build what we want to do.
+
 $bldr->requires ($^O eq 'MSWin32' ? {} : {'LWP::UserAgent' => 0});
 $bldr->add_to_cleanup (\@clean_files);
 $bldr->script_files (\@exe_files);
+
+#	Generate the build script, at long last.
 
 $bldr->create_build_script ();
 
