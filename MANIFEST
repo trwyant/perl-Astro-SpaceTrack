@@ -7,6 +7,8 @@ bin/SpaceTrack
 bin/SpaceTrackTk
 eg/README
 eg/celestrak
+eg/sh_data
+eg/sh_script
 eg/spaceflight
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
