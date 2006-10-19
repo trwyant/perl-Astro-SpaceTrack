@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 17);
+plan (tests => 18);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -163,6 +163,11 @@ $test_num++;
 print "# Test $test_num - Get Iridium status.\n";
 skip ($skip_celestrak || $skip_mccants,
     $skip_celestrak || $skip_mccants || $st->iridium_status()->is_success);
+
+$test_num++;
+print "# Test $test_num - Get Iridium status (Kelso only).\n";
+$st->set (iridium_status_format => 'kelso');
+skip ($skip_celestrak, $skip_celestrak || $st->iridium_status()->is_success);
 
 $test_num++;
 print "# Test $test_num - Retrieve historical elements.\n";
