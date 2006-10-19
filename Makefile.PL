@@ -102,8 +102,8 @@ WriteMakefile (
 			$^O eq 'MSWin32' ? () : (
 				'LWP::UserAgent' => 0,
 				)
-				
 			},
+	PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
 	EXE_FILES => \@exe_files,
 #	'linkext' => {LINKTYPE => ''},
 	'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},

@@ -7,10 +7,6 @@ use Config;
 use FileHandle;
 use Module::Build;
 
-#	Try to deal with ActivePerl weirdness.
-
-@ARGV = () if @ARGV && $ARGV[0] eq 'Build';
-
 #	Generate a builder object.
 
 my $bldr = Module::Build->new (
