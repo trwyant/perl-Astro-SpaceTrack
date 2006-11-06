@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.025';
+our $VERSION = '0.025_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -196,6 +196,8 @@ my %mutator = (	# Mutators for the various attributes.
     max_range => \&_mutate_number,
     password => \&_mutate_attrib,
     session_cookie => \&_mutate_cookie,
+    url_iridium_status_kelso => \&_mutate_attrib,
+    url_iridium_status_mccants => \&_mutate_attrib,
     username => \&_mutate_attrib,
     verbose => \&_mutate_attrib,
     webcmd => \&_mutate_attrib,
@@ -265,6 +267,10 @@ my $self = {
     max_range => 500,	# Sanity limit on range size.
     password => undef,	# Login password.
     session_cookie => undef,
+    url_iridium_status_kelso =>
+	'http://celestrak.com/SpaceTrack/query/iridium.txt',
+    url_iridium_status_mccants =>
+	'http://www.io.com/~mmccants/tles/iridium.html',
     username => undef,	# Login username.
     verbose => undef,	# Verbose error messages for catalogs.
     webcmd => undef,	# Command to get web help.
@@ -693,7 +699,7 @@ The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 
 If the format is 'mccants', the primary source of information
 will be Mike McCants' "Status of Iridium Payloads" web
-page, http://users2.ev1.net/~mmccants/tles/iridium.html (which gives
+page, http://www.io.com/~mmccants/tles/iridium.html (which gives
 status on non-functional Iridium satellites). The Celestrak list
 will be used to fill in the functioning satellites so that a complete
 list is generated. The comment will be whatever text is provided by
@@ -779,8 +785,8 @@ The BODY_STATUS constants are exportable using the :status tag.
     my $fmt = $self->{iridium_status_format};
     delete $self->{_content_type};
     my %rslt;
-    my $resp = $self->{agent}->get (
-	"http://celestrak.com/SpaceTrack/query/iridium.txt");
+    my $kelso_url = $self->get ('url_iridium_status_kelso')->content;
+    my $resp = $self->{agent}->get ($kelso_url);
     $resp->is_success or return $resp;
     foreach my $buffer (split '\n', $resp->content) {
 	$buffer =~ s/\s+$//;
@@ -803,8 +809,8 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    $portable_status];
     }
     if ($fmt eq 'mccants') {
-	$resp = $self->{agent}->get (
-	    'http://users2.ev1.net/~mmccants/tles/iridium.html');
+	my $mccants_url = $self->get ('url_iridium_status_mccants')->content;
+	$resp = $self->{agent}->get ($mccants_url);
 	$resp->is_success or return $resp;
 	foreach my $buffer (split '\n', $resp->content) {
 	    $buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
