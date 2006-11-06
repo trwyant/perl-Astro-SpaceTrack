@@ -121,7 +121,7 @@ foreach (["Mike McCants' Iridium status",
  27451   Iridium 98     ?        Moving between planes (June 2005)
 eod
 	["T. S. Kelso's Iridium list",
-	$skip_mc, $kelso_txt,
+	$skip_ke, $kelso_txt,
 	kelso => <<eod],
  24792   Iridium 8      [+]      
  24793   Iridium 7      [+]      
