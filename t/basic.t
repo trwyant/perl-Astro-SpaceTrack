@@ -44,7 +44,7 @@ use constant NOACCESS => 'Site not accessible.';
 my $skip_celestrak = NOACCESS
     unless $agt->get ('http://celestrak.com/')->is_success;
 my $skip_mccants = NOACCESS
-    unless $agt->get ('http://users2.ev1.net/~mmccants/tles/iridium.html')->is_success;
+    unless $agt->get ('http://www.io.com/~mmccants/tles/iridium.html')->is_success;
 my $skip_spaceflight = NOACCESS
     unless $agt->get ('http://spaceflight.nasa.gov/')->is_success;
 my $skip_amsat = NOACCESS
