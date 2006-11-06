@@ -88,7 +88,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.025_01';
+our $VERSION = '0.026';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2100,6 +2100,24 @@ with a previously-retrieved value.
 
 The default is an empty string.
 
+=item url_iridium_status_kelso (text)
+
+This attribute specifies the location of the celestrak.com Iridium
+information. You should normally not change this, but it is provided
+so you will not be dead in the water if Dr. Kelso needs to re-arrange
+his web site.
+
+The default is 'http://celestrak.com/SpaceTrack/query/iridium.txt'
+
+=item url_iridium_status_mccants (text)
+
+This attribute specifies the location of Mike McCants' Iridium status
+page. You should normally not change this, but it is provided so you
+will not be dead in the water if Mr. McCants needs to change his
+ISP or re-arrange his web site.
+
+The default is 'http://www.io.com/~mmccants/tles/iridium.html'
+
 =item username (text)
 
 This attribute specifies the Space-Track username.
@@ -2279,6 +2297,11 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
     Recognize new Kelso Iridium status '[+]' = working.
     Make Makefile.PL not run Build.PL with old MakeMaker.
     Retract kluge to Build.PL, which is no longer needed.
+ 0.026 06-Nov-2006 T. R. Wyant
+    New location for Mike McCants' Iridium status page.
+    New attributes url_iridium_status_kelso and
+      url_iridium_status_mccants so users are not dead
+      in the water if this happens again.
 
 =head1 ACKNOWLEDGMENTS
 
