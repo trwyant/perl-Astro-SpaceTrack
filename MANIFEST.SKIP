@@ -5,8 +5,12 @@
 ^Changes_
 CVS/
 ^foo$
+^kelso\.expect$
+^kelso\.got$
 ^Makefile$
 ^MANIFEST\.
+^mccants\.expect$
+^mccants\.got$
 ^pm_to_blib$
 ^t/iridium_status.t$
 ^t/manifest.t$
