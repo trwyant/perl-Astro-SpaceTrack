@@ -6,6 +6,8 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
+my %known_inconsistent = map {$_ => 1} qw{24967 27450};
+
 my $st = Astro::SpaceTrack->new ();
 
 $st->set (iridium_status_format => 'mccants');
@@ -20,7 +22,16 @@ my $skip_ke = "Kelso data unavailable" unless $rslt->is_success;
 my $kelso_txt = $rslt->content unless $skip_ke;
 my %kelso_st = map {$_->[0] => $_->[4]} @$data if ref $data eq 'ARRAY';
 
-plan tests => 2 + scalar keys %mccants_st;
+my @todo;
+{	#	Begin local symbol block
+    my $test = 3;	# Skip the bulk compares
+    foreach my $id (sort keys %mccants_st) {
+	$known_inconsistent{$id} and push @todo, $test;
+	$test++;
+    }
+}
+
+plan tests => 2 + scalar keys %mccants_st, todo => \@todo;
 
 my $test = 0;
 
@@ -58,7 +69,7 @@ foreach (["Mike McCants' Iridium status",
  24950   Iridium 31              Celestrak
  24965   Iridium 19              Celestrak
  24966   Iridium 35              Celestrak
- 24967   Iridium 36              Celestrak
+ 24967   Iridium 36     ?        Iridium 97 moved next to it Jan. 10, 2007
  24968   Iridium 37              Celestrak
  24969   Iridium 34              Celestrak
  25039   Iridium 43              Celestrak
@@ -117,7 +128,7 @@ foreach (["Mike McCants' Iridium status",
  27374   Iridium 94     ?        Spare
  27375   Iridium 95     ?        Spare
  27376   Iridium 96     ?        Spare
- 27450   Iridium 97     ?        Spare
+ 27450   Iridium 97              Moved next to Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Moving between planes (June 2005)
 eod
 	["T. S. Kelso's Iridium list",
