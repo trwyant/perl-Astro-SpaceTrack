@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.026_01';
+our $VERSION = '0.026_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -158,6 +158,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
 	},
+    iridium_status => {
+	kelso => {name => 'Celestrak (Kelso)'},
+	mccants => {name => 'McCants'},
+    },
     spaceflight => {
 	iss => {name => 'International Space Station',
 		url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
@@ -662,15 +666,17 @@ eod
 
 =for html <a name="iridium_status"></a>
 
-=item $resp = $st->iridium_status ();
+=item $resp = $st->iridium_status ($format);
 
 This method queries its sources of Iridium status, returning an
 HTTP::Response object containing the relevant data (if all queries
 succeeded) or the status of the first failure. If the queries succeed,
 the content is a series of lines formatted by "%6d   %-15s%-8s %s\n",
-with NORAD ID, name, status, and comment substituted in. What actually
-appears in the status and comment depends on the contents of the
-L</iridium_status_format> attribute as follows:
+with NORAD ID, name, status, and comment substituted in.
+
+The source of the data and, to a certain extent, the format of the
+results is determined by the optional $format argument, which defaults
+to the value of the L</iridium_status_format> attribute.
 
 If the format is 'kelso', only celestrak.com is queried for the
 data. The possible status values are:
@@ -764,7 +770,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 
     sub iridium_status {
     my $self = shift;
-    my $fmt = $self->{iridium_status_format};
+    my $fmt = shift || $self->{iridium_status_format};
     delete $self->{_content_type};
     my %rslt;
     my $kelso_url = $self->get ('url_iridium_status_kelso')->content;
@@ -1807,7 +1813,8 @@ goto &_mutate_attrib;
 
 sub _mutate_iridium_status_format {
 croak "Error - Illegal status format '$_[2]'"
-    unless $_[2] eq 'kelso' || $_[2] eq 'mccants';
+##    unless $_[2] eq 'kelso' || $_[2] eq 'mccants';
+    unless $catalogs{iridium_status}{$_[2]};
 $_[0]->{$_[1]} = $_[2];
 }
 
@@ -2361,7 +2368,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 by Thomas R. Wyant, III
+Copyright 2005, 2006, 2007 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This module is free software; you can use it, redistribute it
