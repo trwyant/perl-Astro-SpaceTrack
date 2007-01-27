@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.018';
+our $VERSION = '0.018_01';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -122,6 +122,7 @@ $dsfile_widget->Button (-text => 'Find file ...', -command => sub {
 my %dslbl = (
     celestrak => 'Catalog name:',
     spacetrack => 'Catalog name:',
+    iridium_status => 'Data source:',
     file => 'Catalog file:',
     spaceflight => 'Retrieve all elements:',
     search_name => 'Name to search for:',
@@ -134,11 +135,11 @@ my %dswdgt = (
 	-variable => \$dsdata{celestrak}),
     spacetrack => $mw->Optionmenu (-options => ($st->names ('spacetrack'))[1],
 	-variable => \$dsdata{spacetrack}),
+    iridium_status => $mw->Optionmenu (-options => (
+	    $st->names ('iridium_status'))[1],
+	-variable => \$dsdata{iridium_status}),
     file => $dsfile_widget,
-##    spaceflight => $mw->Checkbutton (-variable => \$dsdata{spaceflight},
-##	-relief => 'flat'),
-
-    spaceflight => eval {my $frame = $mw->Frame;
+    spaceflight => do {my $frame = $mw->Frame;
 		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{all},
 		-relief => 'flat')->grid (
 		    -row => 0, -column => 0, -sticky => 'w', @pad);
@@ -155,17 +156,34 @@ my %dswdgt = (
 		$dsdata{spaceflight}{iss} = $dsdata{spaceflight}{sts} = 1;
 		$frame
 		},
-
-    search_name => $mw->Entry (-relief => 'sunken',
-	-textvariable => \$dsdata{search_name}),
+    search_name => search_options (search_name => 'name'),
+##    search_name => $mw->Entry (-relief => 'sunken',
+##	-textvariable => \$dsdata{search_name}),
     search_id => $mw->Entry (-relief => 'sunken',
 	-textvariable => \$dsdata{search_id}),
-    search_date => $mw->Entry (-relief => 'sunken',
-	-textvariable => \$dsdata{search_date}),
+    search_date => search_options (search_date => 'date'),
+##    search_date => $mw->Entry (-relief => 'sunken',
+##	-textvariable => \$dsdata{search_date}),
     retrieve => $mw->Entry (-relief => 'sunken',
 	-textvariable => \$dsdata{retrieve}),
     );
 my %dsxfrm = (
+    search_date => sub {
+	my @rslt;
+	push @rslt, '-status', $dsdata{search_date}{status};
+	my $excl = join ',', grep {$dsdata{search_date}{$_}
+	    } qw{debris rocket};
+	$excl and push @rslt, '-exclude', $excl;
+	push @rslt, $dsdata{search_date}{date};
+	@rslt},
+    search_name => sub {
+	my @rslt;
+	push @rslt, '-status', $dsdata{search_name}{status};
+	my $excl = join ',', grep {$dsdata{search_name}{$_}
+	    } qw{debris rocket};
+	$excl and push @rslt, '-exclude', $excl;
+	push @rslt, $dsdata{search_name}{name};
+	@rslt},
     spaceflight => sub {
 	my @rslt;
 	push @rslt, '-all' if $dsdata{spaceflight}{all};
@@ -485,6 +503,31 @@ x with_name
 
 }
 
+sub search_options {
+    my ($name, $data) = @_;
+    my $frame = $mw->Frame;
+    $frame->Entry (-relief => 'sunken',
+	-textvariable => \$dsdata{$name}{$data})->grid (
+	-row => 0, -column => 0, @pad);
+    $frame->Optionmenu (-options => [
+	    [All => 'all'],
+	    ['On orbit' => 'onorbit'],
+	    [Decayed => 'decayed'],
+	], -textvariable => \$dsdata{$name}{status})->grid (
+	-row => 0, -column => 1, @pad);
+    $dsdata{$name}{status} = 'all';
+    $frame->Label (-text => ' Exclude:')->grid (
+	-row => 0, -column => 2, @pad);
+    $frame->Checkbutton (-variable => \$dsdata{$name}{debris},
+	-text => 'debris', -relief => 'flat')->grid (
+	-row => 0, -column => 3, -sticky => 'w', @pad);
+    $frame->Checkbutton (-variable => \$dsdata{$name}{rocket},
+	-text => 'rocket', -relief => 'flat')->grid (
+	-row => 0, -column => 4, -sticky => 'w', @pad);
+    $dsdata{$name}{debris} = $dsdata{$name}{rocket} = 0;
+    $frame
+}
+
 sub separator {
 my ($parent, $row, $span, $text) = @_;
 my $pnl = $parent->Frame->grid (-row => $row, -column => 0,
@@ -569,7 +612,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 by Thomas R. Wyant, III
+Copyright 2005, 2006, 2007 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This script is free software; you can use it, redistribute it
