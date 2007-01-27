@@ -28,8 +28,6 @@ or
 
 =head1 LEGAL NOTICE
 
-=for comment help for syntax-highlighting editor that does not understand POD "
-
 The following two paragraphs are quoted from the Space Track web site.
 
 Due to existing National Security Restrictions pertaining to access of
@@ -88,7 +86,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.026';
+our $VERSION = '0.026_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -189,6 +187,7 @@ my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
     banner => \&_mutate_attrib,
     cookie_expires => \&_mutate_attrib,
+    debug_url => \&_mutate_attrib,	# Force the URL. Undocumented and unsupported.
     direct => \&_mutate_attrib,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
     filter => \&_mutate_attrib,
@@ -261,6 +260,7 @@ my $self = {
     agent => LWP::UserAgent->new (),
     banner => 1,	# shell () displays banner if true.
     cookie_expires => undef,
+    debug_url => undef,	# Not turned on
     dump_headers => 0,	# No dumping.
     filter => 0,	# Filter mode.
     iridium_status_format => 'mccants',	# For historical reasons.
@@ -308,8 +308,6 @@ return $self;
 
 =item $resp = $st->amsat ()
 
-=for comment Help syntax-highlighting editor. "
-
 This method downloads current orbital elements from the Radio Amateur
 Satellite Corporation's web page, L<http://www.amsat.org/>. This lists
 satellites of interest to radio amateurs, and appears to be updated
@@ -321,8 +319,6 @@ the setting of the 'with_name' attribute is ignored.
 
 This method is a web page scraper. any change in the location of the
 web page will break this method.
-
-=for comment Help syntax-highlighting editor. "
 
 =cut
 
@@ -370,13 +366,9 @@ sub attribute_names {wantarray ? sort keys %mutator : [sort keys %mutator]}
 
 =item $resp = banner ();
 
-=for comment help for syntax-highlighting editor "
-
 This method is a convenience/nuisance: it simply returns a fake
 HTTP::Response with standard banner text. It's really just for the
 benefit of the shell method.
-
-=for comment help for syntax-highlighting editor "
 
 =cut
 
@@ -545,16 +537,12 @@ return $self->_handle_observing_list ($opt, <$fh>)
 
 =item $resp = $st->get (attrib)
 
-=for comment help syntax-highlighting editor "
-
 B<This method returns an HTTP::Response object> whose content is the value
 of the given attribute. If called in list context, the second element
 of the list is just the value of the attribute, for those who don't want
 to winkle it out of the response object. We croak on a bad attribute name.
 
 See L</Attributes> for the names and functions of the attributes.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -577,16 +565,12 @@ return wantarray ? ($resp, $self->{$name}) : $resp;
 
 =item $resp = $st->help ()
 
-=for comment help syntax-highlighting editor "
-
 This method exists for the convenience of the shell () method. It
 always returns success, with the content being whatever it's
 convenient (to the author) to include.
 
 If the L<webcmd|/webcmd> attribute is set, the L<http://search.cpan.org/>
 web page for this version of Astro::Satpass is launched.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -636,6 +620,8 @@ The following commands are defined:
       addendum = extra text for the shell () banner;
       banner = false to supress the shell () banner;
       cookie_expires = Perl date the session cookie expires;
+      debug_url = Override canned url for debugging - do not
+        set this in normal use;
       direct = true to fetch orbital elements directly
         from a redistributer. Currently this only affects the
         celestrak() method. The default is false.
@@ -677,8 +663,6 @@ eod
 =for html <a name="iridium_status"></a>
 
 =item $resp = $st->iridium_status ();
-
-=for comment help syntax-highlighting editor "
 
 This method queries its sources of Iridium status, returning an
 HTTP::Response object containing the relevant data (if all queries
@@ -739,8 +723,6 @@ identifies a spare, and anything else is considered to be
 tumbling.
 
 The BODY_STATUS constants are exportable using the :status tag.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -843,8 +825,6 @@ The BODY_STATUS constants are exportable using the :status tag.
 
 =item $resp = $st->login ( ... )
 
-=for comment help syntax-highlighting editor "
-
 If any arguments are given, this method passes them to the set ()
 method. Then it executes a login. The return is normally the
 HTTP::Response object from the login. But if no session cookie was
@@ -853,8 +833,6 @@ and the code set to RC_UNAUTHORIZED from HTTP::Status (a.k.a. 401). If
 a login is attempted without the username and password being set, the
 return is an HTTP::Response with an appropriate message and the
 code set to RC_PRECONDITION_FAILED from HTTP::Status (a.k.a. 412).
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -896,15 +874,11 @@ HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 
 =item $resp = $st->names (source)
 
-=for comment help syntax-highlighting editor "
-
 This method retrieves the names of the catalogs for the given source,
 either 'celestrak' or 'spacetrack', in the content of the given
 HTTP::Response object. In list context, you also get a reference to
 a list of two-element lists; each inner list contains the description
 and the catalog name (suitable for inserting into a Tk Optionmenu).
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1076,8 +1050,6 @@ $resp;
 
 =item $resp = $st->search_date (date ...)
 
-=for comment help syntax-highlighting editor "
-
 This method searches the database for objects launched on the given
 date. The date is specified as year-month-day, with any non-digit being
 legal as the separator. You can omit -day or specify it as 0 to get
@@ -1085,6 +1057,48 @@ all launches for the given month. You can omit -month (or specify it
 as 0) as well to get all launches for the given year. There is no
 mechanism to restrict the search to a given date range, on-orbit
 status, or to filter out debris or rocket bodies.
+
+You can specify options for the search as either command-type options
+(e.g. search (-status => 'onorbit', ...)) or as a leading hash reference
+(e.g. search ({status => onorbit}, ...)). If you specify the hash
+reference, option names must be specified in full, without the leading
+'-', and the argument list will not be parsed for command-type options.
+Options that take multiple values (i.e. 'exclude') must have their
+values specified as a hash reference, even if you only specify one value
+- or none at all.
+
+If you specify command-type options, they may be abbreviated, as long as
+the abbreviation is unique. Errors in either sort of specification
+result in an exception being thrown.
+
+In attition to the options available for retireve(), the following
+options may be specified:
+
+ exclude
+   specifies the types of bodies to exclude. The
+   value is one or more of 'debris' or 'rocket'.
+   If you specify both as command-style options,
+   you may either specify the option more than once,
+   or specify the values comma-separated.
+ status
+   specifies the desired status of the returned body
+   (or bodies). Must be 'onorbit', 'decayed', or 'all'.
+   The default is 'all'. Note that this option
+   represents status at the time the search was done;
+   you can not combine it with the retrieve() date
+   options to find bodies onorbit as of a given date
+   in the past.
+
+Examples:
+
+ search_date (-status => 'onorbit', -exclude =>
+    'debris,rocket', -last5 '2005-12-25');
+ search_date (-exclude => 'debris',
+    -exclude => 'rocket', '2005/12/25');
+ search_date ({exclude => ['debris', 'rocket']},
+    '2005-12-25');
+ search_date ({exclude => 'debris,rocket'}, # INVALID!
+    '2005-12-25');
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1103,14 +1117,13 @@ added to the HTTP::Response object returned.
 
 You can specify the L</retrieve> options on this method as well.
 
-=for comment help syntax-highlighting editor "
-
 =cut
 
 sub search_date {
 my $self = shift;
+@_ = _parse_search_args (@_);
 $self->_search_generic (sub {
-    my ($self, $name) = @_;
+    my ($self, $name, $opt) = @_;
     my ($year, $month, $day) =
 	$name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
 	    or return undef;
@@ -1122,8 +1135,8 @@ $self->_search_generic (sub {
 	launch_year => $year,
 	launch_month => $month,
 	launch_day => $day,
-	status => 'all',	# or 'onorbit' or 'decayed'.
-##	exclude => '',		# or 'debris' or 'rocket' or both.
+	status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
+	exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
 	_sessionid => '',
 	_submit => 'submit',
 	_submitted => 1,
@@ -1135,8 +1148,6 @@ $self->_search_generic (sub {
 =for html <a name="search_id"></a>
 
 =item $resp = $st->search_id (id ...)
-
-=for comment help syntax-highlighting editor "
 
 This method searches the database for objects having the given
 international IDs. The international ID is the last two digits
@@ -1164,16 +1175,16 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L</retrieve> options on this method as well.
-
-=for comment help syntax-highlighting editor "
+You can specify the L</retrieve> and L</search_date> options on this
+method as well, though the L</search_date> options will be ignored.
 
 =cut
 
 sub search_id {
 my $self = shift;
+@_ = _parse_search_args (@_);
 $self->_search_generic (sub {
-    my ($self, $name) = @_;
+    my ($self, $name, $opt) = @_;
     my ($year, $number, $piece) =
 	$name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or return undef;
     $year += $year < 57 ? 2000 : 1900;
@@ -1182,8 +1193,8 @@ $self->_search_generic (sub {
 	launch_year => $year,
 	launch_number => $number || '',
 	piece => uc ($piece || ''),
-	status => 'all',	# or 'onorbit' or 'decayed'.
-##	exclude => '',		# or 'debris' or 'rocket' or both.
+	status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
+	exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
 	_sessionid => '',
 	_submit => 'submit',
 	_submitted => 1,
@@ -1195,8 +1206,6 @@ $self->_search_generic (sub {
 =for html <a name="search_name"></a>
 
 =item $resp = $st->search_name (name ...)
-
-=for comment help syntax-highlighting editor "
 
 This method searches the database for the named objects. Matches
 are case-insensitive and all matches are returned. There is no
@@ -1218,25 +1227,27 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L</retrieve> options on this method as well.
-
-=for comment help syntax-highlighting editor "
+You can specify the L</retrieve> and L</search_date> options on this
+method as well. The L</search_date> -status option is known to work,
+but I am not sure that the -exclude option excludes anything, based on
+a little poking around the web site.
 
 =cut
 
 sub search_name {
 my $self = shift;
+@_ = _parse_search_args (@_);
 $self->_search_generic (sub {
-    my ($self, $name) = @_;
+    my ($self, $name, $opt) = @_;
     $self->_post ('perl/name_query.pl',
+	_submitted => 1,
+	_sessionid => '',
 	name => $name,
 	launch_year_start => 1957,
 	launch_year_end => (gmtime)[5] + 1900,
-	status => 'all',	# or 'onorbit' or 'decayed'.
-##	exclude => '',		# or 'debris' or 'rocket' or both.
-	_sessionid => '',
+	status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
+	exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
 	_submit => 'Submit',
-	_submitted => 1,
 	);
     }, @_);
 }
@@ -1245,8 +1256,6 @@ $self->_search_generic (sub {
 =for html <a name="set"></a>
 
 =item $st->set ( ... )
-
-=for comment help syntax-highlighting editor "
 
 This is the mutator method for the object. It can be called explicitly,
 but other methods as noted may call it implicitly also. It croaks if
@@ -1258,8 +1267,6 @@ object with a success status if all goes well. But if we encounter an
 error we croak.
 
 See L</Attributes> for the names and functions of the attributes.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1283,8 +1290,6 @@ HTTP::Response->new (RC_OK, undef, undef, COPACETIC);
 =for html <a name="shell"></a>
 
 =item $st->shell ()
-
-=for comment help syntax-highlighting editor "
 
 This method implements a simple shell. Any public method name except
 'new' or 'shell' is a command, and its arguments if any are parameters.
@@ -1316,8 +1321,6 @@ have been executed, control passes to the user. Unless, of course,
 one of the arguments was 'exit'.
 
 Unlike most of the other methods, this one returns nothing.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1431,8 +1434,6 @@ $self->shell ($self->_source (@_), 'exit');
 
 =item $resp = $st->spaceflight ()
 
-=for comment help syntax-highlighting editor "
-
 This method downloads current orbital elements from NASA's human
 spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 2006
 you get the International Space Station, and the current Space Shuttle
@@ -1449,8 +1450,6 @@ method.
 You can specify the L</retrieve> options on this method as well. In
 addition, you can specify -all to get all data. -all will be ignored
 if -start_epoch, -end_epoch, or -last5 is specified.
-
-=for comment help syntax-highlighting editor "
 
 =cut
 
@@ -1931,6 +1930,51 @@ eod
 $opt;
 }
 
+#	_parse_search_args parses the search_*() options off its
+#	arguments, prefixes a reference to the resultant options
+#	hash to the remaining arguments, and returns the resultant
+#	list. If the first argument is a hash reference, it simply
+#	returns its argument list, under the assumption that it
+#	has already been called.
+
+my @legal_search_args = (
+    'status=s' => q{('onorbit', 'decayed', or 'all')},
+    'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
+);
+my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
+my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
+sub _parse_search_args {
+unless (ref ($_[0]) eq 'HASH') {
+    ref $_[0] eq 'ARRAY' and my @extra = @{shift @_};
+    @_ = _parse_retrieve_args ([@legal_search_args, @extra], @_);
+
+##    my %lgl = (@legal_search_args, ref $_[0] eq 'ARRAY' ? @{shift @_} : ());
+##    my $opt = {};
+##    local @ARGV = @_;
+
+##    GetOptions ($opt, keys %lgl) or croak <<eod;
+##Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
+##	"\n  -$q $lgl{$_}"} sort keys %lgl]}
+##eod
+    my $opt = $_[0];
+    $opt->{status} ||= 'all',
+    $legal_search_status{$opt->{status}} or croak <<eod;
+Error - Illegal status '$opt->{status}'. You must specify one of
+        @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
+eod
+    $opt->{exclude} ||= [];
+    $opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
+    foreach (@{$opt->{exclude}}) {
+	$legal_search_exclude{$_} or croak <<eod;
+Error - Illegal exclusion '$_'. You must specify one or more of
+        @{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
+eod
+	}
+##    @_ = ($opt, @ARGV);
+    }
+@_;
+}
+
 #	_post is just like _get, except for the method used. DO NOT use
 #	this method in the login () method, or you get a bottomless
 #	recursion.
@@ -1943,9 +1987,10 @@ my $path = shift;
 	my $resp = $self->login ();
 	return $resp unless $resp->is_success;
 	};
-    my $resp = $self->{agent}->post ("http://@{[DOMAIN]}/$path", [@_]);
+    my $url = $self->{debug_url} || "http://@{[DOMAIN]}/$path";
+    my $resp = $self->{agent}->post ($url, [@_]);
     $self->_dump_headers ($resp) if $self->{dump_headers};
-    return $resp unless $resp->is_success;
+    return $resp unless $resp->is_success && !$self->{debug_url};
     local $_ = $resp->content;
     m/login\.pl/i and do {
 	$self->{cookie_expires} = 0;
@@ -1983,7 +2028,7 @@ my @table;
 my %id;
 foreach my $name (@_) {
     defined (my $resp = $poster->($self, $name, $opt)) or next;
-    return $resp unless $resp->is_success;
+    return $resp unless $resp->is_success && !$self->{debug_url};
     my $content = $resp->content;
     next if $content =~ m/No results found/i;
     my @this_page = @{$p->parse_string (table => $content)};
