@@ -1071,7 +1071,7 @@ If you specify command-type options, they may be abbreviated, as long as
 the abbreviation is unique. Errors in either sort of specification
 result in an exception being thrown.
 
-In attition to the options available for retireve(), the following
+In addition to the options available for retireve(), the following
 options may be specified:
 
  exclude
