@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.026_02';
+our $VERSION = '0.026_03';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -414,11 +414,12 @@ list reference to list references  (i.e. a list of lists). Each
 of the list references contains the catalog ID of a satellite or
 other orbiting body and the common name of the body.
 
-If the 'direct' attribute is true, the elements will be fetched
-directly from Celestrak, and no login is needed. Otherwise, This
-method implicitly calls the login () method if the session cookie
-is missing or expired. If login () fails, you will get the
-HTTP::Response from login ().
+If the 'direct' attribute is true, the elements will be fetched directly
+from Celestrak, and no login is needed. Otherwise, This method
+implicitly calls the login () method if the session cookie is missing or
+expired, and returns the SpaceTrack data for the OIDs fetched from
+Celestrak. If login () fails, you will get the HTTP::Response from login
+().
 
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
@@ -914,8 +915,9 @@ return ($resp, \@list);
 =item $resp = $st->retrieve (number_or_range ...)
 
 This method retrieves the latest element set for each of the given
-catalog numbers. Non-numeric catalog numbers are ignored, as are
-(at a later stage) numbers that do not actually represent a satellite.
+satellite ID numbers (also known as SATCAT IDs, NORAD IDs, or OIDs).
+Non-numeric catalog numbers are ignored, as are (at a later stage)
+numbers that do not actually represent a satellite.
 
 Number ranges are represented as 'start-end', where both 'start' and
 'end' are catalog numbers. If 'start' > 'end', the numbers will be
@@ -1060,9 +1062,7 @@ This method searches the database for objects launched on the given
 date. The date is specified as year-month-day, with any non-digit being
 legal as the separator. You can omit -day or specify it as 0 to get
 all launches for the given month. You can omit -month (or specify it
-as 0) as well to get all launches for the given year. There is no
-mechanism to restrict the search to a given date range, on-orbit
-status, or to filter out debris or rocket bodies.
+as 0) as well to get all launches for the given year.
 
 You can specify options for the search as either command-type options
 (e.g. search (-status => 'onorbit', ...)) or as a leading hash reference
@@ -1077,7 +1077,7 @@ If you specify command-type options, they may be abbreviated, as long as
 the abbreviation is unique. Errors in either sort of specification
 result in an exception being thrown.
 
-In addition to the options available for retireve(), the following
+In addition to the options available for L</retrieve>, the following
 options may be specified:
 
  exclude
@@ -1121,8 +1121,6 @@ for each match.
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L</retrieve> options on this method as well.
-
 =cut
 
 sub search_date {
@@ -1156,15 +1154,14 @@ $self->_search_generic (sub {
 =item $resp = $st->search_id (id ...)
 
 This method searches the database for objects having the given
-international IDs. The international ID is the last two digits
-of the launch year (in the range 1957 through 2056), the
-three-digit sequence number of the launch within the year (with
-leading zeroes as needed), and the piece (A through ZZ, with A
-typically being the payload). You can omit the piece and get all
-pieces of that launch, or omit both the piece and the launch
-number and get all launches for the year. There is no
-mechanism to restrict the search to a given date range, on-orbit
-status, or to filter out debris or rocket bodies.
+international IDs. The international ID is the last two digits of the
+launch year (in the range 1957 through 2056), the three-digit sequence
+number of the launch within the year (with leading zeroes as needed),
+and the piece (A through ZZ, with A typically being the payload). You
+can omit the piece and get all pieces of that launch, or omit both the
+piece and the launch number and get all launches for the year. There is
+no mechanism to restrict the search to a given on-orbit status, or to
+filter out debris or rocket bodies.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1172,23 +1169,22 @@ HTTP::Response from login ().
 
 On success, this method returns an HTTP::Response object whose content
 is the relevant element sets. If called in list context, the first
-element of the list is the aforementioned HTTP::Response object, and
-the second element is a list reference to list references  (i.e. a list
-of lists). The first list reference contains the header text for all
+element of the list is the aforementioned HTTP::Response object, and the
+second element is a list reference to list references  (i.e. a list of
+lists). The first list reference contains the header text for all
 columns returned, and the subsequent list references contain the data
 for each match.
 
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L</retrieve> and L</search_date> options on this
-method as well, though the L</search_date> options will be ignored.
+You can specify the L</retrieve> options on this method as well.
 
 =cut
 
 sub search_id {
 my $self = shift;
-@_ = _parse_search_args (@_);
+## @_ = _parse_search_args (@_);
 $self->_search_generic (sub {
     my ($self, $name, $opt) = @_;
     my ($year, $number, $piece) =
@@ -1214,9 +1210,7 @@ $self->_search_generic (sub {
 =item $resp = $st->search_name (name ...)
 
 This method searches the database for the named objects. Matches
-are case-insensitive and all matches are returned. There is no
-mechanism to restrict the search to a given date range, on-orbit
-status, or to filter out debris or rocket bodies.
+are case-insensitive and all matches are returned.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1235,8 +1229,7 @@ added to the HTTP::Response object returned.
 
 You can specify the L</retrieve> and L</search_date> options on this
 method as well. The L</search_date> -status option is known to work,
-but I am not sure that the -exclude option excludes anything, based on
-a little poking around the web site.
+but I am not sure about the efficacy the -exclude option.
 
 =cut
 
