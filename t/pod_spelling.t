@@ -13,7 +13,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.003_01';
+our $VERSION = '0.003_02';
 
 if ($skip) {
     skip ($skip, 1);
@@ -33,7 +33,9 @@ kelso
 McCants
 mccants
 NORAD
+OIDs
 Optionmenu
+SATCAT
 STDERR
 STDOUT
 SpaceTrack
