@@ -112,7 +112,8 @@ WriteMakefile (
 		AUTHOR => 'Tom Wyant (wyant at cpan dot org)',
 		ABSTRACT => 'Download satellite orbital elements from Space Track',
 		BINARY_LOCATION => "$Config{archname}$vers/Astro-SpaceTrack.tar.gz",
-		LICENSE => 'perl',
+		(ExtUtils::MakeMaker->VERSION >= 6.31 ?
+		    (LICENSE => 'perl') : ())
 		) : (),
 	);
 
