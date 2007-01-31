@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.026_03';
+our $VERSION = '0.027';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -389,7 +389,7 @@ and you must abide by that site's restrictions, which include
 not making the data available to a third party without prior
 permission.
 
-Copyright 2005, 2006 T. R. Wyant (wyant at cpan dot org). All
+Copyright 2005, 2006, 2007 T. R. Wyant (wyant at cpan dot org). All
 rights reserved.
 
 This module is free software; you can use it, redistribute it
