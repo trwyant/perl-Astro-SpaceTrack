@@ -3,6 +3,7 @@
 ^blib/
 ^Build$
 ^Changes_
+^cover_db/
 CVS/
 ^foo$
 ^kelso\.expect$
