@@ -6,7 +6,11 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
-my %known_inconsistent = map {$_ => 1} qw{24967 27450};
+my %known_inconsistent = map {$_ => 1} qw{24967};
+#~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
+#		24967 (Iridium 36) spare. No change Kelso.
+# 21-Feb-2007 - Kelso has 27450 (Iridium 97) in service,
+#		24967 (Iridium 36) tumbling. No change McCants.
 
 my $st = Astro::SpaceTrack->new ();
 
@@ -165,7 +169,7 @@ eod
  24950   Iridium 31     [+]      
  24965   Iridium 19     [+]      
  24966   Iridium 35     [+]      
- 24967   Iridium 36     [+]      
+ 24967   Iridium 36     [-]      Tumbling
  24968   Iridium 37     [+]      
  24969   Iridium 34     [+]      
  25039   Iridium 43     [+]      
@@ -224,7 +228,7 @@ eod
  27374   Iridium 94     [S]      Spare
  27375   Iridium 95     [S]      Spare
  27376   Iridium 96     [S]      Spare
- 27450   Iridium 97     [S]      Spare
+ 27450   Iridium 97     [+]      
  27451   Iridium 98     [S]      Spare
 eod
 	) {
