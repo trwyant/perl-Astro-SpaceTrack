@@ -6,11 +6,12 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
-my %known_inconsistent = map {$_ => 1} qw{24967};
+my %known_inconsistent = map {$_ => 1} ();
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
 # 21-Feb-2007 - Kelso has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) tumbling. No change McCants.
+# 06-Mar-2007 - McCants assumes Iridium 36 has failed.
 
 my $st = Astro::SpaceTrack->new ();
 
@@ -73,7 +74,7 @@ foreach (["Mike McCants' Iridium status",
  24950   Iridium 31              Celestrak
  24965   Iridium 19              Celestrak
  24966   Iridium 35              Celestrak
- 24967   Iridium 36     ?        Iridium 97 moved next to it Jan. 10, 2007
+ 24967   Iridium 36     tum      Failed in January 2007
  24968   Iridium 37              Celestrak
  24969   Iridium 34              Celestrak
  25039   Iridium 43              Celestrak
