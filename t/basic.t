@@ -128,7 +128,7 @@ skip ($skip_spacetrack, $skip_spacetrack || $st->retrieve ('25544-25546')->is_su
 
 $test_num++;
 print "# Test $test_num - Check the content type.\n";
-skip ($skip_spacetrack, $skip_spacetrack || $st->content_type eq 'orbit');
+skip ($skip_spacetrack, $skip_spacetrack || ($st->content_type || '') eq 'orbit');
 
 $test_num++;
 print "# Test $test_num - Search for something by name.\n";
