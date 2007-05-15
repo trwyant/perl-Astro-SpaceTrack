@@ -86,7 +86,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.027';
+our $VERSION = '0.028';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -194,14 +194,15 @@ my %mutator = (	# Mutators for the various attributes.
     debug_url => \&_mutate_attrib,	# Force the URL. Undocumented and unsupported.
     direct => \&_mutate_attrib,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
+    fallback => \&_mutate_attrib,
     filter => \&_mutate_attrib,
     iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
-    password => \&_mutate_attrib,
+    password => \&_mutate_authen,
     session_cookie => \&_mutate_cookie,
     url_iridium_status_kelso => \&_mutate_attrib,
     url_iridium_status_mccants => \&_mutate_attrib,
-    username => \&_mutate_attrib,
+    username => \&_mutate_authen,
     verbose => \&_mutate_attrib,
     webcmd => \&_mutate_attrib,
     with_name => \&_mutate_attrib,
@@ -263,9 +264,11 @@ $class = ref $class if ref $class;
 my $self = {
     agent => LWP::UserAgent->new (),
     banner => 1,	# shell () displays banner if true.
-    cookie_expires => undef,
+    cookie_expires => 0,
     debug_url => undef,	# Not turned on
+    direct => 0,	# Do not direct-fetch from redistributors
     dump_headers => 0,	# No dumping.
+    fallback => 0,	# Do not fall back if primary source offline
     filter => 0,	# Filter mode.
     iridium_status_format => 'mccants',	# For historical reasons.
     max_range => 500,	# Sanity limit on range size.
@@ -368,7 +371,7 @@ sub attribute_names {wantarray ? sort keys %mutator : [sort keys %mutator]}
 
 =for html <a name="banner"></a>
 
-=item $resp = banner ();
+=item $resp = $st->banner ();
 
 This method is a convenience/nuisance: it simply returns a fake
 HTTP::Response with standard banner text. It's really just for the
@@ -414,52 +417,75 @@ list reference to list references  (i.e. a list of lists). Each
 of the list references contains the catalog ID of a satellite or
 other orbiting body and the common name of the body.
 
-If the 'direct' attribute is true, the elements will be fetched directly
-from Celestrak, and no login is needed. Otherwise, This method
-implicitly calls the login () method if the session cookie is missing or
-expired, and returns the SpaceTrack data for the OIDs fetched from
-Celestrak. If login () fails, you will get the HTTP::Response from login
-().
+If the 'direct' attribute is true, or if the 'fallback' attribute is
+true and the data are not available from Space Track, the elements will
+be fetched directly from Celestrak, and no login is needed. Otherwise,
+This method implicitly calls the login () method if the session cookie
+is missing or expired, and returns the SpaceTrack data for the OIDs
+fetched from Celestrak. If login () fails, you will get the
+HTTP::Response from login ().
 
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
 
-You can specify the L</retrieve> options on this method as well.
+You can specify the L</retrieve> options on this method as well, but
+they will have no effect if the 'direct' attribute is true.
 
 =cut
 
 {	# Local symbol block.
 
-my %valid_type = ('text/plain' => 1, 'text/text' => 1);
+    my %valid_type = ('text/plain' => 1, 'text/text' => 1);
 
-sub celestrak {
-my $self = shift;
-delete $self->{_content_type};
+    sub celestrak {
+	my $self = shift;
+	delete $self->{_content_type};
 
-@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
-my $opt = shift;
+	@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+	my $opt = shift;
 
-my $name = shift;
-my $resp = $self->{direct} ?
-    $self->{agent}->get ("http://celestrak.com/NORAD/elements/$name.txt") :
-    $self->{agent}->get ("http://celestrak.com/SpaceTrack/query/$name.txt");
-return $self->_no_such_catalog (celestrak => $name)
-    if $resp->code == RC_NOT_FOUND;
-return $resp unless $resp->is_success;
-return $self->_no_such_catalog (celestrak => $name)
-    unless $valid_type{lc $resp->header ('Content-Type')};
-$self->_convert_content ($resp);
-if ($self->{direct}) {
-    $self->{_content_type} = 'orbit';
-    $resp->push_header (pragma => 'spacetrack-type = orbit');
-    $self->_dump_headers ($resp) if $self->{dump_headers};
-    return $resp;
+	my $name = shift;
+	$self->{direct}
+	    and return $self->_celestrak_direct ($opt, $name);
+	my $resp = $self->{agent}->get (
+	    "http://celestrak.com/SpaceTrack/query/$name.txt");
+	return $self->_no_such_catalog (celestrak => $name)
+	    if $resp->code == RC_NOT_FOUND;
+	return $resp unless $resp->is_success;
+	return $self->_no_such_catalog (celestrak => $name)
+	    unless $valid_type{lc $resp->header ('Content-Type')};
+	$self->_convert_content ($resp);
+	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$resp = $self->_handle_observing_list ($opt, $resp->content);
+	return ($resp->is_success || !$self->{fallback}) ? $resp :
+	    $self->_celestrak_direct ($opt, $name);
     }
-  else {
-    $self->_dump_headers ($resp) if $self->{dump_headers};
-    return $self->_handle_observing_list ($opt, $resp->content);
+
+    sub _celestrak_direct {
+	my $self = shift;
+	delete $self->{_content_type};
+
+	@_ = _parse_retrieve_args (@_) unless ref $_[0] eq 'HASH';
+	my $opt = shift;
+
+	my $name = shift;
+	my $resp = $self->{agent}->get (
+	    "http://celestrak.com/NORAD/elements/$name.txt");
+	return $self->_no_such_catalog (celestrak => $name)
+	    if $resp->code == RC_NOT_FOUND;
+	return $resp unless $resp->is_success;
+	return $self->_no_such_catalog (celestrak => $name)
+	    unless $valid_type{lc $resp->header ('Content-Type')};
+	$self->_convert_content ($resp);
+	if ($name eq 'iridium') {
+	    $resp->content (join "\n",
+		map {s/\s+\[.\]\s*$//; $_} split '\n', $resp->content);
+	}
+	$self->{_content_type} = 'orbit';
+	$resp->push_header (pragma => 'spacetrack-type = orbit');
+	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$resp;
     }
-}
 
 }	# End local symbol block.
 
@@ -724,10 +750,10 @@ an Iridium satellite. The portable statuses are:
   2 = BODY_STATUS_IS_TUMBLING means object is tumbling
       or otherwise unservicable.
 
-The correspondence between the Kelso statuses and the portable
-statuses is pretty much one-to-one. In the McCants statuses, '?'
-identifies a spare, and anything else is considered to be
-tumbling.
+The correspondence between the Kelso statuses and the portable statuses
+is pretty much one-to-one. In the McCants statuses, '?' identifies a
+spare, '+' identifies an in-service satellite, and anything else is
+considered to be tumbling.
 
 The BODY_STATUS constants are exportable using the :status tag.
 
@@ -1040,6 +1066,11 @@ eod
     return $resp unless $resp->is_success;
     $_ = $resp->content;
     next if m/No records found/i;
+    if (m/ERROR:/) {
+	return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	    "Failed to retrieve IDs @batch.\n",
+	    undef, $content);
+    }
     s|</pre>.*||ms;
     s|.*<pre>||ms;
     s|^\n||ms;
@@ -1549,7 +1580,8 @@ specified by the setting of the with_name attribute. The return is
 the HTTP::Response object fetched. If an invalid catalog name is
 requested, an HTTP::Response object is returned, with an appropriate
 message and the error code set to RC_NOTFOUND from HTTP::Status
-(a.k.a. 404).
+(a.k.a. 404). This will also happen if the HTTP get succeeds but we
+do not get the expected content.
 
 Assuming success, the content of the response is the literal element
 set requested. Yes, it comes down gzipped, but we unzip it for you.
@@ -1582,17 +1614,45 @@ my $resp = $self->_get ('perl/dl.pl', ID => $catnum);
 # In the above, the_desired_file_name is (e.g.) something like
 #   spec_interest_2l_2005_03_22_am.txt.gz
 
+=begin comment
+
+It is possible (e.g. 04-May-2007) to get the following instead:
+
+<html>
+<body><script type="text/javascript">
+alert("There was a problem processing your request!\nPlease email admin@space-track.org
+Requested file  doesn't exist");history.go(-1);
+</script>
+</body></html>
+
+=end comment
+
+=cut
+
 $resp->is_success and do {
-    $catnum and $resp->content (
-	Compress::Zlib::memGunzip ($resp->content));
-    $resp->remove_header ('content-disposition');
-    $resp->header (
-	'content-type' => 'text/plain',
-##	'content-length' => length ($resp->content),
-	);
-    $self->_convert_content ($resp);
-    $self->{_content_type} = 'orbit';
-    $resp->push_header (pragma => 'spacetrack-type = orbit');
+    my $content = $resp->content ();
+    if ($content =~ m/<html>/) {
+	if ($content =~ m/Requested file doesn't exist/i) {
+	    $resp = HTTP::Response->new (RC_NOT_FOUND,
+		"The file for catalog $catnum is missing.\n",
+		undef, $content);
+	} else {
+	    $resp = HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+		"The file for catalog $catnum could not be retrieved.\n",
+		undef, $content);
+	}
+    } else {
+	$catnum and $resp->content (
+	    Compress::Zlib::memGunzip ($resp->content));
+	$resp->remove_header ('content-disposition');
+	$resp->header (
+	    'content-type' => 'text/plain',
+    ##	'content-length' => length ($resp->content),
+	    );
+	$self->_convert_content ($resp);
+	$self->{_content_type} = 'orbit';
+	$resp->push_header (pragma => 'spacetrack-type = orbit');
+    }
     };
 $resp;
 }
@@ -1626,7 +1686,6 @@ $self->{session_cookie} = $cookie;
 $self->{cookie_expires} = $expir;
 return $expir || 0;
 }
-
 
 #	_convert_content converts the content of an HTTP::Response
 #	from crlf-delimited to lf-delimited.
@@ -1795,12 +1854,21 @@ return wantarray ? ($resp, \@data) : $resp;
 
 sub _mutate_attrib {$_[0]{$_[1]} = $_[2]}
 
+#	_mutate_authen clears the session cookie and then sets the
+#	desired attribute
+
+sub _mutate_authen {
+    $_[0]->set (session_cookie => undef, cookie_expires => 0);
+    goto &_mutate_attrib;
+}
+
 #	_mutate_cookie sets the session cookie, in both the object and
 #	the user agent's cookie jar.
 
 sub _mutate_cookie {
-$_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
-    SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
+$_[0]->{agent} && $_[0]->{agent}->cookie_jar
+    and $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
+	SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
 goto &_mutate_attrib;
 }
 
@@ -2108,6 +2176,14 @@ methods affected by this are celestrak() and spaceflight().
 
 The default is false (i.e. 0).
 
+=item fallback (boolean)
+
+This attribute specifies that orbital elements should be fetched from
+the redistributer if the original source is offline. At the moment the
+only method affected by this is celestrak().
+
+The default is false (i.e. 0).
+
 =item filter (boolean)
 
 If true, this attribute specifies that the shell is being run in filter
@@ -2122,7 +2198,8 @@ This attribute specifies the format of the data returned by the
 L<iridium_status> method. Valid values are 'kelso' and 'mccants'.
 See that method for more information.
 
-The default is 'mccants'.
+The default is 'mccants' for historical reasons, but 'kelso' is probably
+preferred.
 
 =item max_range (number)
 
@@ -2347,6 +2424,20 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
     New attributes url_iridium_status_kelso and
       url_iridium_status_mccants so users are not dead
       in the water if this happens again.
+ 0.027 30-Jan-2007 T. R. Wyant
+    Add ability to search by on-orbit status ('onorbit',
+      'decayed', or 'all'), and to exclude 'debris' and
+      'rocket' (bodies).
+    Tweak docs.
+    Update copyright.
+ 0.028 15-May-2007 T. R. Wyant
+    Interpret missing spacetrack() catalog as a failure,
+      even though the request succeeds.
+    Ditto missing Space Track retrieve() data.
+    Add 'fallback' attribute to cause celestrak() to fall
+      back to using Celestrak data if Space Track data
+      are not available.
+    Clear session cookie when username or password change.
 
 =head1 ACKNOWLEDGMENTS
 
