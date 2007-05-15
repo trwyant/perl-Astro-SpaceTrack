@@ -13,7 +13,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 if ($skip) {
     skip ($skip, 1);
@@ -26,6 +26,7 @@ __DATA__
 Celestrak
 com
 exportable
+fallback
 IDs
 ISP
 Kelso
