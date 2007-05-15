@@ -23,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 18);
+plan (tests => 21);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -143,12 +143,33 @@ print "# Test $test_num - Search by launch date.\n";
 skip ($skip_spacetrack, $skip_spacetrack || $st->search_date ('06-07-04')->is_success);
 
 $test_num++;
+print "# Test $test_num - Retrieve historical elements.\n";
+skip ($skip_spacetrack, $skip_spacetrack || $st->retrieve (-start_epoch => '2006/04/01', 25544)->is_success);
+
+$test_num++;
 print "# Test $test_num - Fetch a Celestrak data set.\n";
+skip ($skip_spacetrack || $skip_celestrak,
+    $skip_spacetrack || $skip_celestrak ||
+    $st->celestrak ('stations')->is_success);
+
+$test_num++;
+print "# Test $test_num - Fetch a Celestrak data set, with fallback.\n";
+$st->set (fallback => 1);
 skip ($skip_spacetrack || $skip_celestrak, $skip_spacetrack || $skip_celestrak || $st->celestrak ('stations')->is_success);
 
 $test_num++;
+print "# Test $test_num - With fallback, succeed without user/password.\n";
+$st->set (username => undef, password => undef);
+skip ($skip_spacetrack || $skip_celestrak, $skip_spacetrack || $skip_celestrak || $st->celestrak ('stations')->is_success);
+
+$test_num++;
+print "# Test $test_num - Without fallback, fail without user/password.\n";
+$st->set (fallback => 0);
+skip ($skip_spacetrack || $skip_celestrak, $skip_spacetrack || $skip_celestrak || !$st->celestrak ('stations')->is_success);
+
+$test_num++;
 print "# Test $test_num - Direct-fetch a Celestrak data set.\n";
-$st->set (username => undef, password => undef, direct => 1);
+$st->set (direct => 1);
 skip ($skip_celestrak, $skip_celestrak || $st->celestrak ('stations')->is_success);
 
 $test_num++;
@@ -168,10 +189,6 @@ $test_num++;
 print "# Test $test_num - Get Iridium status (Kelso only).\n";
 $st->set (iridium_status_format => 'kelso');
 skip ($skip_celestrak, $skip_celestrak || $st->iridium_status()->is_success);
-
-$test_num++;
-print "# Test $test_num - Retrieve historical elements.\n";
-skip ($skip_spacetrack, $skip_spacetrack || $st->retrieve (-start_epoch => '2006/04/01', 25544)->is_success);
 
 $test_num++;
 print "# Test $test_num - Try to retrieve data from the Radio Amateur Satellite Corporation.\n";
