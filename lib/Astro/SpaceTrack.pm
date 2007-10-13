@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 =head1 NAME
 
 Astro::SpaceTrack - Retrieve orbital data from www.space-track.org.
@@ -75,8 +73,6 @@ The following methods should be considered public:
 
 =cut
 
-# Help for syntax-highlighting editor that does not understand POD "
-
 use strict;
 use warnings;
 
@@ -86,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.028';
+our $VERSION = '0.029';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -147,6 +143,9 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	'other-comm' => {name => 'Other communications'},
 	'gps-ops' => {name => 'GPS Operational'},
 	'glo-ops' => {name => 'Glonass Operational'},
+	galileo => {name => 'Galileo'},
+	sbas => {name =>
+	    'Satellite-Based Augmentation System (WAAS/EGNOS/MSAS)'},
 	nnss => {name => 'Navy Navigation Satellite System (NNSS)'},
 	musson => {name => 'Russian LEO Navigation'},
 	science => {name => 'Space and Earth Science'},
@@ -248,8 +247,6 @@ $inifil = $^O eq 'VMS' ? "SYS\$LOGIN:$inifil" :
 Warning - Can't find home directory. Initialization file will not be
         executed.
 eod
-
-# Help for syntax-highlighting editor that does not understand here documents '
 
 @inifil = __PACKAGE__->_source ($inifil) if $inifil && -e $inifil;
 
@@ -400,8 +397,6 @@ and/or modify it under the same terms as Perl itself.
 @{[$self->{addendum} || '']}
 eod
 
-# Help for syntax-highlighting editor that does not understand here documents '
-
 }
 
 
@@ -416,6 +411,27 @@ aforementioned HTTP::Response object, and the second element is a
 list reference to list references  (i.e. a list of lists). Each
 of the list references contains the catalog ID of a satellite or
 other orbiting body and the common name of the body.
+
+A list of valid names and brief descriptions can be obtained by calling
+$st->names ('celestrak'). If you have set the 'verbose' attribute true
+(e.g. $st->set (verbose => 1)), the content of the error response will
+include this list. Note, however, that this list does not determine what
+can be retrieved; if Dr.  Kelso adds a data set, it can be retrieved
+even if it is not on the list, and if he removes one, being on the list
+won't help.
+
+In general, the data set names are the same as the file names given at
+L<http://celestrak.com/NORAD/elements/>, but without the '.txt' on the
+end; for example, the name of the 'International Space Station' data set
+is 'stations', since the URL for this is
+L<http://celestrak.com/NORAD/elements/stations.txt>.
+
+As of October 11 2007, the data set for the debris from the People's
+Republic of China's anti-satellite test is available from Celestrak only
+by direct-fetching ($st->set (direct => 1), see below), as data set
+'1999-025'. I have not corresponded with Dr. Kelso on this, but I think
+it reasonable to believe that the effect of asking Space Track for all
+2126 pieces of debris at once would not be good.
 
 If the 'direct' attribute is true, or if the 'fallback' attribute is
 true and the data are not available from Space Track, the elements will
@@ -581,6 +597,9 @@ sub get {
 my $self = shift;
 delete $self->{_content_type};
 my $name = shift;
+croak "No attribute name specified. Legal attributes are ",
+	join (', ', sort keys %mutator), ".\n"
+    unless defined $name;
 croak "Attribute $name may not be gotten. Legal attributes are ",
 	join (', ', sort keys %mutator), ".\n"
     unless $mutator{$name};
@@ -924,7 +943,9 @@ $catalogs{$name} or return HTTP::Response (
 my $src = $catalogs{$name};
 my @list;
 foreach my $cat (sort keys %$src) {
-    push @list, "$cat: $src->{$cat}{name}\n";
+    push @list, defined ($src->{$cat}{number}) ?
+	"$cat ($src->{$cat}{number}): $src->{$cat}{name}\n" :
+	"$cat: $src->{$cat}{name}\n";
     }
 my $resp = HTTP::Response->new (RC_OK, undef, undef, join ('', @list));
 return $resp unless wantarray;
@@ -1327,7 +1348,11 @@ We use Text::ParseWords to parse the line, and blank lines or lines
 beginning with a hash mark ('#') are ignored. Input is via
 Term::ReadLine if that is available. If not, we do the best we can.
 
-We also recognize 'bye' and 'exit' as commands.
+We also recognize 'bye' and 'exit' as commands, which terminate the
+method. In addition, 'show' is recognized as a synonym for 'get', and
+'get' (or 'show') without arguments is special-cased to list all
+attribute names and their values. Attributes listed without a value have
+the undefined value.
 
 For commands that produce output, we allow a sort of pseudo-redirection
 of the output to a file, using the syntax ">filename" or ">>filename".
@@ -1404,6 +1429,7 @@ while (1) {
     $redir =~ s/^(>+)~/$1$ENV{HOME}/;
     my $verb = lc shift @args;
     last if $verb eq 'exit' || $verb eq 'bye';
+    $verb eq 'show' and $verb = 'get';
     $verb eq 'source' and do {
 	eval {
 	    splice @_, 0, 0, $self->_source (shift @args);
@@ -1422,7 +1448,16 @@ eod
 Error - Failed to open $redir
         $^E
 eod
-    my $rslt = eval {$self->$verb (@args)};
+    my $rslt;
+    if ($verb eq 'get' && @args == 0) {
+	$rslt = [];
+	foreach my $name ($self->attribute_names ()) {
+	    my $val = $self->get ($name)->content ();
+	    push @$rslt, defined $val ? "$name $val" : $name;
+	}
+    } else {
+	$rslt = eval {$self->$verb (@args)};
+    }
     $@ and do {warn $@; next; };
     if (ref $rslt eq 'ARRAY') {
 	foreach (@$rslt) {print "$_\n"}
@@ -1583,10 +1618,25 @@ message and the error code set to RC_NOTFOUND from HTTP::Status
 (a.k.a. 404). This will also happen if the HTTP get succeeds but we
 do not get the expected content.
 
+Note that when requesting spacetrack data sets by catalog number the
+setting of the 'with_name' attribute is ignored.
+
 Assuming success, the content of the response is the literal element
 set requested. Yes, it comes down gzipped, but we unzip it for you.
 See the synopsis for sample code to retrieve and print the 'special'
 catalog in three-line format.
+
+A list of valid names and brief descriptions can be obtained by calling
+$st->names ('spacetrack'). If you have set the 'verbose' attribute true
+(e.g. $st->set (verbose => 1)), the content of the error response will
+include this list. Note, however, that this list does not determine what
+can be retrieved; if Space Track adds a data set, it can still be
+retrieved by number, even if it does not appear in the list by either
+number or name. Similarly, if they remove a data set, being on the list
+will not help. If they decide to renumber the data sets, retrieval by
+name will become useless until I get the code updated. The numbers
+correspond to the 'id=' portion of the URL for the dataset on the Space
+Track web site
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1644,10 +1694,15 @@ $resp->is_success and do {
     } else {
 	$catnum and $resp->content (
 	    Compress::Zlib::memGunzip ($resp->content));
+	# SpaceTrack returns status 200 on a non-existent catalog
+	# number, but whatever content they send back doesn't unzip, so
+	# we catch it here.
+	defined ($resp->content ())
+	    or return $self->_no_such_catalog (spacetrack => $catnum);
 	$resp->remove_header ('content-disposition');
 	$resp->header (
 	    'content-type' => 'text/plain',
-    ##	'content-length' => length ($resp->content),
+##	    'content-length' => length ($resp->content),
 	    );
 	$self->_convert_content ($resp);
 	$self->{_content_type} = 'orbit';
@@ -1697,6 +1752,11 @@ my $self = shift;
 local $/ = undef;	# Slurp mode.
 foreach my $resp (@_) {
     my $buffer = $resp->content;
+    # If we request a non-existent Space Track catalog number, we get
+    # 200 OK but the unzipped content is undefined. We catch this before
+    # we get this far, but the buffer check is left in in case something
+    # else leaks through.
+    defined $buffer or $buffer = '';
     $buffer =~ s|$lookfor|\n|gms;
     1 while ($buffer =~ s|^\n||ms);
     $buffer =~ s|\s+$||ms;
@@ -1899,6 +1959,15 @@ my %no_such_lead = (
     spaceflight => "No such Manned Spaceflight catalog as '%s'.",
     spacetrack => "No such Space Track catalog as '%s'.",
     );
+my %no_such_trail = (
+    spacetrack => <<eod,
+The Space Track data sets are actually numbered. The given number
+corresponds to the data set without names; if you are requesting data
+sets by number and want names, add 1 to the given number. When
+requesting Space Track data sets by number the 'with_name' attribute is
+ignored.
+eod
+);
 sub _no_such_catalog {
 my $self = shift;
 my $source = lc shift;
@@ -1910,7 +1979,9 @@ return HTTP::Response->new (RC_NOT_FOUND, "$lead\n")
     unless $self->{verbose};
 my $resp = $self->names ($source);
 return HTTP::Response->new (RC_NOT_FOUND,
-    join '', "$lead Try one of:\n", $resp->content);
+    join '', "$lead Try one of:\n", $resp->content,
+    $no_such_trail{$source} || ''
+);
 }
 
 #	_parse_retrieve_args parses the retrieve() options off its
@@ -2438,6 +2509,18 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
       back to using Celestrak data if Space Track data
       are not available.
     Clear session cookie when username or password change.
+ 0.029 13-Oct-2007 T. R. Wyant
+     Add Celestrak galileo and sbas data set names to catalog.
+     Document celestrak data set names, or at least how to get them and
+	 in general how they are formed.
+     Trap and error out on invalid spacetrack() data set numbers.
+     Add data set numbers to spacetrack() help.
+     Document how to get the current spacetrack data set names and
+	 numbers, and what happens if they renumber.
+     Trap case where 'get' is called without an argument.
+     Have 'shell' method interpret 'show' as 'get', and special-case
+	 'get' without arguments to display all attributes. Document
+	 this.
 
 =head1 ACKNOWLEDGMENTS
 
