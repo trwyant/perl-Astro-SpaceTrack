@@ -5,7 +5,7 @@ package Astro::SpaceTrack::Parser;
 
 # Author: Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
-# Copyright 2005 by Thomas R. Wyant, III
+# Copyright 2005, 2007 by Thomas R. Wyant, III
 
 # This entire package is private to the Astro::SpaceTrack module.
 # In addition to the restrictions and disclaimers in that module,
