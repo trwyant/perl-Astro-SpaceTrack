@@ -2538,6 +2538,8 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 Copyright 2005, 2006, 2007 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
+=head1 LICENSE
+
 This module is free software; you can use it, redistribute it
 and/or modify it under the same terms as Perl itself.
 
