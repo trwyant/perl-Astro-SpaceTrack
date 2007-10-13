@@ -1,5 +1,3 @@
-#!/usr/local/bin/perl
-
 use strict;
 use warnings;
 
@@ -13,7 +11,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 if ($skip) {
     skip ($skip, 1);
@@ -24,6 +22,7 @@ if ($skip) {
 }
 __DATA__
 Celestrak
+China's
 com
 exportable
 fallback
