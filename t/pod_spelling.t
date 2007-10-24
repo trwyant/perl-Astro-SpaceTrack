@@ -11,7 +11,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.006';
+our $VERSION = '0.006_01';
 
 if ($skip) {
     skip ($skip, 1);
@@ -54,6 +54,7 @@ redistributers
 spaceflight
 spacetrack
 stdout
+sts
 txt
 unzip
 username
