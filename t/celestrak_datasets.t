@@ -32,26 +32,40 @@ $expect{'1999-025'} = {
 if ($expect{sts}) {
     $expect{sts}{note} = 'Only available when a mission is in progress.';
     $expect{sts}{todo} = 1;
+    $expect{sts}{ignore} = 1;	# What it says. Trumps todo.
 }
 
 my @todo;
+my $test = 1;	# Allow extra test for added links.
 {
-    my $test;
     foreach my $key (sort keys %expect) {
-	$test++;
-	$expect{$key}{todo} and push @todo, $test;
+	if ($expect{$key}{ignore}) {
+	} else {
+	    $test++;
+	    $expect{$key}{todo} and push @todo, $test;
+	}
     }
 }
 
-plan (tests => scalar (keys %expect) + 1, # Extra test is for added links.
-    todo => \@todo);
+plan (tests => $test, todo => \@todo);
 
-my $test;
+$test = 0;
 foreach my $key (sort keys %expect) {
-    $test++;
-    print "# Test $test - $key ($expect{$key}{name})\n";
-    $expect{$key}{note} and print "#     $expect{$key}{note}\n";
-    ok (delete $got{$key});
+    if ($expect{$key}{ignore}) {
+	warn "\n# Ignored - $key (@{[($got{$key} ||
+		$expect{$key})->{name}]})\n";
+	$expect{$key}{note} and warn "#     $expect{$key}{note}\n";
+	if (my $item = delete $got{$key}) {
+	    warn "#     present\n";
+	} else {
+	    warn "#     not present\n";
+	}
+    } else {
+	$test++;
+	print "# Test $test - $key ($expect{$key}{name})\n";
+	$expect{$key}{note} and print "#     $expect{$key}{note}\n";
+	ok (delete $got{$key});
+    }
 }
 $test++;
 print "# Test $test - The above is all there is\n";
