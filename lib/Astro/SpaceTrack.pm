@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.029_01';
+our $VERSION = '0.029_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -428,20 +428,23 @@ is 'stations', since the URL for this is
 L<http://celestrak.com/NORAD/elements/stations.txt>.
 
 As of October 11 2007, the data set for the debris from the People's
-Republic of China's anti-satellite test is available from Celestrak only
-by direct-fetching ($st->set (direct => 1), see below), as data set
-'1999-025'. I have not corresponded with Dr. Kelso on this, but I think
-it reasonable to believe that the effect of asking Space Track for all
-2126 pieces of debris at once would not be good.
+Republic of China's anti-satellite test against their Fengyun 1C
+satellite is available from Celestrak only by direct-fetching ($st->set
+(direct => 1), see below), as data set '1999-025'. I have not
+corresponded with Dr. Kelso on this, but I think it reasonable to
+believe that the effect of asking Space Track for all 2126 pieces of
+debris at once would not be good.
 
 The data set for the current US Space Shuttle Mission (if any) will be
 available as data set 'sts'. If there is no current mission, you will
-get a 404 error with text "Missing Celestrak catalog 'sts'."
+get a 404 error with text "Missing Celestrak catalog 'sts'." Since the
+data ultimately come from NORAD, the shuttle will have to be up and
+actually tracked by NORAD before this is available.
 
 If the 'direct' attribute is true, or if the 'fallback' attribute is
 true and the data are not available from Space Track, the elements will
 be fetched directly from Celestrak, and no login is needed. Otherwise,
-This method implicitly calls the login () method if the session cookie
+this method implicitly calls the login () method if the session cookie
 is missing or expired, and returns the SpaceTrack data for the OIDs
 fetched from Celestrak. If login () fails, you will get the
 HTTP::Response from login ().
