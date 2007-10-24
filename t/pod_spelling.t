@@ -11,7 +11,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.006_02';
+our $VERSION = '0.007';
 
 if ($skip) {
     skip ($skip, 1);

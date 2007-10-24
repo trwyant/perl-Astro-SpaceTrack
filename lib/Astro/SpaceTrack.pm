@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.029_02';
+our $VERSION = '0.030';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2530,7 +2530,7 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
      Have 'shell' method interpret 'show' as 'get', and special-case
 	 'get' without arguments to display all attributes. Document
 	 this.
- 0.029_01 24-Oct-2007 T. R. Wyant
+ 0.030 24-Oct-2007 T. R. Wyant
      Add Celestrak 'sts' data set name to catalog.
      Different error text for data sets in catalog but 404 and data sets
 	 not in catalog and 404.
