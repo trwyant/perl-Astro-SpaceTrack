@@ -40,6 +40,7 @@ $expect{satellite_situation_report} = {
     note => 'Not fetchable via Astro::SpaceTrack',
     todo => 0,
     ignore => 1,	# What it says. Trumps todo.
+    silent => 1,	# Ignore silently.
 };
 
 =begin comment
@@ -81,13 +82,17 @@ $test = 0;
 foreach my $key (sort keys %expect) {
     my $number = $expect{$key}{number};
     if ($expect{$key}{ignore}) {
-	warn "\n# Ignored - $key (@{[($got{$number} ||
-		$expect{$key})->{name}]})\n";
-	$expect{$key}{note} and warn "#     $expect{$key}{note}\n";
-	if (my $item = delete $got{$number}) {
-	    warn "#     present\n";
+	if ($expect{$key}{silent}) {
+	    delete $got{$number};
 	} else {
-	    warn "#     not present\n";
+	    warn "\n# Ignored - $key (@{[($got{$number} ||
+		    $expect{$key})->{name}]})\n";
+	    $expect{$key}{note} and warn "#     $expect{$key}{note}\n";
+	    if (my $item = delete $got{$number}) {
+		warn "#     present\n";
+	    } else {
+		warn "#     not present\n";
+	    }
 	}
     } else {
 	$test++;
@@ -105,7 +110,7 @@ ok (!%got);
 if (%got) {
     print "# The following have been added:\n";
     foreach (sort keys %got) {
-	print "     $_ => '$got{$_}{name}'\n";
+	print "#     $_ => '$got{$_}{name}'\n";
     }
 }
 
