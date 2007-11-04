@@ -73,7 +73,7 @@ ok (!%got);
 if (%got) {
     print "# The following have been added:\n";
     foreach (sort keys %got) {
-	print "     $_ => '$got{$_}{name}'\n";
+	print "#     $_ => '$got{$_}{name}'\n";
     }
 }
 
