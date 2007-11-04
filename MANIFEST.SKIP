@@ -18,6 +18,7 @@ CVS/
 ^t/iridium_status.t$
 ^t/manifest.t$
 ^t/pod_spelling.t$
+^t/spacetrack_datasets.t$
 \.swp$
 \.tar\.gz$
 ^TODO$
