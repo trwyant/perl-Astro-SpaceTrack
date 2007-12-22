@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.030';
+our $VERSION = '0.031';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -1754,7 +1754,7 @@ return $expir || 0;
 #	from crlf-delimited to lf-delimited.
 
 {	# Begin local symbol block
-my $lookfor = $^O eq 'MacOS' ? qr{\012|\015+} : qr{\r\n};
+my $lookfor = $^O eq 'MacOS' ? qr{\012|\015+}ms : qr{\r\n}ms;
 sub _convert_content {
 my $self = shift;
 local $/ = undef;	# Slurp mode.
@@ -1765,7 +1765,7 @@ foreach my $resp (@_) {
     # we get this far, but the buffer check is left in in case something
     # else leaks through.
     defined $buffer or $buffer = '';
-    $buffer =~ s|$lookfor|\n|gms;
+    $buffer =~ s|$lookfor|\n|g;
     1 while ($buffer =~ s|^\n||ms);
     $buffer =~ s|\s+$||ms;
     $buffer .= "\n";
@@ -2534,6 +2534,20 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
      Add Celestrak 'sts' data set name to catalog.
      Different error text for data sets in catalog but 404 and data sets
 	 not in catalog and 404.
+ 0.031 21-Dec-2007 T. R. Wyant
+     Fix embedded modifier bug, exposed by the fixing of the
+	 corresponding Perl bug (id=22354) in 5.10.0 -- or 5.9.0
+	 actually. Thanks to Andy Lester's article:
+	 http://perlbuzz.com/mechanix/2007/12/code-broken-by-regex-fixes-in.html
+	 which tipped me off before I had to discover the problem
+	 for myself.
+     Fixed dependencies in Makefile.PL and Build.PL.
+     Went back to prompting for executables in Makefile.PL and
+         Build.PL, as a way to handle apparant ActiveState built
+	 failure because both they and I were running pl2bat.bat.
+     Enhance ExtUtils::MakeMaker version detection in Makefile.PL,
+         since ActiveState is apparantly deploying a Perl 5.10
+	 with a development version of that module.
 
 =head1 ACKNOWLEDGMENTS
 
