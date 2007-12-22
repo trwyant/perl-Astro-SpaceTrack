@@ -1,25 +1,22 @@
 use strict;
 use warnings;
 
-my $ok;
 BEGIN {
-eval "use Test::More";
-$ok = !$@;
+    eval "use Test::More";
+    if ($@) {
+	print "1..0 # skip Test::More required to test pod coverage.\n";
+	exit;
+    }
+    eval "use Test::Pod::Coverage 1.00";
+    if ($@) {
+	print <<eod;
+1..0 # skip Test::Pod::Coverage 1.00 or greater required.
+eod
+	exit;
+    }
 }
 
-if ($ok) {
-    eval "use Test::Pod::Coverage 1.00";
-    plan skip_all => "Test::Pod::Coverage 1.00 required to test POD coverage." if $@;
-
-#	We don't use all_pod_coverage_ok because
-#	Astro::SpaceTrack::Parser is private to this module.
-#    all_pod_coverage_ok ();
-    plan tests => 1 unless $@;
-    pod_coverage_ok ('Astro::SpaceTrack');
-    }
-  else {
-    print <<eod;
-1..1
-ok 1 # skip Test::More required for testing POD coverage.
-eod
-    }
+all_pod_coverage_ok ({
+	also_private => [ qr{^[A-Z_]+$}, qr{^parse_(?:string|file)$} ],
+	coverage_class => 'Pod::Coverage::CountParents'
+    });
