@@ -29,31 +29,23 @@ my @possible_exes = ('SpaceTrack');
 my $tk = eval {require Tk} and push @possible_exes, 'SpaceTrackTk';
 print $tk ? <<eod : <<eod;
 
-The following scripts will be installed:
+The following scripts can be installed:
 
   SpaceTrack is an interactive interface to Astro::SpaceTrack;
   SpaceTrackTk is a windowed interface to Astro::SpaceTrack, using
     Perl/Tk.
+
 eod
 
-The following script will be installed:
+The following script can be installed:
 
    SpaceTrack is an interactive interface to Astro::SpaceTrack.
 
 SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
 but will not be installed because you do not have the Tk package
 installed. If you want this, install Tk and then rerun Makefile.PL.
-eod
-print <<eod;
-
-If you do not want this, run Build.PL with the -n option.
-
-Unless you are running MSWin32 or VMS (which are special-cased),
-I will assume you're running some version of U*ix, and behave
-accordingly.
 
 eod
-
 
 if ($opt{n}) {
     print "Because you have asserted -n, the executables will not be installed.\n\n";
@@ -63,9 +55,17 @@ if ($opt{n}) {
     @exe_files = @possible_exes;
     }
   else {
+    print <<eod;
+To supress the following prompts, run Makefile.PL with the -y option to
+install the scripts, or with the -n option not to install the scripts.
+Setting environment variable PERL_MM_USE_DEFAULT true, or running non-
+interactively without data on STDIN will also cause the scripts not to
+be installed.
+
+eod
     foreach (@possible_exes) {
 	push @exe_files, $_
-##	    if $bldr->prompt ("Do you want to install $_?", 'n') =~ m/^y/i
+	    if $bldr->prompt ("Do you want to install $_?", 'n') =~ m/^y/i
 	    ;
 	}
     }
@@ -103,7 +103,13 @@ my $vers = '';
 
 #	Tell Module::Build what we want to do.
 
-$bldr->requires ($^O eq 'MSWin32' ? {} : {'LWP::UserAgent' => 0});
+## $bldr->requires ($^O eq 'MSWin32' ? {} : {'LWP::UserAgent' => 0});
+$bldr->requires ({
+	'HTML::Parser' => 0,
+	'HTTP::Response' => 0,
+	'HTTP::Status' => 0,
+	'LWP::UserAgent' => 0,
+    });
 $bldr->add_to_cleanup (\@clean_files);
 $bldr->script_files (\@exe_files);
 
