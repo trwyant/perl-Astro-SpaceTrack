@@ -127,12 +127,12 @@ foreach (["Mike McCants' Iridium status",
  25777   Iridium 14     ?        Spare   was called Iridium 14A
  25778   Iridium 21              Replaced Iridium 74   was called Iridium 21A
  27372   Iridium 91     ?        Spare   was called Iridium 90
- 27373   Iridium 90     ?        Moving between planes (Oct. 2005) was called I 91
+ 27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
  27374   Iridium 94     ?        Spare
  27375   Iridium 95     ?        Spare
  27376   Iridium 96     ?        Spare
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
- 27451   Iridium 98     ?        Spare - arrived at a new plane (May 2007)
+ 27451   Iridium 98     ?        Spare (new plane May 2007)
 eod
 	["T. S. Kelso's Iridium list",
 	$skip_ke, $kelso_txt,
