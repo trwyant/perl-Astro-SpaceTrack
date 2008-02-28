@@ -5,7 +5,7 @@
 ^Changes_
 ^cover_db/
 CVS/
-^foo$
+^foo/
 ^kelso\.expect$
 ^kelso\.got$
 ^Makefile$
