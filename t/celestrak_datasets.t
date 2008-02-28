@@ -29,6 +29,11 @@ $expect{'1999-025'} = {
     note => 'Not actually provided as a fetchable data set.',
     todo => 0,
 };
+$expect{'usa-193-debris'} = {
+    name => 'USA 193 Debris',
+    note => 'Not actually provided as a fetchable data set.',
+    todo => 0,
+};
 if ($expect{sts}) {
     $expect{sts}{note} = 'Only available when a mission is in progress.';
     $expect{sts}{todo} = 1;
