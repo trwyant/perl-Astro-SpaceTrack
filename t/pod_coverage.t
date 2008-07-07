@@ -17,6 +17,6 @@ eod
 }
 
 all_pod_coverage_ok ({
-	also_private => [ qr{^[A-Z_]+$}, qr{^parse_(?:string|file)$} ],
+	also_private => [ qr{^[[:upper:]\d_]+$}, qr{^parse_(?:string|file)$} ],
 	coverage_class => 'Pod::Coverage::CountParents'
     });
