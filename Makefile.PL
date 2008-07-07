@@ -1,3 +1,5 @@
+use 5.006;
+
 use strict;
 use warnings;
 
@@ -102,6 +104,7 @@ WriteMakefile (
 ##			$^O eq 'MSWin32' ? () : (
 ##				'LWP::UserAgent' => 0,
 ##				)
+	    'Compress::Zlib' => 0,
 	    'HTML::Parser' => 0,
 	    'HTTP::Response' => 0,
 	    'HTTP::Status' => 0,

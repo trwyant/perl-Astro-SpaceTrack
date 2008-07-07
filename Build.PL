@@ -1,3 +1,5 @@
+use 5.006;
+
 use strict;
 use warnings;
 
@@ -105,6 +107,7 @@ my $vers = '';
 
 ## $bldr->requires ($^O eq 'MSWin32' ? {} : {'LWP::UserAgent' => 0});
 $bldr->requires ({
+	'Compress::Zlib' => 0,
 	'HTML::Parser' => 0,
 	'HTTP::Response' => 0,
 	'HTTP::Status' => 0,
