@@ -110,7 +110,9 @@ ok ($st = Astro::SpaceTrack->new ());
 
 $test_num++;
 print "# Test $test_num - Log in to Space Track.\n";
-skip ($skip_spacetrack, $skip_spacetrack || $st->login ()->is_success);
+my $status;
+skip ($skip_spacetrack, $skip_spacetrack || ($status = $st->login ()->is_success));
+$status or $skip_spacetrack ||= "Login failed";
 
 $test_num++;
 print "# Test $test_num - Fetch a catalog entry.\n";
