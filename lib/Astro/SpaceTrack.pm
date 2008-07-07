@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.031';
+our $VERSION = '0.031_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -106,6 +106,8 @@ use Time::Local;
 use UNIVERSAL qw{isa};
 
 use constant COPACETIC => 'OK';
+use constant BAD_SPACETRACK_RESPONSE =>
+	'Unable to parse SpaceTrack response';
 use constant INVALID_CATALOG =>
 	'Catalog name %s invalid. Legal names are %s.';
 use constant LOGIN_FAILED => 'Login failed';
@@ -2180,6 +2182,9 @@ foreach my $name (@_) {
     my $content = $resp->content;
     next if $content =~ m/No results found/i;
     my @this_page = @{$p->parse_string (table => $content)};
+    ref $this_page[0] eq 'ARRAY'
+	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	BAD_SPACETRACK_RESPONSE, undef, $content);
     my @data = @{$this_page[0]};
     foreach my $row (@data) {
 	pop @$row; pop @$row;
