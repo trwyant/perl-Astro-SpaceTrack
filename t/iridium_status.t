@@ -4,12 +4,21 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
-my %known_inconsistent = map {$_ => 1} ();
+my %known_inconsistent = map {$_ => 1} (24948);
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
 # 21-Feb-2007 - Kelso has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) tumbling. No change McCants.
 # 06-Mar-2007 - McCants assumes Iridium 36 has failed.
+# 07-Aug-2008 - McCants has 24948 (Iridium 28) with possible control
+#		issues about July 19 2008, with 27375 (Iridium 95) moved
+#		about 14 seconds behind it. No change Kelso.
+
+my %status = (
+    &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
+    &Astro::SpaceTrack::BODY_STATUS_IS_SPARE => 'Spare',
+    &Astro::SpaceTrack::BODY_STATUS_IS_TUMBLING => 'Tumbling',
+);
 
 my $st = Astro::SpaceTrack->new ();
 
@@ -67,7 +76,7 @@ foreach (["Mike McCants' Iridium status",
  24944   Iridium 29              Celestrak
  24945   Iridium 32              Celestrak
  24946   Iridium 33              Celestrak
- 24948   Iridium 28              Celestrak
+ 24948   Iridium 28     ?        Possible control issues about July 19, 2008
  24949   Iridium 30              Celestrak
  24950   Iridium 31              Celestrak
  24965   Iridium 19              Celestrak
@@ -129,7 +138,7 @@ foreach (["Mike McCants' Iridium status",
  27372   Iridium 91     ?        Spare   was called Iridium 90
  27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
  27374   Iridium 94     ?        Spare
- 27375   Iridium 95     ?        Spare
+ 27375   Iridium 95     ?        Moved to about 14 seconds behind Iridium 28 on July 26, 2008
  27376   Iridium 96     ?        Spare
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Spare (new plane May 2007)
@@ -264,8 +273,8 @@ foreach my $id (sort keys %mccants_st) {
     print <<eod;
 #
 # Test $test - Status of $id
-#     McCants: $want
-#       Kelso: $got
+#     McCants: $want@{[$status{$want} ? " - $status{$want}" : '']}
+#       Kelso: $got@{[$status{$got} ? " - $status{$got}" : '']}
 eod
     if ($want =~ m/\D/ || $got =~ m/\D/) {
 	skip ($skip_cp, $want eq $got);
