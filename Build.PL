@@ -22,7 +22,7 @@ my $bldr = Module::Build->new (
 
 #	Find out what the user wants to do.
 
-my %opt => $bldr->args ();
+my %opt = $bldr->args ();
 
 my @exe_files;
 my @clean_files;
