@@ -4,7 +4,16 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
-my %known_inconsistent = map {$_ => 1} (24948);
+##### my %known_inconsistent = map {$_ => 1} (24948);
+my %known_inconsistent = (
+    24870 => {sladen => 1},	# McCants & Kelso: tumbling;
+				# Sladen: failed, not tumbling
+    24948 => {kelso => 1},	# McCants: spare, possible control issues
+    				# Sladen: failed, not tumbling;
+    				# Kelso: tumbling
+    27375 => {mccants => 1},	# Kelso & Sladen: operational;
+    				# Sladen: spare.
+);
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
 # 21-Feb-2007 - Kelso has 27450 (Iridium 97) in service,
@@ -14,7 +23,7 @@ my %known_inconsistent = map {$_ => 1} (24948);
 #		issues about July 19 2008, with 27375 (Iridium 95) moved
 #		about 14 seconds behind it. No change Kelso.
 
-my %status = (
+my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
     &Astro::SpaceTrack::BODY_STATUS_IS_SPARE => 'Spare',
     &Astro::SpaceTrack::BODY_STATUS_IS_TUMBLING => 'Tumbling',
@@ -22,33 +31,59 @@ my %status = (
 
 my $st = Astro::SpaceTrack->new ();
 
-$st->set (iridium_status_format => 'mccants');
-my ($rslt, $data) = $st->iridium_status ();
-my $skip_mc = "Mccants data unavailable" unless $rslt->is_success;
-my $mccants_txt = $rslt->content unless $skip_mc;
-my %mccants_st = map {$_->[0] => $_->[4]} @$data if ref $data eq 'ARRAY';
+my @sources = qw{kelso mccants sladen};
 
-$st->set (iridium_status_format => 'kelso');
-($rslt, $data) = $st->iridium_status ();
-my $skip_ke = "Kelso data unavailable" unless $rslt->is_success;
-my $kelso_txt = $rslt->content unless $skip_ke;
-my %kelso_st = map {$_->[0] => $_->[4]} @$data if ref $data eq 'ARRAY';
-
-my @todo;
-{	#	Begin local symbol block
-    my $test = 3;	# Skip the bulk compares
-    foreach my $id (sort keys %mccants_st) {
-	$known_inconsistent{$id} and push @todo, $test;
-	$test++;
+my (%skip, %text, %status);
+my %name;
+foreach my $src (@sources) {
+    my ($rslt, $data) = $st->iridium_status($src);
+    if ($rslt->is_success) {
+	$text{$src} = $rslt->content;
+	my %sts;
+	ref $data eq 'ARRAY'
+	    and %sts = map {$_->[0] => $_->[4]} @$data;
+	$status{$src} = \%sts;
+	foreach (@$data) {
+	    $name{$_->[0]} ||= $_->[1];
+	}
+    } else {
+	$skip{$src} = ucfirst($src) . ' data unavailable';
     }
 }
 
-plan tests => 2 + scalar keys %mccants_st, todo => \@todo;
+my @pairs;
+foreach my $inx (0 .. (scalar @sources - 2)) {
+    foreach my $jnx ($inx + 1 .. (scalar @sources - 1)) {
+	push @pairs, [$sources[$inx], $sources[$jnx]];
+    }
+}
+
+my @todo;
+my @keys;
+{	#	Begin local symbol block
+    my %ky;
+    foreach my $src (keys %status) {
+	foreach my $oid (keys %{$status{$src}}) {
+	    $ky{$oid}++;
+	}
+    }
+    @keys = sort {$a <=> $b} keys %ky;
+    my $test = scalar @sources + 1;	# Skip the bulk compares
+    foreach my $id (@keys) {
+	my $ki = $known_inconsistent{$id};
+	foreach my $pr (@pairs) {
+	    $ki->{$pr->[0]} || $ki->{$pr->[1]}
+		and push @todo, $test;
+	    $test++;
+	}
+    }
+}
+
+plan tests => scalar @sources + scalar @keys * scalar @pairs, todo => \@todo;
 
 my $test = 0;
 
 foreach (["Mike McCants' Iridium status",
-        $skip_mc, $mccants_txt,
 	mccants => <<eod],
  24792   Iridium 8               Celestrak
  24793   Iridium 7               Celestrak
@@ -144,7 +179,6 @@ foreach (["Mike McCants' Iridium status",
  27451   Iridium 98     ?        Spare (new plane May 2007)
 eod
 	["T. S. Kelso's Iridium list",
-	$skip_ke, $kelso_txt,
 	kelso => <<eod],
  24792   Iridium 8      [+]      
  24793   Iridium 7      [+]      
@@ -172,7 +206,7 @@ eod
  24944   Iridium 29     [+]      
  24945   Iridium 32     [+]      
  24946   Iridium 33     [+]      
- 24948   Iridium 28     [+]      
+ 24948   Iridium 28     [-]      Tumbling
  24949   Iridium 30     [+]      
  24950   Iridium 31     [+]      
  24965   Iridium 19     [+]      
@@ -234,23 +268,119 @@ eod
  27372   Iridium 91     [S]      Spare
  27373   Iridium 90     [S]      Spare
  27374   Iridium 94     [S]      Spare
- 27375   Iridium 95     [S]      Spare
+ 27375   Iridium 95     [+]      
  27376   Iridium 96     [S]      Spare
  27450   Iridium 97     [+]      
  27451   Iridium 98     [S]      Spare
 eod
+	["Rod Sladen's Iridium Constellation Status",
+	sladen => <<eod],
+ 24792   Iridium 8      [+]      Plane 4
+ 24793   Iridium 7      [+]      Plane 4
+ 24794   Iridium 6      [+]      Plane 4
+ 24795   Iridium 5      [+]      Plane 4
+ 24796   Iridium 4      [+]      Plane 4
+ 24836   Iridium 914    [-]      Plane 5
+ 24837   Iridium 12     [+]      Plane 5
+ 24839   Iridium 10     [+]      Plane 5
+ 24840   Iridium 13     [+]      Plane 5
+ 24841   Iridium 16     [-]      Plane 5
+ 24842   Iridium 911    [-]      Plane 5
+ 24869   Iridium 15     [+]      Plane 6
+ 24870   Iridium 17     [S]      Plane 6 - Failed on station?
+ 24871   Iridium 920    [-]      Plane 6
+ 24872   Iridium 18     [+]      Plane 6
+ 24873   Iridium 921    [-]      Plane 6
+ 24903   Iridium 26     [+]      Plane 2
+ 24904   Iridium 25     [+]      Plane 2
+ 24905   Iridium 46     [+]      Plane 2
+ 24906   Iridium 23     [+]      Plane 2
+ 24907   Iridium 22     [+]      Plane 2
+ 24925   Dummy mass 1   [-]      Dummy
+ 24926   Dummy mass 2   [-]      Dummy
+ 24944   Iridium 29     [+]      Plane 3
+ 24945   Iridium 32     [+]      Plane 3
+ 24946   Iridium 33     [+]      Plane 3
+ 24948   Iridium 28     [S]      Plane 3 - Failed on station?
+ 24949   Iridium 30     [+]      Plane 3
+ 24950   Iridium 31     [+]      Plane 3
+ 24965   Iridium 19     [+]      Plane 4
+ 24966   Iridium 35     [+]      Plane 4
+ 24967   Iridium 36     [-]      Plane 4
+ 24968   Iridium 37     [+]      Plane 4
+ 24969   Iridium 34     [+]      Plane 4
+ 25039   Iridium 43     [+]      Plane 6
+ 25040   Iridium 41     [+]      Plane 6
+ 25041   Iridium 40     [+]      Plane 6
+ 25042   Iridium 39     [+]      Plane 6
+ 25043   Iridium 38     [-]      Plane 6
+ 25077   Iridium 42     [+]      Plane 6
+ 25078   Iridium 44     [-]      Plane 6
+ 25104   Iridium 45     [+]      Plane 2
+ 25105   Iridium 24     [-]      Plane 2
+ 25106   Iridium 47     [+]      Plane 2
+ 25108   Iridium 49     [+]      Plane 2
+ 25169   Iridium 52     [+]      Plane 5
+ 25170   Iridium 56     [+]      Plane 5
+ 25171   Iridium 54     [+]      Plane 5
+ 25172   Iridium 50     [+]      Plane 5
+ 25173   Iridium 53     [+]      Plane 5
+ 25262   Iridium 51     [S]      Plane 4
+ 25263   Iridium 61     [+]      Plane 4
+ 25272   Iridium 55     [+]      Plane 3
+ 25273   Iridium 57     [+]      Plane 3
+ 25274   Iridium 58     [+]      Plane 3
+ 25275   Iridium 59     [+]      Plane 3
+ 25276   Iridium 60     [+]      Plane 3
+ 25285   Iridium 62     [+]      Plane 1
+ 25286   Iridium 63     [+]      Plane 1
+ 25287   Iridium 64     [+]      Plane 1
+ 25288   Iridium 65     [+]      Plane 1
+ 25289   Iridium 66     [+]      Plane 1
+ 25290   Iridium 67     [+]      Plane 1
+ 25291   Iridium 68     [+]      Plane 1
+ 25319   Iridium 69     [-]      Plane 2
+ 25320   Iridium 71     [-]      Plane 2
+ 25342   Iridium 70     [+]      Plane 1
+ 25343   Iridium 72     [+]      Plane 1
+ 25344   Iridium 73     [-]      Plane 1
+ 25345   Iridium 74     [S]      Plane 1
+ 25346   Iridium 75     [+]      Plane 1
+ 25431   Iridium 3      [+]      Plane 2
+ 25432   Iridium 76     [+]      Plane 2
+ 25467   Iridium 82     [+]      Plane 6
+ 25468   Iridium 81     [+]      Plane 6
+ 25469   Iridium 80     [+]      Plane 6
+ 25471   Iridium 77     [+]      Plane 6
+ 25527   Iridium 2      [-]      Plane 5
+ 25528   Iridium 86     [+]      Plane 5
+ 25530   Iridium 84     [+]      Plane 5
+ 25531   Iridium 83     [+]      Plane 5
+ 25577   Iridium 20     [+]      Plane 2
+ 25578   Iridium 11     [S]      Plane 2
+ 25777   Iridium 14     [S]      Plane 1
+ 25778   Iridium 21     [+]      Plane 1
+ 27372   Iridium 91     [S]      Plane 3
+ 27373   Iridium 90     [S]      Plane 5
+ 27374   Iridium 94     [S]      Plane 3
+ 27375   Iridium 95     [+]      Plane 3
+ 27376   Iridium 96     [S]      Plane 3
+ 27450   Iridium 97     [+]      Plane 4
+ 27451   Iridium 98     [S]      Plane 6
+eod
 	) {
-    my ($what, $skip, $got, $file, $data) = @$_;
+#####    my ($what, $skip, $got, $file, $data) = @$_;
+    my ($what, $file, $data) = @$_;
     $test++;
-    $skip ||= 'No comparison data provided' unless $data;
-    $got = 'skip' if $skip;
+    $data ||= '';
+    my $got = $skip{$file} ? 'skip' : $text{$file};
     1 while $got =~ s/\015\012/\n/gm;
     print <<eod;
 #
 # Test $test: Content of $what
 eod
-    skip ($skip, $got eq $data);
-    unless ($skip || $got eq $data) {
+    skip ($skip{$file}, $got eq $data);
+    unless ($skip{$file} || $got eq $data) {
 	open (HANDLE, ">$file.expect");
 	print HANDLE $data;
 	open (HANDLE, ">$file.got");
@@ -261,25 +391,33 @@ eod
 # $file.got respectively.
 #
 eod
-	}
     }
+}
 
-my $skip_cp = $skip_mc || $skip_ke;
-foreach my $id (sort keys %mccants_st) {
-    my $want = $mccants_st{$id};
-    my $got = $skip_cp ? 'skipped' :
-	exists $kelso_st{$id} ? $kelso_st{$id} : 'missing';
-    $test++;
-    print <<eod;
+foreach my $id (@keys) {
+    foreach my $pr (@pairs) {
+	my @data;
+	foreach my $src (@$pr) {
+	    push @data,
+		$skip{$src} ? ['skipped'] :
+		exists $status{$src}{$id} ?
+		    [$status{$src}{$id}, $status_map{$status{$src}{$id}}] :
+		    ['missing'];
+	}
+	$test++;
+	print <<eod;
 #
-# Test $test - Status of $id
-#     McCants: $want@{[$status{$want} ? " - $status{$want}" : '']}
-#       Kelso: $got@{[$status{$got} ? " - $status{$got}" : '']}
+# Test $test - Status of $id ($name{$id})
 eod
-    if ($want =~ m/\D/ || $got =~ m/\D/) {
-	skip ($skip_cp, $want eq $got);
-    } else {
-	skip ($skip_cp, $want == $got);
+	foreach my $inx (0, 1) {
+	    printf "#%12s: %s\n", $pr->[$inx], join ' - ', @{$data[$inx]};
+	}
+	@data = map $_->[0], @data;
+	if ($data[0] =~ m/\D/ || $data[1] =~ m/\D/) {
+	    skip ($skip{$pr->[0]} || $skip{$pr->[1]}, $data[0] eq $data[1]);
+	} else {
+	    skip ($skip{$pr->[0]} || $skip{$pr->[1]}, $data[0] == $data[1]);
+	}
     }
 }
 
