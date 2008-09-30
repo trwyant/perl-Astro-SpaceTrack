@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.032_01';
+our $VERSION = '0.033';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2650,6 +2650,11 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
 	 with a development version of that module.
  0.032 06-Jul-2008 T. R. Wyant
      More graceful failure when unable to parse Space Track data.
+ 0.033 30-Sep-2008 T. R. Wyant
+     Fix Build.PL -y (and -n)
+     Add iridium_status('sladen') to scrape Rod Sladen's Iridium
+         Constallation Status web page.
+     Add attribute 'url_iridium_status_sladen'.
 
 =head1 ACKNOWLEDGMENTS
 
