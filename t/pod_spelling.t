@@ -11,7 +11,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.007';
+our $VERSION = '0.007i_01';
 
 if ($skip) {
     skip ($skip, 1);
@@ -30,13 +30,18 @@ Fengyun
 IDs
 ISP
 Kelso
+Kelso's
 kelso
 McCants
 mccants
 NORAD
+OID
 OIDs
 Optionmenu
 SATCAT
+Sladen
+sladen
+Sladen's
 STDERR
 STDOUT
 SpaceTrack
