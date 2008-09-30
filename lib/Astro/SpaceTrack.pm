@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.032';
+our $VERSION = '0.032_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -163,6 +163,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
 	mccants => {name => 'McCants'},
+	sladen => {name => 'Sladen'},
     },
     spaceflight => {
 	iss => {name => 'International Space Station',
@@ -204,6 +205,7 @@ my %mutator = (	# Mutators for the various attributes.
     session_cookie => \&_mutate_cookie,
     url_iridium_status_kelso => \&_mutate_attrib,
     url_iridium_status_mccants => \&_mutate_attrib,
+    url_iridium_status_sladen => \&_mutate_attrib,
     username => \&_mutate_authen,
     verbose => \&_mutate_attrib,
     webcmd => \&_mutate_attrib,
@@ -278,6 +280,8 @@ my $self = {
 	'http://celestrak.com/SpaceTrack/query/iridium.txt',
     url_iridium_status_mccants =>
 	'http://www.io.com/~mmccants/tles/iridium.html',
+    url_iridium_status_sladen =>
+	'http://www.rod.sladen.org.uk/iridium.htm',
     username => undef,	# Login username.
     verbose => undef,	# Verbose error messages for catalogs.
     webcmd => undef,	# Command to get web help.
@@ -660,7 +664,7 @@ The following commands are defined:
   help
     Display this help text.
   iridium_status
-    Status of Iridium satellites, from Mike McCants and/or
+    Status of Iridium satellites, from Mike McCants or Rod Sladen and/or
     T. S. Kelso.
   login
     Acquire a session cookie. You must have already set the
@@ -734,8 +738,9 @@ The source of the data and, to a certain extent, the format of the
 results is determined by the optional $format argument, which defaults
 to the value of the L</iridium_status_format> attribute.
 
-If the format is 'kelso', only celestrak.com is queried for the
-data. The possible status values are:
+If the format is 'kelso', only Dr. Kelso's Celestrak web site
+(L<http://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
+the data. The possible status values are:
 
     '[S]' - Spare;
     '[-]' - Tumbling (or otherwise unservicable);
@@ -743,14 +748,13 @@ data. The possible status values are:
 
 The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 
-If the format is 'mccants', the primary source of information
-will be Mike McCants' "Status of Iridium Payloads" web
-page, http://www.io.com/~mmccants/tles/iridium.html (which gives
-status on non-functional Iridium satellites). The Celestrak list
-will be used to fill in the functioning satellites so that a complete
-list is generated. The comment will be whatever text is provided by
-Mike McCants' web page, or 'Celestrak' if the satellite data came
-from that source.
+If the format is 'mccants', the primary source of information will be
+Mike McCants' "Status of Iridium Payloads" web page,
+L<http://www.io.com/~mmccants/tles/iridium.html> (which gives status on
+non-functional Iridium satellites). The Celestrak list will be used to
+fill in the functioning satellites so that a complete list is generated.
+The comment will be whatever text is provided by Mike McCants' web page,
+or 'Celestrak' if the satellite data came from that source.
 
 As of 20-Feb-2006 Mike's web page documented the possible statuses as
 follows:
@@ -767,6 +771,24 @@ status:
 
 A blank status indicates that the satellite is in service and
 therefore capable of producing flares.
+
+If the format is 'sladen', the primary source of information will be Rod
+Sladen's "Iridium Constellation Status" web page,
+L<http://www.rod.sladen.org.uk/iridium.htm>, which gives status on all
+Iridium satellites, but no OID. The Celestrak list will be used to
+provide OIDs for Iridium satellite numbers, so that a complete list is
+generated. Mr. Sladen's page simply lists operational and failed
+satellites in each plane, so this software imposes Kelso-style statuses
+on the data. That is to say, operational satellites will be marked
+'[+]', spares will be marked '[S]', and tumbling satellites will be
+marked '[-]', with the corresponding portable statuses. The one twist is
+that failed satellites not marked as tumbling will be considered spares.
+
+The comment field in 'sladen' format data will contain the orbital plane
+designation for the satellite, 'Plane n' with 'n' being a number from 1
+to 6. If the satellite is failed but not tumbling, the text ' - Failed
+on station?' will be appended to the comment. The dummy masses will be
+included from the Kelso data, with status '[-]' but comment 'Dummy'.
 
 If the method is called in list context, the first element of the
 returned list will be the HTTP::Response object, and the second
@@ -822,6 +844,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    'tum' => BODY_STATUS_IS_TUMBLING,
 	    'tum?' => BODY_STATUS_IS_TUMBLING,
 	},
+#	sladen => undef,	# Not needed; done programmatically.
     );
 
     sub iridium_status {
@@ -840,7 +863,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my $status = $1 || '';
 	my $portable_status = $status_portable{kelso}{$status};
 	my $comment;
-	if ($fmt eq 'kelso') {
+	if ($fmt eq 'kelso' || $fmt eq 'sladen') {
 	    $comment = $kelso_comment{$status} || '';
 	    }
 	  else {
@@ -870,8 +893,70 @@ The BODY_STATUS constants are exportable using the :status tag.
 	#0         1         2         3         4         5         6         7
 	#01234567890123456789012345678901234567890123456789012345678901234567890
 	# 24836   Iridium 914    tum      Failed; was called Iridium 14
+	}
+    } elsif ($fmt eq 'sladen') {
+	my $sladen_url = $self->get('url_iridium_status_sladen')->content;
+	$resp = $self->{agent}->get($sladen_url);
+	$resp->is_success or return $resp;
+	my %oid;
+	my %dummy;
+	foreach my $id (keys %rslt) {
+	    $rslt{$id}[1] =~ m/dummy/i and do {
+		$dummy{$id} = $rslt{$id};
+		$dummy{$id}[3] = 'Dummy';
+		next;
+	    };
+	    $rslt{$id}[1] =~ m/(\d+)/ or next;
+	    $oid{+$1} = $id;
+	}
+	%rslt = %dummy;
+	my $fail;
+	my $re = qr{(\d+)};
+	local $_ = $resp->content;
+	s{<em>.*?</em>}{}igms;	# Strip emphasis notes
+	s/<.*?>//gms;	# Strip markup
+	s/\(.*?\)//g;	# Strip parenthetical comments
+	foreach (split '\n', $_) {
+	    if (m/&lt;-+\s+failed\s+-+&gt;/i) {
+		$fail++;
+		$re = qr{(\d+)(\w?)};
+	    } elsif (s/^\s*(plane\s+\d+)\s*:\s*//i) {
+		my $plane = $1;
+		s/^\D+//;	# Strip leading non-digits
+		s/\s+$//;	# Strip trailing whitespace
+		my $inx = 0;	# First 11 functional are in service
+		while (m/$re/g) {
+		    my $num = +$1;
+		    my $detail = $2;
+		    my $id = $oid{$num} or do {
+			# This is the normal situation for decayed satellites.
+#			warn "No oid for Iridium $num\n";
+			next;
+		    };
+		    my $name = "Iridium $num";
+		    if ($fail) {
+			if ($detail eq 'd') {
+			} elsif ($detail eq 't') {
+			    $rslt{$id} = [$id, $name, "[-]", $plane,
+				BODY_STATUS_IS_TUMBLING];
+			} else {
+			    $rslt{$id} = [$id, $name, "[S]",
+				$plane . ' - Failed on station?',
+				BODY_STATUS_IS_SPARE];
+			}
+		    } elsif ($inx++ > 10) {
+			$rslt{$id} = [$id, $name, "[S]", $plane,
+			    BODY_STATUS_IS_SPARE];
+		    } else {
+			$rslt{$id} = [$id, $name, "[+]", $plane,
+			    BODY_STATUS_IS_OPERATIONAL];
+		    }
+		}
+	    } elsif (m/Notes:/) {
+		last;
 	    }
 	}
+    }
     $resp->content (join '', map {
 	    sprintf "%6d   %-15s%-8s %s\n", @{$rslt{$_}}}
 	sort {$a <=> $b} keys %rslt);
@@ -937,10 +1022,11 @@ HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 =item $resp = $st->names (source)
 
 This method retrieves the names of the catalogs for the given source,
-either 'celestrak' or 'spacetrack', in the content of the given
-HTTP::Response object. In list context, you also get a reference to
-a list of two-element lists; each inner list contains the description
-and the catalog name (suitable for inserting into a Tk Optionmenu).
+either 'celestrak', 'spacetrack', or 'iridium_status', in the content of
+the given HTTP::Response object. In list context, you also get a
+reference to a list of two-element lists; each inner list contains the
+description and the catalog name, in that order (suitable for inserting
+into a Tk Optionmenu).
 
 =cut
 
@@ -2324,6 +2410,15 @@ will not be dead in the water if Mr. McCants needs to change his
 ISP or re-arrange his web site.
 
 The default is 'http://www.io.com/~mmccants/tles/iridium.html'
+
+=item url_iridium_status_sladen (text)
+
+This attribute specifies the location of Rod Sladen's Iridium
+Constellation Status page. You should normally not need to change this,
+but it is provided so you will not be dead in the water if Mr. Sladen
+needs to change his ISP or re-arrange his web site.
+
+The default is 'http://www.rod.sladen.org.uk/iridium.htm'.
 
 =item username (text)
 
