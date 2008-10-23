@@ -29,11 +29,21 @@ $expect{'1999-025'} = {
     note => 'Not actually provided as a fetchable data set.',
     todo => 0,
 };
+
+=begin comment
+
+# Removed October 23, 2008
+
 $expect{'usa-193-debris'} = {
     name => 'USA 193 Debris',
     note => 'Not actually provided as a fetchable data set.',
     todo => 0,
 };
+
+=end comment
+
+=cut
+
 if ($expect{sts}) {
     $expect{sts}{note} = 'Only available when a mission is in progress.';
     $expect{sts}{todo} = 1;
