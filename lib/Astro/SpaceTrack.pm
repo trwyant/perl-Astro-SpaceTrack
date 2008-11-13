@@ -82,7 +82,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.033';
+our $VERSION = '0.033_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -103,7 +103,6 @@ use LWP::UserAgent;	# Not in the base.
 use POSIX qw{strftime};
 use Text::ParseWords;
 use Time::Local;
-use UNIVERSAL qw{isa};
 
 use constant COPACETIC => 'OK';
 use constant BAD_SPACETRACK_RESPONSE =>
@@ -1478,7 +1477,7 @@ Unlike most of the other methods, this one returns nothing.
 my ($read, $print, $out, $rdln);
 
 sub shell {
-my $self = shift if UNIVERSAL::isa $_[0], __PACKAGE__;
+my $self = shift if eval {$_[0]->isa(__PACKAGE__)};
 $self ||= Astro::SpaceTrack->new (addendum => <<eod);
 
 'help' gets you a list of valid commands.
@@ -1488,7 +1487,7 @@ my $prompt = 'SpaceTrack> ';
 
 $out = \*STDOUT;
 $print = sub {
-	my $hndl = UNIVERSAL::isa ($_[0], 'FileHandle') ? shift : $out;
+	my $hndl = eval {$_[0]->isa('FileHandle')} ? shift : $out;
 	print $hndl @_
 	};
 
@@ -1585,7 +1584,7 @@ cannot be read.
 =cut
 
 sub source {
-my $self = shift if UNIVERSAL::isa $_[0], __PACKAGE__;
+my $self = shift if eval {$_[0]->isa(__PACKAGE__)};
 $self ||= Astro::SpaceTrack->new ();
 $self->shell ($self->_source (@_), 'exit');
 }
