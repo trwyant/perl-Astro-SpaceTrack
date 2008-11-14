@@ -51,7 +51,14 @@ third party.
 
 In addition, the celestrak method queries L<http://celestrak.com/> for
 a named data set, and then queries L<http://www.space-track.org/> for
-the orbital elements of the objects in the data set.
+the orbital elements of the objects in the data set. This method may not
+require a Space Track username and password, depending on how you have
+the Astro::SpaceTrack object configured. See the documentation on this
+method for the details.
+
+Other methods (amsat(), spaceflight() ...) have been added to access
+other repositories of orbital data, and in general these do not require
+a Space Track username and password.
 
 Beginning with version 0.017, there is provision for retrieval of
 historical data.
@@ -82,7 +89,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.033_01';
+our $VERSION = '0.033_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -395,8 +402,8 @@ and you must abide by that site's restrictions, which include
 not making the data available to a third party without prior
 permission.
 
-Copyright 2005, 2006, 2007 T. R. Wyant (wyant at cpan dot org). All
-rights reserved.
+Copyright 2005, 2006, 2007, 2008 T. R. Wyant (wyant at cpan dot org).
+All rights reserved.
 
 This module is free software; you can use it, redistribute it
 and/or modify it under the same terms as Perl itself.
@@ -417,6 +424,14 @@ aforementioned HTTP::Response object, and the second element is a
 list reference to list references  (i.e. a list of lists). Each
 of the list references contains the catalog ID of a satellite or
 other orbiting body and the common name of the body.
+
+If the 'direct' attribute is true, or if the 'fallback' attribute is
+true and the data are not available from Space Track, the elements will
+be fetched directly from Celestrak, and no login is needed. Otherwise,
+this method implicitly calls the login () method if the session cookie
+is missing or expired, and returns the SpaceTrack data for the OIDs
+fetched from Celestrak. If login () fails, you will get the
+HTTP::Response from login ().
 
 A list of valid names and brief descriptions can be obtained by calling
 $st->names ('celestrak'). If you have set the 'verbose' attribute true
@@ -445,14 +460,6 @@ available as data set 'sts'. If there is no current mission, you will
 get a 404 error with text "Missing Celestrak catalog 'sts'." Since the
 data ultimately come from NORAD, the shuttle will have to be up and
 actually tracked by NORAD before this is available.
-
-If the 'direct' attribute is true, or if the 'fallback' attribute is
-true and the data are not available from Space Track, the elements will
-be fetched directly from Celestrak, and no login is needed. Otherwise,
-this method implicitly calls the login () method if the session cookie
-is missing or expired, and returns the SpaceTrack data for the OIDs
-fetched from Celestrak. If login () fails, you will get the
-HTTP::Response from login ().
 
 If this method succeeds, a 'Pragma: spacetrack-type = orbit' header is
 added to the HTTP::Response object returned.
@@ -551,17 +558,18 @@ return;
 
 =item $resp = $st->file ($name)
 
-This method takes the name of an observing list file, or a handle to
-an open observing list file, and returns an HTTP::Response object whose
-content is the relevant element sets. If called in list context, the
-first element of the list is the aforementioned HTTP::Response object,
-and the second element is a list reference to list references  (i.e.
-a list of lists). Each of the list references contains the catalog ID
-of a satellite or other orbiting body and the common name of the body.
+This method takes the name of an observing list file, or a handle to an
+open observing list file, and returns an HTTP::Response object whose
+content is the relevant element sets, retrieved from the Space Track web
+site. If called in list context, the first element of the list is the
+aforementioned HTTP::Response object, and the second element is a list
+reference to list references  (i.e.  a list of lists). Each of the list
+references contains the catalog ID of a satellite or other orbiting body
+and the common name of the body.
 
-This method implicitly calls the login () method if the session cookie
-is missing or expired. If login () fails, you will get the
-HTTP::Response from login ().
+This method requires a Space Track username and password. It implicitly
+calls the login () method if the session cookie is missing or expired.
+If login () fails, you will get the HTTP::Response from login ().
 
 The observing list file is (how convenient!) in the Celestrak format,
 with the first five characters of each line containing the object ID,
@@ -732,6 +740,8 @@ HTTP::Response object containing the relevant data (if all queries
 succeeded) or the status of the first failure. If the queries succeed,
 the content is a series of lines formatted by "%6d   %-15s%-8s %s\n",
 with NORAD ID, name, status, and comment substituted in.
+
+No Space Track username and password are required to use this method.
 
 The source of the data and, to a certain extent, the format of the
 results is determined by the optional $format argument, which defaults
@@ -972,13 +982,15 @@ The BODY_STATUS constants are exportable using the :status tag.
 =item $resp = $st->login ( ... )
 
 If any arguments are given, this method passes them to the set ()
-method. Then it executes a login. The return is normally the
-HTTP::Response object from the login. But if no session cookie was
-obtained, the return is an HTTP::Response with an appropriate message
-and the code set to RC_UNAUTHORIZED from HTTP::Status (a.k.a. 401). If
-a login is attempted without the username and password being set, the
-return is an HTTP::Response with an appropriate message and the
+method. Then it executes a login to the Space Track web site. The return
+is normally the HTTP::Response object from the login. But if no session
+cookie was obtained, the return is an HTTP::Response with an appropriate
+message and the code set to RC_UNAUTHORIZED from HTTP::Status (a.k.a.
+401). If a login is attempted without the username and password being
+set, the return is an HTTP::Response with an appropriate message and the
 code set to RC_PRECONDITION_FAILED from HTTP::Status (a.k.a. 412).
+
+A Space Track username and password are required to use this method.
 
 =cut
 
@@ -1027,6 +1039,9 @@ reference to a list of two-element lists; each inner list contains the
 description and the catalog name, in that order (suitable for inserting
 into a Tk Optionmenu).
 
+No Space Track username and password are required to use this method,
+since all it is doing is returning data kept by this module.
+
 =cut
 
 sub names {
@@ -1057,9 +1072,12 @@ return ($resp, \@list);
 =item $resp = $st->retrieve (number_or_range ...)
 
 This method retrieves the latest element set for each of the given
-satellite ID numbers (also known as SATCAT IDs, NORAD IDs, or OIDs).
-Non-numeric catalog numbers are ignored, as are (at a later stage)
-numbers that do not actually represent a satellite.
+satellite ID numbers (also known as SATCAT IDs, NORAD IDs, or OIDs) from
+The Space Track web site.  Non-numeric catalog numbers are ignored, as
+are (at a later stage) numbers that do not actually represent a
+satellite.
+
+A Space Track username and password are required to use this method.
 
 Number ranges are represented as 'start-end', where both 'start' and
 'end' are catalog numbers. If 'start' > 'end', the numbers will be
@@ -1205,11 +1223,13 @@ $resp;
 
 =item $resp = $st->search_date (date ...)
 
-This method searches the database for objects launched on the given
-date. The date is specified as year-month-day, with any non-digit being
-legal as the separator. You can omit -day or specify it as 0 to get
-all launches for the given month. You can omit -month (or specify it
-as 0) as well to get all launches for the given year.
+This method searches the Space Track database for objects launched on
+the given date. The date is specified as year-month-day, with any
+non-digit being legal as the separator. You can omit -day or specify it
+as 0 to get all launches for the given month. You can omit -month (or
+specify it as 0) as well to get all launches for the given year.
+
+A Space Track username and password are required to use this method.
 
 You can specify options for the search as either command-type options
 (e.g. search (-status => 'onorbit', ...)) or as a leading hash reference
@@ -1300,15 +1320,17 @@ $self->_search_generic (sub {
 
 =item $resp = $st->search_id (id ...)
 
-This method searches the database for objects having the given
-international IDs. The international ID is the last two digits of the
-launch year (in the range 1957 through 2056), the three-digit sequence
-number of the launch within the year (with leading zeroes as needed),
-and the piece (A through ZZ, with A typically being the payload). You
-can omit the piece and get all pieces of that launch, or omit both the
-piece and the launch number and get all launches for the year. There is
-no mechanism to restrict the search to a given on-orbit status, or to
-filter out debris or rocket bodies.
+This method searches the Space Track database for objects having the
+given international IDs. The international ID is the last two digits of
+the launch year (in the range 1957 through 2056), the three-digit
+sequence number of the launch within the year (with leading zeroes as
+needed), and the piece (A through ZZ, with A typically being the
+payload). You can omit the piece and get all pieces of that launch, or
+omit both the piece and the launch number and get all launches for the
+year. There is no mechanism to restrict the search to a given on-orbit
+status, or to filter out debris or rocket bodies.
+
+A Space Track username and password are required to use this method.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1356,8 +1378,10 @@ $self->_search_generic (sub {
 
 =item $resp = $st->search_name (name ...)
 
-This method searches the database for the named objects. Matches
-are case-insensitive and all matches are returned.
+This method searches the Space Track database for the named objects.
+Matches are case-insensitive and all matches are returned.
+
+A Space Track username and password are required to use this method.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
@@ -1702,16 +1726,18 @@ $resp;
 
 =item $resp = $st->spacetrack ($name_or_number);
 
-This method downloads the given bulk catalog of orbital elements. If
-the argument is an integer, it represents the number of the
-catalog to download. Otherwise, it is expected to be the name of
-the catalog, and whether you get a two-line or three-line dataset is
-specified by the setting of the with_name attribute. The return is
-the HTTP::Response object fetched. If an invalid catalog name is
-requested, an HTTP::Response object is returned, with an appropriate
-message and the error code set to RC_NOTFOUND from HTTP::Status
-(a.k.a. 404). This will also happen if the HTTP get succeeds but we
-do not get the expected content.
+This method downloads the given bulk catalog of orbital elements from
+the Space Track web site. If the argument is an integer, it represents
+the number of the catalog to download. Otherwise, it is expected to be
+the name of the catalog, and whether you get a two-line or three-line
+dataset is specified by the setting of the with_name attribute. The
+return is the HTTP::Response object fetched. If an invalid catalog name
+is requested, an HTTP::Response object is returned, with an appropriate
+message and the error code set to RC_NOTFOUND from HTTP::Status (a.k.a.
+404). This will also happen if the HTTP get succeeds but we do not get
+the expected content.
+
+A Space Track username and password are required to use this method.
 
 Note that when requesting spacetrack data sets by catalog number the
 setting of the 'with_name' attribute is ignored.
