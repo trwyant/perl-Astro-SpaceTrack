@@ -11,7 +11,7 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.008';
+our $VERSION = '0.008_01';
 
 if ($skip) {
     skip ($skip, 1);
@@ -21,6 +21,7 @@ if ($skip) {
     all_pod_files_spelling_ok ();
 }
 __DATA__
+amsat
 Celestrak
 China's
 com
@@ -46,6 +47,7 @@ STDERR
 STDOUT
 SpaceTrack
 SpaceTrackTk
+TLE
 Wyant
 ZZ
 attrib
