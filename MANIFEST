@@ -13,6 +13,7 @@ eg/spaceflight
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
 t/basic.t
+t/file.dat
 t/pod.t
 t/pod_coverage.t
 META.yml
