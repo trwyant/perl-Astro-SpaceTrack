@@ -90,7 +90,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.033_03';
+our $VERSION = '0.034';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2806,6 +2806,15 @@ insufficiently-up-to-date version of LWP or HTML::Parser.
      Add iridium_status('sladen') to scrape Rod Sladen's Iridium
          Constallation Status web page.
      Add attribute 'url_iridium_status_sladen'.
+ 0.034 24-Nov-2008 T. R. Wyant
+     Eliminate use of UNIVERSAL::isa as a function.
+     Add 'Pragma spacetrack-source = ' header to all methods
+	 that return TLEs or Iridium status, saying where
+	 the data came from.
+     Add content_source() method to access spacetrack-source
+	 header.
+     Try for less bad test coverage. Good coverage awaits a
+	 rewrite of the shell() method.
 
 =head1 ACKNOWLEDGMENTS
 
