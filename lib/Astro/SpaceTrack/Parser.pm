@@ -5,7 +5,7 @@ package Astro::SpaceTrack::Parser;
 
 # Author: Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
-# Copyright 2005, 2007 by Thomas R. Wyant, III
+# Copyright 2005, 2007, 2008 by Thomas R. Wyant, III
 
 # This entire package is private to the Astro::SpaceTrack module.
 # In addition to the restrictions and disclaimers in that module,
@@ -89,13 +89,13 @@ $self->parse (@_);
 $target{$type}{post_process}->($self);
 }
 
-sub parse_file {
-my $self = shift;
-my $type = shift;
-$self->_spacetrack_reset ($type);
-$self->SUPER::parse_file (@_);
-$target{$type}{post_process}->($self);
-}
+####	sub parse_file {
+####	my $self = shift;
+####	my $type = shift;
+####	$self->_spacetrack_reset ($type);
+####	$self->SUPER::parse_file (@_);
+####	$target{$type}{post_process}->($self);
+####	}
 
 sub _spacetrack_html_start {
 my $self = shift;
