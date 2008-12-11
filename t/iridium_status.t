@@ -381,10 +381,11 @@ eod
 eod
     skip ($skip{$file}, $got eq $data);
     unless ($skip{$file} || $got eq $data) {
-	open (HANDLE, ">$file.expect");
-	print HANDLE $data;
-	open (HANDLE, ">$file.got");
-	print HANDLE $got;
+	my $fn = "$file.expect";
+	open (my $fh, '>', $fn) or die "Unable to open $fn: $!";
+	print $fh $data;
+	open ($fh, '>', $fn) or die "Unable to open $fn: $!";
+	print $fh $got;
 	warn <<eod;
 #
 # Expected and gotten information written to $file.expect and
