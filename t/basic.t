@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+no warnings qw{uninitialized};
+
 use FileHandle;
 use Test;
 
@@ -21,7 +23,7 @@ return $input;
 }
 
 BEGIN {
-plan (tests => 67);
+plan (tests => 68);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -39,16 +41,18 @@ my $agt = LWP::UserAgent->new ();
 
 use constant NOACCESS => 'Site not accessible.';
 
-my $skip_celestrak = NOACCESS
-    unless $agt->get ('http://celestrak.com/')->is_success;
-my $skip_mccants = NOACCESS
-    unless $agt->get ('http://www.io.com/~mmccants/tles/iridium.html')->is_success;
-my $skip_sladen = NOACCESS
-    unless $agt->get ('http://www.rod.sladen.org.uk/iridium.htm')->is_success;
-my $skip_spaceflight = NOACCESS
-    unless $agt->get ('http://spaceflight.nasa.gov/')->is_success;
-my $skip_amsat = NOACCESS
-    unless $agt->get ('http://www.amsat.org/')->is_success;
+my ($skip_celestrak, $skip_mccants, $skip_sladen, $skip_spaceflight,
+    $skip_amsat);
+$agt->get ('http://celestrak.com/')->is_success
+    or $skip_celestrak = NOACCESS;
+$agt->get ('http://www.io.com/~mmccants/tles/iridium.html')->is_success
+    or $skip_mccants = NOACCESS;
+$agt->get ('http://www.rod.sladen.org.uk/iridium.htm')->is_success
+    or $skip_sladen = NOACCESS;
+$agt->get ('http://spaceflight.nasa.gov/')->is_success
+    or $skip_spaceflight = NOACCESS;
+$agt->get ('http://www.amsat.org/')->is_success
+    or $skip_amsat = NOACCESS;
 
 if (!$agt->get ('http://www.space-track.org/')->is_success) {
     $skip_spacetrack = NOACCESS;
@@ -94,8 +98,9 @@ username will be skipped.
 
 eod
 
-    my $user = prompt ("Space-Track username: ");
-    my $pass = prompt ("Space-Track password: ") if $user;
+    my ($user, $pass);
+    $user = prompt ("Space-Track username: ");
+    $user and $pass = prompt ("Space-Track password: ");
 
     if ($user && $pass) {
 	$ENV{SPACETRACK_USER} = "$user/$pass";
@@ -411,3 +416,9 @@ ok($st->content_type eq 'help');
 $test_num++;
 print "# Test $test_num - Check the content source of help.\n";
 ok(!defined($st->content_source));
+
+$st->set(banner => undef);
+$st->shell('', '# comment', 'set banner 1', 'exit');
+$test_num++;
+print "# Test $test_num - Reset an attribute using the shell.\n";
+ok($st->get('banner'));

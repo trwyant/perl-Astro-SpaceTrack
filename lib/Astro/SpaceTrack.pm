@@ -90,7 +90,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.034';
+our $VERSION = '0.034_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -101,7 +101,7 @@ our %EXPORT_TAGS = (
 use Astro::SpaceTrack::Parser;
 use Carp;
 use Compress::Zlib ();
-use Config;
+## use Config;
 use FileHandle;
 use Getopt::Long;
 use HTTP::Response;	# Not in the base, but comes with LWP.
@@ -396,12 +396,21 @@ benefit of the shell method.
 
 =cut
 
-sub banner {
-my $self = shift;
-HTTP::Response->new (RC_OK, undef, undef, <<eod);
+{
+    my $perl_version;
+
+    sub banner {
+    my $self = shift;
+    $perl_version ||= do {
+	$] >= 5.01 ? $^V : do {
+	    require Config;
+	    'v' . $Config::Config{version};
+	}
+    };
+    HTTP::Response->new (RC_OK, undef, undef, <<eod);
 
 @{[__PACKAGE__]} version $VERSION
-Perl $Config{version} under $^O
+Perl $perl_version under $^O
 
 You must register with http://@{[DOMAIN]}/ and get a
 username and password before you can make use of this package,
@@ -416,6 +425,7 @@ This module is free software; you can use it, redistribute it
 and/or modify it under the same terms as Perl itself.
 @{[$self->{addendum} || '']}
 eod
+    }
 
 }
 
@@ -1597,8 +1607,8 @@ Unlike most of the other methods, this one returns nothing.
 my ($read, $print, $out, $rdln);
 
 sub shell {
-my $self = shift if eval {$_[0]->isa(__PACKAGE__)};
-$self ||= Astro::SpaceTrack->new (addendum => <<eod);
+my $self = eval {$_[0]->isa(__PACKAGE__)} ? shift :
+    Astro::SpaceTrack->new (addendum => <<eod);
 
 'help' gets you a list of valid commands.
 eod
@@ -1659,10 +1669,13 @@ Verb '$verb' undefined. Use 'help' to get help.
 eod
 	next;
 	};
-    my @fh = (FileHandle->new ($redir)) or do {warn <<eod; next} if $redir;
+    my @fh;
+    $redir and do {
+	@fh = (FileHandle->new ($redir)) or do {warn <<eod; next};
 Error - Failed to open $redir
         $^E
 eod
+    };
     my $rslt;
     if ($verb eq 'get' && @args == 0) {
 	$rslt = [];
@@ -1704,8 +1717,8 @@ cannot be read.
 =cut
 
 sub source {
-my $self = shift if eval {$_[0]->isa(__PACKAGE__)};
-$self ||= Astro::SpaceTrack->new ();
+my $self = eval {$_[0]->isa(__PACKAGE__)} ? shift :
+    Astro::SpaceTrack->new ();
 $self->shell ($self->_source (@_), 'exit');
 }
 
