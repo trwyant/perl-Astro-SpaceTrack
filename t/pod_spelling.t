@@ -1,25 +1,21 @@
 use strict;
 use warnings;
 
-my $skip;
 BEGIN {
-    eval "use Test::Spelling";
+    eval {require Test::Spelling};
     $@ and do {
-	eval "use Test";
-	plan (tests => 1);
-	$skip = 'Test::Spelling not available';;
+	print "1..0 # skip Test::Spelling not available.\n";
+	exit;
     };
+    Test::Spelling->import();
 }
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_01';
 
-if ($skip) {
-    skip ($skip, 1);
-} else {
-    add_stopwords (<DATA>);
+add_stopwords (<DATA>);
 
-    all_pod_files_spelling_ok ();
-}
+all_pod_files_spelling_ok ();
+
 __DATA__
 amsat
 Celestrak
