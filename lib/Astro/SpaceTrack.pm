@@ -90,7 +90,7 @@ package Astro::SpaceTrack;
 
 use base qw{Exporter};
 
-our $VERSION = '0.034_02';
+our $VERSION = '0.034_03';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -540,7 +540,8 @@ they will have no effect if the 'direct' attribute is true.
 	$self->_convert_content ($resp);
 	if ($name eq 'iridium') {
 	    $resp->content (join "\n",
-		map {s/\s+\[.\]\s*$//; $_} split '\n', $resp->content);
+		map {(my $s = $_) =~ s/\s+\[.\]\s*$//; $s}
+		split '\n', $resp->content);
 	}
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'orbit',
@@ -982,7 +983,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	foreach my $buffer (split '\n', $resp->content) {
 	    $buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
 	    my ($id, $name, $status, $comment) =
-	        map {s/\s+$//; s/^\s+//; $_ || ''}
+	        map {(my $s = $_) =~ s/\s+$//; $s =~ s/^\s+//; $s || ''}
 		$buffer =~ m/(.{8})(.{0,15})(.{0,9})(.*)/;
 	    my $portable_status =
 		exists $status_portable{mccants}{$status} ?
@@ -1399,7 +1400,7 @@ $self->_search_generic (sub {
     my ($self, $name, $opt) = @_;
     my ($year, $month, $day) =
 	$name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
-	    or return undef;
+	    or return;
     $year += $year < 57 ? 2000 : $year < 100 ? 1900 : 0;
     $month ||= 0;
     $day ||= 0;
@@ -1461,7 +1462,7 @@ my $self = shift;
 $self->_search_generic (sub {
     my ($self, $name, $opt) = @_;
     my ($year, $number, $piece) =
-	$name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or return undef;
+	$name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or return;
     $year += $year < 57 ? 2000 : 1900;
     my $resp = $self->_post ('perl/launch_query.pl',
 	date_spec => 'number',
@@ -1622,6 +1623,12 @@ $print = sub {
 	};
 
 unshift @_, 'banner' if $self->{banner} && !$self->{filter};
+# Perl::Critic wants IO::Interactive::is_interactive() here. But that
+# assumes we're using the *ARGV input mechanism, which we're not
+# (command arguments are SpaceTrack commands.) Also, we would like to
+# be prompted even if output is to a pipe, but the recommended module
+# calls that non-interactive even if input is from a terminal. So:
+my $interactive = -t STDIN;	## no critic
 while (1) {
     my $buffer;
     if (@_) {
@@ -1629,9 +1636,10 @@ while (1) {
 	}
       else {
 	unless ($read) {
-	    -t STDIN ? eval {
+	    $interactive ? eval {
 		require Term::ReadLine;
-		$rdln ||= Term::ReadLine->new ('SpaceTrack orbital element access');
+		$rdln ||= Term::ReadLine->new (
+		    'SpaceTrack orbital element access');
 		$out = $rdln->OUT || \*STDOUT;
 		$read = sub {$rdln->readline ($prompt)};
 		} || ($read = sub {print $out $prompt; <STDIN>}):
@@ -1702,7 +1710,7 @@ eod
 	warn $status, "\n";
 	}
     }
-$print->("\n") if -t STDIN && !$self->{filter};
+$print->("\n") if $interactive && !$self->{filter};
 }
 
 
