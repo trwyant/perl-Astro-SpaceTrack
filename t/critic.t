@@ -1,3 +1,5 @@
+package main;
+
 use strict;
 use warnings;
 
@@ -31,3 +33,4 @@ BEGIN {
 
 all_critic_ok();
 
+1;

@@ -1,3 +1,5 @@
+package main;
+
 use strict;
 use warnings;
 
@@ -77,7 +79,7 @@ my @keys;
     foreach my $id (@keys) {
 	my $ki = $known_inconsistent{$id};
 	foreach my $pr (@pairs) {
-	    $ki->{$pr->[0]} || $ki->{$pr->[1]}
+	    ($ki->{$pr->[0]} || $ki->{$pr->[1]})
 		and push @todo, $test;
 	    $test++;
 	}
@@ -389,8 +391,10 @@ eod
 	my $fn = "$file.expect";
 	open (my $fh, '>', $fn) or die "Unable to open $fn: $!";
 	print $fh $data;
+	close $fh;
 	open ($fh, '>', $fn) or die "Unable to open $fn: $!";
 	print $fh $got;
+	close $fh;
 	warn <<eod;
 #
 # Expected and gotten information written to $file.expect and
@@ -418,7 +422,7 @@ eod
 	foreach my $inx (0, 1) {
 	    printf "#%12s: %s\n", $pr->[$inx], join ' - ', @{$data[$inx]};
 	}
-	@data = map $_->[0], @data;
+	@data = map {$_->[0]} @data;
 	if ($data[0] =~ m/\D/ || $data[1] =~ m/\D/) {
 	    skip ($skip{$pr->[0]} || $skip{$pr->[1]}, $data[0] eq $data[1]);
 	} else {
@@ -427,3 +431,4 @@ eod
     }
 }
 
+1;

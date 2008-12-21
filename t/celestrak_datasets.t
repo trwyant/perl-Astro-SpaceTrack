@@ -1,3 +1,5 @@
+package main;
+
 use strict;
 use warnings;
 
@@ -100,6 +102,7 @@ if (%got) {
 use HTML::Parser;
 
 sub parse_string {
+    my $string = shift;
     my $psr = HTML::Parser->new (api_version => 3);
     $psr->case_sensitive (0);
     my %data;
@@ -123,6 +126,8 @@ sub parse_string {
     $psr->handler (end => sub {
 	    $_[1] eq 'a' and $collect = undef;
 	}, 'self,tagname');
-    $psr->parse (@_);
-    %data;
+    $psr->parse ($string);
+    return %data;
 }
+
+1;

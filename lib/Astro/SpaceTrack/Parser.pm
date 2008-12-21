@@ -1,7 +1,7 @@
+package Astro::SpaceTrack::Parser;
+
 use strict;
 use warnings;
-
-package Astro::SpaceTrack::Parser;
 
 # Author: Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
@@ -78,15 +78,16 @@ $self->unbroken_text (1);
 $self->handler (start => \&_spacetrack_html_start, 'self,tagname,@attr');
 $self->handler (end => \&_spacetrack_html_end, 'self,tagname');
 $self->handler (text => \&_spacetrack_html_text, 'self,dtext');
-$self;
+return $self;
 }
 
-sub parse_string {
+# We're just a wrapper for the superclass' parse method.
+sub parse_string {	## no critic RequireArgUnpacking
 my $self = shift;
 my $type = shift;
 $self->_spacetrack_reset ($type);
 $self->parse (@_);
-$target{$type}{post_process}->($self);
+return $target{$type}{post_process}->($self);
 }
 
 ####	sub parse_file {
@@ -103,6 +104,7 @@ my $self = shift;
 my $tag = shift;
 $self->{_spacetrack_start_action} and
     $self->{_spacetrack_start_action}{$tag}->($self);
+return;
 }
 
 sub _spacetrack_html_end {
@@ -111,6 +113,7 @@ my $tag = shift;
 ###print "</$tag>\n";
 $self->{_spacetrack_end_action} and
     $self->{_spacetrack_end_action}{$tag}->($self);
+return;
 }
 
 sub _spacetrack_html_text {
@@ -120,6 +123,7 @@ $text =~ s/\s+$//sm;
 $text =~ s/^\s+//sm;
 ###print qq{"$text"\n};
 $text ne '' and $self->{_spacetrack_text_action}->($self, $text);
+return;
 }
 
 sub _spacetrack_reset {
@@ -130,6 +134,7 @@ $self->{_spacetrack_start_action} = $target{$type}{start_action};
 $self->{_spacetrack_end_action} = $target{$type}{end_action};
 $self->{_spacetrack_text_action} = $target{$type}{text_action};
 $target{$type}{reset}->($self);
+return;
 }
 
 1;

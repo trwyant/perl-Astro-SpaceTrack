@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.019';
+our $VERSION = '0.019_01';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -261,8 +261,9 @@ $current->grid (-row => $row, -column => $col++, -sticky => 'w', @pad);
 		-sticky => 'w', @pad);
 	    }
 	$names = !!$st->get ('with_name')->content;
-	}
-    }	# End local symbol block.
+	return;
+    }
+}	# End local symbol block.
 $direct or common_names ();
 
 
@@ -360,17 +361,17 @@ MainLoop;
 #	Display the splash screen and wait for the user to dismiss it.
 
 sub banner {
-my $mw = MainWindow->new (-title => 'Front Matter');
-my $text = "SpaceTrackTk $VERSION" . $st->banner->content;
-$text =~ s/^\s+//s;
-$text =~ s/[\s\n]+$//s;
-$mw->Label (-text => $text)->pack (-side => 'top', @pad);
-$mw->Button (-text => 'OK', -command => sub {$mw->destroy})
-    ->pack (-side => 'bottom', @pad);
+    my $mw = MainWindow->new (-title => 'Front Matter');
+    my $text = "SpaceTrackTk $VERSION" . $st->banner->content;
+    $text =~ s/^\s+//s;
+    $text =~ s/[\s\n]+$//s;
+    $mw->Label (-text => $text)->pack (-side => 'top', @pad);
+    $mw->Button (-text => 'OK', -command => sub {$mw->destroy})
+	->pack (-side => 'bottom', @pad);
 
-MainLoop;
+    MainLoop;
 
-1;
+    return 1;
 }
 
 #	settings ()
@@ -501,6 +502,7 @@ x with_name
 
 =cut
 
+return;
 }
 
 sub search_options {
@@ -525,16 +527,16 @@ sub search_options {
 	-text => 'rocket', -relief => 'flat')->grid (
 	-row => 0, -column => 4, -sticky => 'w', @pad);
     $dsdata{$name}{debris} = $dsdata{$name}{rocket} = 0;
-    $frame
+    return $frame
 }
 
 sub separator {
-my ($parent, $row, $span, $text) = @_;
-my $pnl = $parent->Frame->grid (-row => $row, -column => 0,
-    -columnspan => $span, -sticky => 'ew');
-$pnl->Label (-text => $text)->
-    grid (-row => 0, -column => 0, -sticky => 'ew');
-$pnl;
+    my ($parent, $row, $span, $text) = @_;
+    my $pnl = $parent->Frame->grid (-row => $row, -column => 0,
+	-columnspan => $span, -sticky => 'ew');
+    $pnl->Label (-text => $text)->
+	grid (-row => 0, -column => 0, -sticky => 'ew');
+    return $pnl;
 }
 
 __END__
@@ -612,7 +614,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006, 2007 by Thomas R. Wyant, III
+Copyright 2005, 2006, 2007, 2008 by Thomas R. Wyant, III
 (F<wyant at cpan dot org>). All rights reserved.
 
 This script is free software; you can use it, redistribute it

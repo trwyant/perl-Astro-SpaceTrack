@@ -1,3 +1,5 @@
+package main;
+
 use strict;
 use warnings;
 
@@ -10,12 +12,13 @@ BEGIN {
     Test::Spelling->import();
 }
 
-our $VERSION = '0.009_01';
+our $VERSION = '0.009_02';
 
 add_stopwords (<DATA>);
 
 all_pod_files_spelling_ok ();
 
+1;
 __DATA__
 amsat
 Celestrak

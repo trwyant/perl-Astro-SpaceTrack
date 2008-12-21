@@ -1,12 +1,15 @@
+package main;
+
 use strict;
 use warnings;
 
-no warnings qw{uninitialized};
+# We're a test, and potentially have to deal with all sorts of data.
+no warnings qw{uninitialized};	## no critic ProhibitNoWarnings
 
 use FileHandle;
 use Test;
 
-$| = 1;	# Turn on autoflush to try to keep I/O in sync.
+local $| = 1;	# Turn on autoflush to try to keep I/O in sync.
 
 my $test_num = 1;
 my $skip_spacetrack = '';
@@ -15,9 +18,12 @@ my $skip_spacetrack = '';
 
 my $loaded;
 
-sub prompt {
+# We're only using @_ for printing. CAVEAT: do not modify its contents.
+# Modifying @_ itself is OK.
+sub prompt {	## no critic RequireArgUnpacking
 print STDERR @_;
-return unless defined (my $input = <STDIN>);
+# We're a test, and we're trying to be lightweight.
+return unless defined (my $input = <STDIN>);	## no critic ProhibitExplicitStdin
 chomp $input;
 return $input;
 }
@@ -39,7 +45,9 @@ ok ($loaded);
 require LWP::UserAgent;
 my $agt = LWP::UserAgent->new ();
 
-use constant NOACCESS => 'Site not accessible.';
+# Perl::Critic doesn't like this because it doesn't interpolate. So
+# don't do that.
+use constant NOACCESS => 'Site not accessible.';	## no critic ProhibitConstantPragma
 
 my ($skip_celestrak, $skip_mccants, $skip_sladen, $skip_spaceflight,
     $skip_amsat);
@@ -144,7 +152,7 @@ my $rslt;
 my $status;
 skip ($skip_spacetrack,
     $skip_spacetrack || ($status = ($rslt = $st->login ())->is_success));
-$status or $skip_spacetrack ||= "Login failed";
+$status or ($skip_spacetrack ||= "Login failed");
 
 $test_num++;
 print "# Test $test_num - Check the content type; should be undef.\n";
@@ -422,3 +430,5 @@ $st->shell('', '# comment', 'set banner 1', 'exit');
 $test_num++;
 print "# Test $test_num - Reset an attribute using the shell.\n";
 ok($st->get('banner'));
+
+1;

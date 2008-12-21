@@ -1,3 +1,5 @@
+package main;
+
 use strict;
 use warnings;
 
@@ -31,3 +33,5 @@ foreach ([manicheck => 'Missing files per manifest'],
 eod
     skip ($skip, @got == 0);
 }
+
+1;
