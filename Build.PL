@@ -7,18 +7,33 @@ use Config;
 use FileHandle;
 use Module::Build;
 
+(my $mbv = Module::Build->VERSION) =~ s/_//g;
+
+my %attr = (
+    dist_author => 'Tom Wyant (wyant at cpan dot org)',
+    dist_abstract => 'Download satellite orbital elements from Space Track',
+    module_name => 'Astro::SpaceTrack',
+    get_options => {y => {}, n => {}},
+    dynamic_config => 1,
+    license => 'perl',
+    requires => {
+	'Compress::Zlib' => 0,
+	'HTML::Parser' => 0,
+	'HTTP::Response' => 0,
+	'HTTP::Status' => 0,
+	'LWP::UserAgent' => 0,
+    },
+);
+
+$mbv >= 0.28 and $attr{meta_merge} = {
+    no_index => {
+	directory => [qw{inc t}],
+    },
+};
+
 #	Generate a builder object.
 
-my $bldr = Module::Build->new (
-	dist_author => 'Tom Wyant (wyant at cpan dot org)',
-	dist_abstract => 'Download satellite orbital elements from Space Track',
-	module_name => 'Astro::SpaceTrack',
-##	dist_name => 'Astro-SpaceTrack',
-##	dist_version_from => 'SpaceTrack.pm',
-	get_options => {y => {}, n => {}},
-	dynamic_config => 1,
-	license => 'perl',
-	);
+my $bldr = Module::Build->new (%attr);
 
 #	Find out what the user wants to do.
 
@@ -100,19 +115,8 @@ eod
 	}
     }
 
-##my $vers = $] >= 5.008 ? '-5.8' : '';
-my $vers = '';
-
 #	Tell Module::Build what we want to do.
 
-## $bldr->requires ($^O eq 'MSWin32' ? {} : {'LWP::UserAgent' => 0});
-$bldr->requires ({
-	'Compress::Zlib' => 0,
-	'HTML::Parser' => 0,
-	'HTTP::Response' => 0,
-	'HTTP::Status' => 0,
-	'LWP::UserAgent' => 0,
-    });
 $bldr->add_to_cleanup (\@clean_files);
 $bldr->script_files (\@exe_files);
 
