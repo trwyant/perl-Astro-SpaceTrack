@@ -6,6 +6,7 @@
 ^cover_db/
 CVS/
 ^foo/
+^html/
 ^kelso\.expect$
 ^kelso\.got$
 ^Makefile$
@@ -16,14 +17,11 @@ CVS/
 ^pod2htm.\.tmp$
 ^sladen\.expect$
 ^sladen\.got$
-^t/celestrak_datasets\.t$
 ^t/critic\.t$
-^t/executable\.t$
 ^t/iridium_status\.t$
-^t/manifest\.t$
+^t/perlcriticrc$
 ^t/pod_spelling\.t$
-^t/spacetrack_datasets\.t$
 \.swp$
-\.tar\.gz$
+^test_environment$
 ^TODO$
 

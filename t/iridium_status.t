@@ -4,6 +4,11 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
+unless ($ENV{DEVELOPER_TEST}) {
+    print "1..0 # skip Environment variable DEVELOPER_TEST not set.\n";
+    exit;
+}
+
 ##### my %known_inconsistent = map {$_ => 1} (24948);
 my %known_inconsistent = (
     24870 => {sladen => 1},	# McCants & Kelso: tumbling;
