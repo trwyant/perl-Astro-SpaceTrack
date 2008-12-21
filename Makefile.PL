@@ -93,34 +93,32 @@ eod
 	}
     }
 
-##my $vers = $] >= 5.008 ? '-5.8' : '';
-my $vers = '';
-
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
-WriteMakefile (
-	NAME => 'Astro::SpaceTrack',
-	VERSION_FROM => 'lib/Astro/SpaceTrack.pm',
-	PREREQ_PM => {
-##			$^O eq 'MSWin32' ? () : (
-##				'LWP::UserAgent' => 0,
-##				)
-	    'Compress::Zlib' => 0,
-	    'HTML::Parser' => 0,
-	    'HTTP::Response' => 0,
-	    'HTTP::Status' => 0,
-	    'LWP::UserAgent' => 0,
-	},
-	PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
-	EXE_FILES => \@exe_files,
-#	'linkext' => {LINKTYPE => ''},
-	'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
-	realclean => {FILES => join ' ', @clean_files},
-	$] >= 5.005 ? (
-		AUTHOR => 'Tom Wyant (wyant at cpan dot org)',
-		ABSTRACT => 'Download satellite orbital elements from Space Track',
-		BINARY_LOCATION => "$Config{archname}$vers/Astro-SpaceTrack.tar.gz",
-		($mmv >= 6.31 ?
-		    (LICENSE => 'perl') : ())
-		) : (),
-	);
 
+my %attr = (
+    NAME => 'Astro::SpaceTrack',
+    VERSION_FROM => 'lib/Astro/SpaceTrack.pm',
+    PREREQ_PM => {
+	'Compress::Zlib' => 0,
+	'HTML::Parser' => 0,
+	'HTTP::Response' => 0,
+	'HTTP::Status' => 0,
+	'LWP::UserAgent' => 0,
+    },
+    PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
+    EXE_FILES => \@exe_files,
+    'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
+    realclean => {FILES => join ' ', @clean_files},
+    AUTHOR => 'Tom Wyant (wyant at cpan dot org)',
+    ABSTRACT => 'Download satellite orbital elements from Space Track',
+);
+
+$mmv >= 6.31 and $attr{LICENSE} = 'perl';
+
+$mmv >= 6.4501 and $attr{META_MERGE} = {
+    resources => {
+	license => 'http://dev.perl.org/licenses/',
+    },
+};
+
+WriteMakefile (%attr);
