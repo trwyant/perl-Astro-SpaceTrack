@@ -17,6 +17,7 @@ my %attr = (
     dynamic_config => 1,
     license => 'perl',
     requires => {
+	perl	=> 5.006,
 	'Compress::Zlib' => 0,
 	'HTML::Parser' => 0,
 	'HTTP::Response' => 0,
