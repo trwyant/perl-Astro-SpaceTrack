@@ -392,6 +392,7 @@ eod
 	open (my $fh, '>', $fn) or die "Unable to open $fn: $!";
 	print $fh $data;
 	close $fh;
+	$fn = "$file.got";
 	open ($fh, '>', $fn) or die "Unable to open $fn: $!";
 	print $fh $got;
 	close $fh;
