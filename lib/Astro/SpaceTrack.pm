@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.034_05';
+our $VERSION = '0.034_06';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -101,7 +101,6 @@ our %EXPORT_TAGS = (
 use Astro::SpaceTrack::Parser;
 use Carp;
 use Compress::Zlib ();
-## use Config;
 use FileHandle;
 use Getopt::Long;
 use HTTP::Response;	# Not in the base, but comes with LWP.
