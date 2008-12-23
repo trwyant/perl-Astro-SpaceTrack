@@ -12,7 +12,7 @@ BEGIN {
     Test::Spelling->import();
 }
 
-our $VERSION = '0.009_02';
+our $VERSION = '0.010';
 
 add_stopwords (<DATA>);
 

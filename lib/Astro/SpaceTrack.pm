@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.034_07';
+our $VERSION = '0.035';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -887,9 +887,11 @@ provide OIDs for Iridium satellite numbers, so that a complete list is
 generated. Mr. Sladen's page simply lists operational and failed
 satellites in each plane, so this software imposes Kelso-style statuses
 on the data. That is to say, operational satellites will be marked
-'[+]', spares will be marked '[S]', and tumbling satellites will be
-marked '[-]', with the corresponding portable statuses. The one twist is
-that failed satellites not marked as tumbling will be considered spares.
+'[+]', spares will be marked '[S]', and failed satellites will be
+marked '[-]', with the corresponding portable statuses. As of version
+0.035, all failed satellites will be marked '[-]'. Previous to this
+release, failed satellites not specifically marked as tumbling were
+considered spares.
 
 The comment field in 'sladen' format data will contain the orbital plane
 designation for the satellite, 'Plane n' with 'n' being a number from 1
