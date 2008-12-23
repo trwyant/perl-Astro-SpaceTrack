@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.034_04';
+our $VERSION = '0.034_05';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -1057,9 +1057,9 @@ The BODY_STATUS constants are exportable using the :status tag.
 				$rslt{$id} = [$id, $name, "[-]", $plane,
 				    BODY_STATUS_IS_TUMBLING];
 			    } else {
-				$rslt{$id} = [$id, $name, "[S]",
+				$rslt{$id} = [$id, $name, "[-]",
 				    $plane . ' - Failed on station?',
-				    BODY_STATUS_IS_SPARE];
+				    BODY_STATUS_IS_TUMBLING];
 			    }
 			} elsif ($inx++ > 10) {
 			    $rslt{$id} = [$id, $name, "[S]", $plane,
