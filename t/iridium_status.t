@@ -11,15 +11,15 @@ unless ($ENV{DEVELOPER_TEST}) {
     exit;
 }
 
-##### my %known_inconsistent = map {$_ => 1} (24948);
+# The following hash is used to compute the todo list. The keys are
+# the OIDs for the Iridium satellites. The value for each key is a hash
+# containing the names of inconsistent data sources and a true value for
+# each inconsistent name. If all three sources are mutually inconsistent,
+# only two source names need be given.
+
 my %known_inconsistent = (
-    24870 => {sladen => 1},	# McCants & Kelso: tumbling;
-				# Sladen: failed, not tumbling
-    24948 => {kelso => 1},	# McCants: spare, possible control issues
-    				# Sladen: failed, not tumbling;
-    				# Kelso: tumbling
-    27375 => {mccants => 1},	# Kelso & Sladen: operational;
-    				# Sladen: spare.
+###    27375 => {mccants => 1},	# Kelso & Sladen: operational;
+    				# McCants: spare.
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -29,6 +29,8 @@ my %known_inconsistent = (
 # 07-Aug-2008 - McCants has 24948 (Iridium 28) with possible control
 #		issues about July 19 2008, with 27375 (Iridium 95) moved
 #		about 14 seconds behind it. No change Kelso.
+# 23-Dec-2008 - McCants has 24948 (Iridium 28) uncontrolled, with 27375
+# 		(Iridium 98) replacing it.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -118,7 +120,7 @@ foreach (["Mike McCants' Iridium status",
  24944   Iridium 29              Celestrak
  24945   Iridium 32              Celestrak
  24946   Iridium 33              Celestrak
- 24948   Iridium 28     ?        Possible control issues about July 19, 2008
+ 24948   Iridium 28     unc      Assumed failed about July 19, 2008
  24949   Iridium 30              Celestrak
  24950   Iridium 31              Celestrak
  24965   Iridium 19              Celestrak
@@ -180,7 +182,7 @@ foreach (["Mike McCants' Iridium status",
  27372   Iridium 91     ?        Spare   was called Iridium 90
  27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
  27374   Iridium 94     ?        Spare
- 27375   Iridium 95     ?        Moved to about 14 seconds behind Iridium 28 on July 26, 2008
+ 27375   Iridium 95              Replaced Iridium 28 about July 26, 2008
  27376   Iridium 96     ?        Spare
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Spare (new plane May 2007)
@@ -294,7 +296,7 @@ eod
  24841   Iridium 16     [-]      Plane 5
  24842   Iridium 911    [-]      Plane 5
  24869   Iridium 15     [+]      Plane 6
- 24870   Iridium 17     [S]      Plane 6 - Failed on station?
+ 24870   Iridium 17     [-]      Plane 6 - Failed on station?
  24871   Iridium 920    [-]      Plane 6
  24872   Iridium 18     [+]      Plane 6
  24873   Iridium 921    [-]      Plane 6
@@ -308,7 +310,7 @@ eod
  24944   Iridium 29     [+]      Plane 3
  24945   Iridium 32     [+]      Plane 3
  24946   Iridium 33     [+]      Plane 3
- 24948   Iridium 28     [S]      Plane 3 - Failed on station?
+ 24948   Iridium 28     [-]      Plane 3 - Failed on station?
  24949   Iridium 30     [+]      Plane 3
  24950   Iridium 31     [+]      Plane 3
  24965   Iridium 19     [+]      Plane 4
