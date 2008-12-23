@@ -157,3 +157,24 @@
 	header.
     Try for less bad test coverage. Good coverage awaits a
 	rewrite of the shell() method.
+0.035 23-Dec-2008 T. R. Wyant
+    When using Rod Sladen's data for Iridium status, mark all
+	'failed' iridiums as tumbling, whether or not there is
+	a 't' next to their numbers. This makes the Sladen data
+	consistent with Mike McCants' (as of 22-Dec-2008) and
+	T. S. Kelso's.
+    Bring all code up to perlcritic --stern (sometimes by
+	declaring exceptions)
+    Restructure Build.PL and Makefile.PL to better accomodate
+	the installed version of Module::Build or
+	ExtUtils::MakeMaker.
+    Add minimum Perl version to 'requires' key in Build.PL.
+	Not done in Makefile.PL because ExtUtils::MakeMaker
+	does not seem to like it.
+    Include t/celestrak_datasets.t, t/executable.t,
+	t/iridium_status.t, t/manifest.t, and
+	t/spacetrack_datasets.t in distribution, but only run
+	them if environment variable DEVELOPER_TEST is true.
+    Move changes from Astro::SpaceTrack pod to Changes file.
+    t/basic.t will now display net errors where generated and
+	(hopefully) appropriate.
