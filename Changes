@@ -1,3 +1,159 @@
-
- For changes, see the Astro::SpaceTrack POD.
-
+0.003 26-Mar-2005 T. R. Wyant
+  Initial release to CPAN.
+0.004 30-Mar-2005 T. R. Wyant
+  Added file method, for local observing lists.
+  Changed Content-Type header of spacetrack () response
+    to text/plain. Used to be text/text.
+  Manufactured pristine HTTP::Response for successsful
+    login call.
+  Added source method, for passing the contents of a file
+    to the shell method
+  Skip username and password prompts, and login and
+    retrieval tests if environment variable
+    AUTOMATED_TESTING is true and environment variable
+    SPACETRACK_USER is undefined.
+0.005 02-Apr-2005 T. R. Wyant
+  Proofread and correct POD.
+0.006 08-Apr-2005 T. R. Wyant
+  Added search_id method.
+  Made specimen scripts into installable executables.
+  Add pseudo-tilde expansion to shell method.
+0.007 15-Apr-2005 T. R. Wyant
+  Document attributes (under set() method)
+  Have login return actual failure on HTTP error. Used
+    to return 401 any time we did not get the cookie.
+0.008 19-Jul-2005 T. R. Wyant
+  Consolidate dump code.
+  Have file() method take open handle as arg.
+  Modify cookie check.
+  Add mutator, accessor for cookie_expires,
+    session_cookie.
+0.009 17-Sep-2005 T. R. Wyant
+  Only require Term::ReadLine and create interface if
+  the shell() method actually called.
+0.010 14-Oct-2005 T. R. Wyant
+  Added the 'direct' attribute, to fetch elements
+  directly from celestrak. And about time, too.
+0.011 30-Oct-2005 T. R. Wyant
+  Added 'Pragma: spacetrack-type = orbit' header to
+  the response for those methods that return orbital
+  elements, if the request in fact succeeded.
+  Added content_type() method to check for the above.
+  Played the CPANTS game.
+  Added "All rights reserved." to copyright statement.
+0.012 04-Nov-2005 T. R. Wyant
+  Added support for number ranges in retrieve(), to
+  track support for these on www.space-track.org.
+  Added max_range attribute for sanity checking.
+0.013 21-Nov-2005 T. R. Wyant
+  Added spaceflight() method.
+  Added "All rights reserved." to banner() output.
+  Spiffed up the documentation.
+0.014 28-Jan-2006 T. R. Wyant
+  Added filter attribute.
+  Jocky the Term::ReadLine code yet again.
+0.015 01-Feb-2006 T. R. Wyant
+  Added webcmd attribute, and use it in help().
+0.016 11-Feb-2006 T. R. Wyant
+  Added content types 'help' and 'get', so -filter
+  does not supress output.
+  Added iridium_status, & content type 'iridium-status'.
+0.017 27-Apr-2006 T. R. Wyant
+  Added retrieve() options.
+0.018 30-May-2006 T. R. Wyant
+  Added amsat() method.
+0.019 11-Jun-2006 T. R. Wyant
+  Added the retrieve() options to celestrak() and file().
+0.020 01-Jul-2006 T. R. Wyant
+  Add the retrieve() qualifiers to spaceflight().
+  Add the attribute_names() method.
+  Tweak docs, correct spelling.
+0.021 13-Jul-2006 T. R. Wyant
+  Add -all qualifier to spaceflight().
+  Add search_date().
+0.022 20-Jul-2006 T. R. Wyant
+   Documentation corrections.
+0.023 08-Sep-2006 T. R. Wyant
+   Added spaceflight() pseudo-catalogs 'iss' and 'station'.
+   Have spaceflight() return NO_RECORDS on failure, not
+     NO_CAT_ID.
+   Have attribute_names() return list ref in scalar context.
+   Add attribute iridium_status_format; have iridium_status()
+     use this to decide who to access and what format to
+     return, including support for the new Celestrak status
+     information.
+   Have iridium_status() return parsed data with 'portable'
+     status if called in list context.
+0.024 12-Sep-2006 T. R. Wyant
+   No substantive changes to this module, but retracted
+     t/pod_spelling.t, and tried to make Build.PL work with
+     ActiveState's build system.
+0.025 19-Oct-2006 T. R. Wyant
+   Recognize new Kelso Iridium status '[+]' = working.
+   Make Makefile.PL not run Build.PL with old MakeMaker.
+   Retract kluge to Build.PL, which is no longer needed.
+0.026 06-Nov-2006 T. R. Wyant
+   New location for Mike McCants' Iridium status page.
+   New attributes url_iridium_status_kelso and
+     url_iridium_status_mccants so users are not dead
+     in the water if this happens again.
+0.027 30-Jan-2007 T. R. Wyant
+   Add ability to search by on-orbit status ('onorbit',
+     'decayed', or 'all'), and to exclude 'debris' and
+     'rocket' (bodies).
+   Tweak docs.
+   Update copyright.
+0.028 15-May-2007 T. R. Wyant
+   Interpret missing spacetrack() catalog as a failure,
+     even though the request succeeds.
+   Ditto missing Space Track retrieve() data.
+   Add 'fallback' attribute to cause celestrak() to fall
+     back to using Celestrak data if Space Track data
+     are not available.
+   Clear session cookie when username or password change.
+0.029 13-Oct-2007 T. R. Wyant
+    Add Celestrak galileo and sbas data set names to catalog.
+    Document celestrak data set names, or at least how to get them and
+	in general how they are formed.
+    Trap and error out on invalid spacetrack() data set numbers.
+    Add data set numbers to spacetrack() help.
+    Document how to get the current spacetrack data set names and
+	numbers, and what happens if they renumber.
+    Trap case where 'get' is called without an argument.
+    Have 'shell' method interpret 'show' as 'get', and special-case
+	'get' without arguments to display all attributes. Document
+	this.
+0.030 24-Oct-2007 T. R. Wyant
+    Add Celestrak 'sts' data set name to catalog.
+    Different error text for data sets in catalog but 404 and data sets
+	not in catalog and 404.
+0.031 21-Dec-2007 T. R. Wyant
+    Fix embedded modifier bug, exposed by the fixing of the
+	corresponding Perl bug (id=22354) in 5.10.0 -- or 5.9.0
+	actually. Thanks to Andy Lester's article:
+	http://perlbuzz.com/mechanix/2007/12/code-broken-by-regex-fixes-in.html
+	which tipped me off before I had to discover the problem
+	for myself.
+    Fixed dependencies in Makefile.PL and Build.PL.
+    Went back to prompting for executables in Makefile.PL and
+	Build.PL, as a way to handle apparant ActiveState build
+	failure because both they and I were running pl2bat.bat.
+    Enhance ExtUtils::MakeMaker version detection in Makefile.PL,
+	since ActiveState is apparantly deploying a Perl 5.10
+	with a development version of that module.
+0.032 06-Jul-2008 T. R. Wyant
+    More graceful failure when unable to parse Space Track data.
+0.033 30-Sep-2008 T. R. Wyant
+    Fix Build.PL -y (and -n)
+    Add iridium_status('sladen') to scrape Rod Sladen's Iridium
+	Constallation Status web page.
+    Add attribute 'url_iridium_status_sladen'.
+0.034 24-Nov-2008 T. R. Wyant
+    Eliminate use of UNIVERSAL::isa as a function.
+    Add 'Pragma spacetrack-source = ' header to all methods
+	that return TLEs or Iridium status, saying where
+	the data came from.
+    Add content_source() method to access spacetrack-source
+	header.
+    Try for less bad test coverage. Good coverage awaits a
+	rewrite of the shell() method.
