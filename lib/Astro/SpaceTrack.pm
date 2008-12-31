@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.035_04';
+our $VERSION = '0.035_05';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -496,60 +496,93 @@ they will have no effect if the 'direct' attribute is true.
 
 =cut
 
+sub celestrak {
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
+
+    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    my $opt = shift @args;
+
+    my $name = shift @args;
+    $self->{direct}
+	and return $self->_celestrak_direct ($opt, $name);
+    my $resp = $self->{agent}->get (
+	"http://celestrak.com/SpaceTrack/query/$name.txt");
+    if (my $check = $self->_celestrak_response_check($resp, $name)) {
+	return $check;
+    }
+    $self->_convert_content ($resp);
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $resp = $self->_handle_observing_list ($opt, $resp->content);
+    return ($resp->is_success || !$self->{fallback}) ? $resp :
+	$self->_celestrak_direct ($opt, $name);
+}
+
+sub _celestrak_direct {
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
+
+    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    my $opt = shift @args;
+    my $name = shift @args;
+    my $resp = $self->{agent}->get (
+	"http://celestrak.com/NORAD/elements/$name.txt");
+    if (my $check = $self->_celestrak_response_check($resp, $name, 'direct')) {
+	return $check;
+    }
+    $self->_convert_content ($resp);
+    if ($name eq 'iridium') {
+	$resp->content (join "\n",
+	    map {(my $s = $_) =~ s/\s+\[.\]\s*$//; $s}
+	    split '\n', $resp->content);
+    }
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'orbit',
+	'spacetrack-source' => 'celestrak',
+    );
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    return $resp;
+}
+
 {	# Local symbol block.
 
     my %valid_type = ('text/plain' => 1, 'text/text' => 1);
 
-    sub celestrak {
-	my ($self, @args) = @_;
-	delete $self->{_pragmata};
-
-	@args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
-	my $opt = shift @args;
-
-	my $name = shift @args;
-	$self->{direct}
-	    and return $self->_celestrak_direct ($opt, $name);
-	my $resp = $self->{agent}->get (
-	    "http://celestrak.com/SpaceTrack/query/$name.txt");
-	return $self->_no_such_catalog (celestrak => $name)
-	    if $resp->code == RC_NOT_FOUND;
-	return $resp unless $resp->is_success;
-	return $self->_no_such_catalog (celestrak => $name)
-	    unless $valid_type{lc $resp->header ('Content-Type')};
-	$self->_convert_content ($resp);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
-	$resp = $self->_handle_observing_list ($opt, $resp->content);
-	return ($resp->is_success || !$self->{fallback}) ? $resp :
-	    $self->_celestrak_direct ($opt, $name);
-    }
-
-    sub _celestrak_direct {
-	my ($self, @args) = @_;
-	delete $self->{_pragmata};
-
-	@args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
-	my $opt = shift @args;
-	my $name = shift @args;
-	my $resp = $self->{agent}->get (
-	    "http://celestrak.com/NORAD/elements/$name.txt");
-	return $self->_no_such_catalog (celestrak => $name)
-	    if $resp->code == RC_NOT_FOUND;
-	return $resp unless $resp->is_success;
-	return $self->_no_such_catalog (celestrak => $name)
-	    unless $valid_type{lc $resp->header ('Content-Type')};
-	$self->_convert_content ($resp);
-	if ($name eq 'iridium') {
-	    $resp->content (join "\n",
-		map {(my $s = $_) =~ s/\s+\[.\]\s*$//; $s}
-		split '\n', $resp->content);
+    sub _celestrak_response_check {
+	my ($self, $resp, $name, @args) = @_;
+	unless ($resp->is_success) {
+	    $resp->code == RC_NOT_FOUND
+		and return $self->_no_such_catalog(
+		celestrak => $name, @args);
+	    return $resp;
 	}
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'orbit',
-	    'spacetrack-source' => 'celestrak',
-	);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
-	return $resp;
+	if (my $loc = $resp->header('Content-Location')) {
+	    if ($loc =~ m/redirect\.htm\?(\d{3});/) {
+		my $msg = "redirected $1";
+		@args and $msg = "@args; $msg";
+		$1 == RC_NOT_FOUND
+		    and return $self->_no_such_catalog(
+		    celestrak => $name, $msg);
+		return HTTP::Response->new ($1, "$msg\n")
+	    }
+	}
+	my $type = lc $resp->header('Content-Type')
+	    or do {
+	    my $msg = 'No Content-Type header found';
+	    @args and $msg = "@args; $msg";
+	    return $self->_no_such_catalog(
+		celestrak => $name, $msg);
+	};
+	foreach (split ',', $type) {
+	    s/^\s+//;
+	    s/;.*//;
+	    s/\s+$//;
+	    $valid_type{$_} and return;
+	}
+	my $msg = "Content-Type: $type";
+	@args and $msg = "@args; $msg";
+	return $self->_no_such_catalog(
+	    celestrak => $name, $msg);
     }
 
 }	# End local symbol block.
@@ -2264,10 +2297,12 @@ sub _no_such_catalog {
     my $self = shift;
     my $source = lc shift;
     my $catalog = shift;
+    my $note = shift;
     my $name = $no_such_name{$source} || $source;
     my $lead = $catalogs{$source}{$catalog} ?
-	"Missing $name catalog '$catalog'." :
-	"No such $name catalog as '$catalog'.";
+	"Missing $name catalog '$catalog'" :
+	"No such $name catalog as '$catalog'";
+    $lead .= defined $note ? " ($note)." : '.';
     return HTTP::Response->new (RC_NOT_FOUND, "$lead\n")
 	unless $self->{verbose};
     my $resp = $self->names ($source);
