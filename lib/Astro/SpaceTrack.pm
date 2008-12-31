@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.035';
+our $VERSION = '0.035_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -111,12 +111,6 @@ use POSIX qw{strftime};
 use Text::ParseWords;
 use Time::Local;
 
-# The relevant Perl::Critic module says don't use constant because
-# they don't interpolate. But they do - the syntax is just a little
-# different.
-
-## no critic ProhibitConstantPragma
-
 use constant COPACETIC => 'OK';
 use constant BAD_SPACETRACK_RESPONSE =>
 	'Unable to parse SpaceTrack response';
@@ -131,8 +125,6 @@ use constant NO_RECORDS => 'No records found.';
 use constant DOMAIN => 'www.space-track.org';
 use constant SESSION_PATH => '/';
 use constant SESSION_KEY => 'spacetrack_session';
-
-## use critic ProhibitConstantPragma
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
@@ -921,18 +913,10 @@ The BODY_STATUS constants are exportable using the :status tag.
 
 {	# Begin local symbol block.
 
-    # The relevant Perl::Critic module says don't use constant because
-    # they don't interpolate. But they do - the syntax is just a little
-    # different.
-
-    ## no critic ProhibitConstantPragma
-
     use constant BODY_STATUS_IS_OPERATIONAL => 0;
 
     use constant BODY_STATUS_IS_SPARE => 1;
     use constant BODY_STATUS_IS_TUMBLING => 2;
-
-    ## use critic ProhibitConstantPragma
 
     my %kelso_comment = (	# Expand Kelso status.
 	'[S]' => 'Spare',
@@ -1251,15 +1235,7 @@ added to the HTTP::Response object returned.
 
 =cut
 
-# The relevant Perl::Critic module says don't use constant because
-# they don't interpolate. But they do - the syntax is just a little
-# different.
-
-## no critic ProhibitConstantPragma
-
 use constant RETRIEVAL_SIZE => 50;
-
-## use critic ProhibitConstantPragma
 
 sub retrieve {
     my ($self, @args) = @_;
@@ -1657,7 +1633,7 @@ eod
     # like to be prompted even if output is to a pipe, but the
     # recommended module calls that non-interactive even if input is
     # from a terminal. So:
-    my $interactive = -t STDIN;	## no critic
+    my $interactive = -t STDIN;
     while (1) {
 	my $buffer;
 	if (@args) {
@@ -1752,7 +1728,7 @@ cannot be read.
 =cut
 
 # We really just delegate to _source, which unpacks.
-sub source {	## no critic RequireArgUnpacking
+sub source {
     my $self = eval {$_[0]->isa(__PACKAGE__)} ? shift :
 	Astro::SpaceTrack->new ();
     $self->shell ($self->_source (@_), 'exit');
@@ -2093,12 +2069,12 @@ use Data::Dumper;
     my @names = qw{version key val path domain port path_spec secure
 	    expires discard hash};
 
-    sub _dump_cookie {	## no critic RequireArgUnpacking
+    sub _dump_cookie {
+	my ($prefix, @args) = @_;
 	local $Data::Dumper::Terse = 1;
-	my $prefix = shift;
 	$prefix and warn $prefix;
 	for (my $inx = 0; $inx < @names; $inx++) {
-	    warn "    $names[$inx] => ", Dumper ($_[$inx]);
+	    warn "    $names[$inx] => ", Dumper ($args[$inx]);
 	}
 	return;
     }
@@ -2218,7 +2194,7 @@ return wantarray ? ($resp, \@data) : $resp;
 
 # We supress Perl::Critic because we're a one-liner. CAVEAT: we MUST
 # not modify the contents of @_. Modifying @_ itself is fine.
-sub _mutate_attrib {	## no critic RequireArgUnpacking
+sub _mutate_attrib {
     return ($_[0]{$_[1]} = $_[2]);
 }
 
@@ -2227,7 +2203,7 @@ sub _mutate_attrib {	## no critic RequireArgUnpacking
 
 # This clears the session cookie and cookie expiration, then co-routines
 # off to _mutate attrib.
-sub _mutate_authen {	## no critic RequireArgUnpacking RequireFinalReturn
+sub _mutate_authen {
     $_[0]->set (session_cookie => undef, cookie_expires => 0);
     goto &_mutate_attrib;
 }
@@ -2237,7 +2213,7 @@ sub _mutate_authen {	## no critic RequireArgUnpacking RequireFinalReturn
 
 # This mutates the user agent's cookie jar, then co-routines off to
 # _mutate attrib.
-sub _mutate_cookie {	## no critic RequireArgUnpacking RequireFinalReturn
+sub _mutate_cookie {
 ($_[0]->{agent} && $_[0]->{agent}->cookie_jar)
     and $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
 	SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
@@ -2246,7 +2222,7 @@ goto &_mutate_attrib;
 
 # This subroutine just does some argument checking and then co-routines
 # off to _mutate_attrib.
-sub _mutate_iridium_status_format {	## no critic RequireArgUnpacking RequireFinalReturn
+sub _mutate_iridium_status_format {
 croak "Error - Illegal status format '$_[2]'"
     unless $catalogs{iridium_status}{$_[2]};
 goto &_mutate_attrib;
@@ -2257,7 +2233,7 @@ goto &_mutate_attrib;
 
 # This subroutine just does some argument checking and then co-routines
 # off to _mutate_attrib.
-sub _mutate_number {	## no critic RequireArgUnpacking RequireFinalReturn
+sub _mutate_number {
 $_[2] =~ m/\D/ and croak <<eod;
 Attribute $_[1] must be set to a numeric value.
 eod

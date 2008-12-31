@@ -3,8 +3,7 @@ package main;
 use strict;
 use warnings;
 
-# We're a test, and potentially have to deal with all sorts of data.
-no warnings qw{uninitialized};	## no critic ProhibitNoWarnings
+no warnings qw{uninitialized};
 
 use FileHandle;
 use Test;
@@ -20,12 +19,13 @@ my $loaded;
 
 # We're only using @_ for printing. CAVEAT: do not modify its contents.
 # Modifying @_ itself is OK.
-sub prompt {	## no critic RequireArgUnpacking
-print STDERR @_;
-# We're a test, and we're trying to be lightweight.
-return unless defined (my $input = <STDIN>);	## no critic ProhibitExplicitStdin
-chomp $input;
-return $input;
+sub prompt {
+    my @args = @_;
+    print STDERR @args;
+    # We're a test, and we're trying to be lightweight.
+    return unless defined (my $input = <STDIN>);	## no critic ProhibitExplicitStdin
+    chomp $input;
+    return $input;
 }
 
 BEGIN {
@@ -45,9 +45,7 @@ ok ($loaded);
 require LWP::UserAgent;
 my $agt = LWP::UserAgent->new ();
 
-# Perl::Critic doesn't like this because it doesn't interpolate. So
-# don't do that.
-use constant NOACCESS => 'Site not accessible.';	## no critic ProhibitConstantPragma
+use constant NOACCESS => 'Site not accessible.';
 
 my ($skip_celestrak, $skip_mccants, $skip_sladen, $skip_spaceflight,
     $skip_amsat);
