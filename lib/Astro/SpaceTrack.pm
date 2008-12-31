@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.035_01';
+our $VERSION = '0.035_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -688,21 +688,21 @@ See L</Attributes> for the names and functions of the attributes.
 =cut
 
 sub get {
-my $self = shift;
-delete $self->{_pragmata};
-my $name = shift;
-croak "No attribute name specified. Legal attributes are ",
-	join (', ', sort keys %mutator), ".\n"
-    unless defined $name;
-croak "Attribute $name may not be gotten. Legal attributes are ",
-	join (', ', sort keys %mutator), ".\n"
-    unless $mutator{$name};
-my $resp = HTTP::Response->new (RC_OK, undef, undef, $self->{$name});
-$self->_add_pragmata($resp,
-    'spacetrack-type' => 'get',
-);
-$self->_dump_headers ($resp) if $self->{dump_headers};
-return wantarray ? ($resp, $self->{$name}) : $resp;
+    my $self = shift;
+    delete $self->{_pragmata};
+    my $name = shift;
+    croak "No attribute name specified. Legal attributes are ",
+	    join (', ', sort keys %mutator), ".\n"
+	unless defined $name;
+    croak "Attribute $name may not be gotten. Legal attributes are ",
+	    join (', ', sort keys %mutator), ".\n"
+	unless $mutator{$name};
+    my $resp = HTTP::Response->new (RC_OK, undef, undef, $self->{$name});
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'get',
+    );
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    return wantarray ? ($resp, $self->{$name}) : $resp;
 }
 
 
@@ -1140,25 +1140,26 @@ since all it is doing is returning data kept by this module.
 =cut
 
 sub names {
-my $self = shift;
-delete $self->{_pragmata};
-my $name = lc shift;
-$catalogs{$name} or return HTTP::Response (
-	RC_NOT_FOUND, "Data source '$name' not found.");
-my $src = $catalogs{$name};
-my @list;
-foreach my $cat (sort keys %$src) {
-    push @list, defined ($src->{$cat}{number}) ?
-	"$cat ($src->{$cat}{number}): $src->{$cat}{name}\n" :
-	"$cat: $src->{$cat}{name}\n";
+    my $self = shift;
+    delete $self->{_pragmata};
+    my $name = lc shift;
+    $catalogs{$name} or return HTTP::Response (
+	    RC_NOT_FOUND, "Data source '$name' not found.");
+    my $src = $catalogs{$name};
+    my @list;
+    foreach my $cat (sort keys %$src) {
+	push @list, defined ($src->{$cat}{number}) ?
+	    "$cat ($src->{$cat}{number}): $src->{$cat}{name}\n" :
+	    "$cat: $src->{$cat}{name}\n";
     }
-my $resp = HTTP::Response->new (RC_OK, undef, undef, join ('', @list));
-return $resp unless wantarray;
-@list = ();
-foreach my $cat (sort {$src->{$a}{name} cmp $src->{$b}{name}} keys %$src) {
-    push @list, [$src->{$cat}{name}, $cat];
+    my $resp = HTTP::Response->new (RC_OK, undef, undef, join ('', @list));
+    return $resp unless wantarray;
+    @list = ();
+    foreach my $cat (sort {$src->{$a}{name} cmp $src->{$b}{name}}
+	keys %$src) {
+	push @list, [$src->{$cat}{name}, $cat];
     }
-return ($resp, \@list);
+    return ($resp, \@list);
 }
 
 
@@ -1279,17 +1280,17 @@ Warning - Range $lo-$hi ignored because it is greater than the
 	  currently-set maximum of $self->{max_range}.
 eod
 		    next;
-		    };
+		};
 		$ids += $hi - $lo;
 		$ids > RETRIEVAL_SIZE and do {
 		    my $mid = $hi - $ids + RETRIEVAL_SIZE;
 		    unshift @args, "@{[$mid + 1]}-$hi";
 		    $hi = $mid;
-		    };
-		$lo = "$lo-$hi" if $hi > $lo;
 		};
+		$lo = "$lo-$hi" if $hi > $lo;
+	    };
 	    push @batch, $lo;
-	    }
+	}
 	next unless @batch;
 	$resp = $self->_post ('perl/id_query.pl',
 	    ids => "@batch",
@@ -1310,7 +1311,7 @@ eod
 	s|.*<pre>||ms;
 	s|^\n||ms;
 	$content .= $_;
-	}
+    }
     $content or return HTTP::Response->new (RC_NOT_FOUND, NO_RECORDS);
     $resp->content ($content);
     $self->_convert_content ($resp);
@@ -1765,89 +1766,87 @@ if -start_epoch, -end_epoch, or -last5 is specified.
 =cut
 
 sub spaceflight {
-my ($self, @args) = @_;
-delete $self->{_pragmata};
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
 
-@args = _parse_retrieve_args ([all => 'retrieve all data'], @args)
-    unless ref $args[0] eq 'HASH';
-my $opt = _parse_retrieve_dates (shift @args, {perldate => 1});
+    @args = _parse_retrieve_args ([all => 'retrieve all data'], @args)
+	unless ref $args[0] eq 'HASH';
+    my $opt = _parse_retrieve_dates (shift @args, {perldate => 1});
 
-$opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
+    $opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
 
-my @list;
-if (@args) {
-    foreach (@args) {
-	my $info = $catalogs{spaceflight}{lc $_} or
-	    return $self->_no_such_catalog (spaceflight => $_);
-	push @list, $info->{url};
+    my @list;
+    if (@args) {
+	foreach (@args) {
+	    my $info = $catalogs{spaceflight}{lc $_} or
+		return $self->_no_such_catalog (spaceflight => $_);
+	    push @list, $info->{url};
 	}
-    }
-  else {
-    my $hash = $catalogs{spaceflight};
-    @list = map {$hash->{$_}{url}} sort keys %$hash;
+    } else {
+	my $hash = $catalogs{spaceflight};
+	@list = map {$hash->{$_}{url}} sort keys %$hash;
     }
 
-my $content = '';
-my $now = time ();
-my %tle;
-foreach my $url (@list) {
-    my $resp = $self->{agent}->get ($url);
-    return $resp unless $resp->is_success;
-    my (@data, $acquire);
-    foreach (split '\n', $resp->content) {
-	chomp;
-	m/TWO LINE MEAN ELEMENT SET/ and do {
-	    $acquire = 1;
-	    @data = ();
-	    next;
+    my $content = '';
+    my $now = time ();
+    my %tle;
+    foreach my $url (@list) {
+	my $resp = $self->{agent}->get ($url);
+	return $resp unless $resp->is_success;
+	my (@data, $acquire);
+	foreach (split '\n', $resp->content) {
+	    chomp;
+	    m/TWO LINE MEAN ELEMENT SET/ and do {
+		$acquire = 1;
+		@data = ();
+		next;
 	    };
-	next unless $acquire;
-	s/^\s+//;
-	$_ and do {push @data, "$_\n"; next};
-	@data and do {
-	    $acquire = undef;
-	    (@data == 2 || @data == 3) or next;
-	    shift @data
-		if @data == 3 && !$self->{direct} && !$self->{with_name};
-	    my $ix = @data - 2;
-	    my $id = substr ($data[$ix], 2, 5) + 0;
-	    my $yr = substr ($data[$ix], 18, 2);
-	    my $da = substr ($data[$ix], 20, 12);
-	    $yr += 100 if $yr < 57;
-	    my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
-	    unless (!$opt->{all} && ($opt->{start_epoch} ?
-		    ($ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch}) :
-		    $ep > $now)) {
-		$tle{$id} ||= [];
-		my @keys = $opt->{descending} ? (-$id, -$ep) : ($id, $ep);
-		@keys = reverse @keys if $opt->{sort} eq 'epoch';
-		push @{$tle{$id}}, [@keys, join '', @data];
+	    next unless $acquire;
+	    s/^\s+//;
+	    $_ and do {push @data, "$_\n"; next};
+	    @data and do {
+		$acquire = undef;
+		(@data == 2 || @data == 3) or next;
+		shift @data
+		    if @data == 3 && !$self->{direct} && !$self->{with_name};
+		my $ix = @data - 2;
+		my $id = substr ($data[$ix], 2, 5) + 0;
+		my $yr = substr ($data[$ix], 18, 2);
+		my $da = substr ($data[$ix], 20, 12);
+		$yr += 100 if $yr < 57;
+		my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
+		unless (!$opt->{all} && ($opt->{start_epoch} ?
+			($ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch}) :
+			$ep > $now)) {
+		    $tle{$id} ||= [];
+		    my @keys = $opt->{descending} ? (-$id, -$ep) : ($id, $ep);
+		    @keys = reverse @keys if $opt->{sort} eq 'epoch';
+		    push @{$tle{$id}}, [@keys, join '', @data];
 		}
-	    @data = ();
+		@data = ();
 	    };
 	}
     }
 
-unless ($opt->{all} || $opt->{start_epoch}) {
-    my $left = $opt->{last5} ? 5 : 1;
-    foreach (values %tle) {splice @$_, $left}
+    unless ($opt->{all} || $opt->{start_epoch}) {
+	my $left = $opt->{last5} ? 5 : 1;
+	foreach (values %tle) {splice @$_, $left}
     }
-$content .= join '',
-    map {$_->[2]}
-    sort {$a->[0] <=> $b->[0] || $a->[1] <=> $b->[1]}
-    map {@$_} values %tle;
+    $content .= join '',
+	map {$_->[2]}
+	sort {$a->[0] <=> $b->[0] || $a->[1] <=> $b->[1]}
+	map {@$_} values %tle;
 
+    $content or
+	return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_RECORDS);
 
-$content or
-    return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_RECORDS);
-
-my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
-$self->_add_pragmata($resp,
-    'spacetrack-type' => 'orbit',
-    'spacetrack-source' => 'spaceflight',
-);
-$self->_dump_headers ($resp) if $self->{dump_headers};
-return $resp;
+    my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'orbit',
+	'spacetrack-source' => 'spaceflight',
+    );
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    return $resp;
 }
 
 =for html <a name="spacetrack"></a>
@@ -1899,16 +1898,16 @@ HTTP::Response from login ().
 =cut
 
 sub spacetrack {
-my $self = shift;
-delete $self->{_pragmata};
-my $catnum = shift;
-$catnum =~ m/\D/ and do {
-    my $info = $catalogs{spacetrack}{$catnum} or
-	return $self->_no_such_catalog (spacetrack => $catnum);
-    $catnum = $info->{number};
-    $self->{with_name} && $catnum++ unless $info->{special};
+    my $self = shift;
+    delete $self->{_pragmata};
+    my $catnum = shift;
+    $catnum =~ m/\D/ and do {
+	my $info = $catalogs{spacetrack}{$catnum} or
+	    return $self->_no_such_catalog (spacetrack => $catnum);
+	$catnum = $info->{number};
+	$self->{with_name} && $catnum++ unless $info->{special};
     };
-my $resp = $self->_get ('perl/dl.pl', ID => $catnum);
+    my $resp = $self->_get ('perl/dl.pl', ID => $catnum);
 # At this point, assuming we succeeded, we should have headers
 # content-disposition: attachment; filename=the_desired_file_name
 # content-type: application/force-download
@@ -1930,39 +1929,39 @@ Requested file  doesn't exist");history.go(-1);
 
 =cut
 
-$resp->is_success and do {
-    my $content = $resp->content ();
-    if ($content =~ m/<html>/) {
-	if ($content =~ m/Requested file doesn't exist/i) {
-	    $resp = HTTP::Response->new (RC_NOT_FOUND,
-		"The file for catalog $catnum is missing.\n",
-		undef, $content);
+    $resp->is_success and do {
+	my $content = $resp->content ();
+	if ($content =~ m/<html>/) {
+	    if ($content =~ m/Requested file doesn't exist/i) {
+		$resp = HTTP::Response->new (RC_NOT_FOUND,
+		    "The file for catalog $catnum is missing.\n",
+		    undef, $content);
+	    } else {
+		$resp = HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+		    "The file for catalog $catnum could not be retrieved.\n",
+		    undef, $content);
+	    }
 	} else {
-	    $resp = HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
-		"The file for catalog $catnum could not be retrieved.\n",
-		undef, $content);
-	}
-    } else {
-	$catnum and $resp->content (
-	    Compress::Zlib::memGunzip ($resp->content));
-	# SpaceTrack returns status 200 on a non-existent catalog
-	# number, but whatever content they send back doesn't unzip, so
-	# we catch it here.
-	defined ($resp->content ())
-	    or return $self->_no_such_catalog (spacetrack => $catnum);
-	$resp->remove_header ('content-disposition');
-	$resp->header (
-	    'content-type' => 'text/plain',
-##	    'content-length' => length ($resp->content),
+	    $catnum and $resp->content (
+		Compress::Zlib::memGunzip ($resp->content));
+	    # SpaceTrack returns status 200 on a non-existent catalog
+	    # number, but whatever content they send back doesn't unzip, so
+	    # we catch it here.
+	    defined ($resp->content ())
+		or return $self->_no_such_catalog (spacetrack => $catnum);
+	    $resp->remove_header ('content-disposition');
+	    $resp->header (
+		'content-type' => 'text/plain',
+    ##	    'content-length' => length ($resp->content),
 	    );
-	$self->_convert_content ($resp);
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'orbit',
-	    'spacetrack-source' => 'spacetrack',
-	);
-    }
+	    $self->_convert_content ($resp);
+	    $self->_add_pragmata($resp,
+		'spacetrack-type' => 'orbit',
+		'spacetrack-source' => 'spacetrack',
+	    );
+	}
     };
-return $resp;
+    return $resp;
 }
 
 
@@ -2108,30 +2107,30 @@ sub _dump_headers {
 #	object from the login will be returned.
 
 sub _get {
-my ($self, $path, @args) = @_;
-my $cgi = '';
-while (@args) {
-    my $name = shift @args;
-    my $val = shift @args || '';
-    $cgi .= "&$name=$val";
+    my ($self, $path, @args) = @_;
+    my $cgi = '';
+    while (@args) {
+	my $name = shift @args;
+	my $val = shift @args || '';
+	$cgi .= "&$name=$val";
     }
-$cgi and substr ($cgi, 0, 1) = '?';
-{	# Single-iteration loop
-    $self->{cookie_expires} > time () or do {
-	my $resp = $self->login ();
+    $cgi and substr ($cgi, 0, 1) = '?';
+    {	# Single-iteration loop
+	$self->{cookie_expires} > time () or do {
+	    my $resp = $self->login ();
+	    return $resp unless $resp->is_success;
+	};
+	my $resp = $self->{agent}->get ("http://@{[DOMAIN]}/$path$cgi");
+	$self->_dump_headers ($resp) if $self->{dump_headers};
 	return $resp unless $resp->is_success;
+	local $_ = $resp->content;
+	m/login\.pl/i and do {
+	    $self->{cookie_expires} = 0;
+	    redo;
 	};
-    my $resp = $self->{agent}->get ("http://@{[DOMAIN]}/$path$cgi");
-    $self->_dump_headers ($resp) if $self->{dump_headers};
-    return $resp unless $resp->is_success;
-    local $_ = $resp->content;
-    m/login\.pl/i and do {
-	$self->{cookie_expires} = 0;
-	redo;
-	};
-    return $resp;
+	return $resp;
     }	# end of single-iteration loop
-return;	# Should never get here.
+    return;	# Should never get here.
 }
 
 #	Note: If we have a bad cookie, we get a success status, with
@@ -2163,30 +2162,30 @@ return;	# Should never get here.
 #	catalog number and name.
 
 sub _handle_observing_list {
-my ($self, @args) = @_;
-my (@catnum, @data);
+    my ($self, @args) = @_;
+    my (@catnum, @data);
 
-@args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
-my $opt = shift;
+    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    my $opt = shift;
 
-foreach (map {split '\n', $_} @args) {
-    s/\s+$//;
-    my ($id) = m/^([\s\d]{5})/ or next;
-    $id =~ m/^\s*\d+$/ or next;
-    push @catnum, $id;
-    push @data, [$id, substr $_, 5];
+    foreach (map {split '\n', $_} @args) {
+	s/\s+$//;
+	my ($id) = m/^([\s\d]{5})/ or next;
+	$id =~ m/^\s*\d+$/ or next;
+	push @catnum, $id;
+	push @data, [$id, substr $_, 5];
     }
-my $resp = $self->retrieve ($opt, sort {$a <=> $b} @catnum);
-if ($resp->is_success) {
-    unless ($self->{_pragmata}) {
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'orbit',
-	    'spacetrack-source' => 'spacetrack',
-	);
+    my $resp = $self->retrieve ($opt, sort {$a <=> $b} @catnum);
+    if ($resp->is_success) {
+	unless ($self->{_pragmata}) {
+	    $self->_add_pragmata($resp,
+		'spacetrack-type' => 'orbit',
+		'spacetrack-source' => 'spacetrack',
+	    );
 	}
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers ($resp) if $self->{dump_headers};
     }
-return wantarray ? ($resp, \@data) : $resp;
+    return wantarray ? ($resp, \@data) : $resp;
 }
 
 #	_mutate_attrib takes the name of an attribute and the new value
@@ -2214,18 +2213,18 @@ sub _mutate_authen {
 # This mutates the user agent's cookie jar, then co-routines off to
 # _mutate attrib.
 sub _mutate_cookie {
-($_[0]->{agent} && $_[0]->{agent}->cookie_jar)
-    and $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
-	SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
-goto &_mutate_attrib;
+    ($_[0]->{agent} && $_[0]->{agent}->cookie_jar)
+	and $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
+	    SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
+    goto &_mutate_attrib;
 }
 
 # This subroutine just does some argument checking and then co-routines
 # off to _mutate_attrib.
 sub _mutate_iridium_status_format {
-croak "Error - Illegal status format '$_[2]'"
-    unless $catalogs{iridium_status}{$_[2]};
-goto &_mutate_attrib;
+    croak "Error - Illegal status format '$_[2]'"
+	unless $catalogs{iridium_status}{$_[2]};
+    goto &_mutate_attrib;
 }
 
 #	_mutate_number croaks if the value to be set is not numeric.
@@ -2234,10 +2233,10 @@ goto &_mutate_attrib;
 # This subroutine just does some argument checking and then co-routines
 # off to _mutate_attrib.
 sub _mutate_number {
-$_[2] =~ m/\D/ and croak <<eod;
+    $_[2] =~ m/\D/ and croak <<eod;
 Attribute $_[1] must be set to a numeric value.
 eod
-goto &_mutate_attrib;
+    goto &_mutate_attrib;
 }
 
 
@@ -2260,20 +2259,20 @@ ignored.
 eod
 );
 sub _no_such_catalog {
-my $self = shift;
-my $source = lc shift;
-my $catalog = shift;
-my $name = $no_such_name{$source} || $source;
-my $lead = $catalogs{$source}{$catalog} ?
-    "Missing $name catalog '$catalog'." :
-    "No such $name catalog as '$catalog'.";
-return HTTP::Response->new (RC_NOT_FOUND, "$lead\n")
-    unless $self->{verbose};
-my $resp = $self->names ($source);
-return HTTP::Response->new (RC_NOT_FOUND,
-    join '', "$lead Try one of:\n", $resp->content,
-    $no_such_trail{$source} || ''
-);
+    my $self = shift;
+    my $source = lc shift;
+    my $catalog = shift;
+    my $name = $no_such_name{$source} || $source;
+    my $lead = $catalogs{$source}{$catalog} ?
+	"Missing $name catalog '$catalog'." :
+	"No such $name catalog as '$catalog'.";
+    return HTTP::Response->new (RC_NOT_FOUND, "$lead\n")
+	unless $self->{verbose};
+    my $resp = $self->names ($source);
+    return HTTP::Response->new (RC_NOT_FOUND,
+	join '', "$lead Try one of:\n", $resp->content,
+	$no_such_trail{$source} || ''
+    );
 }
 
 #	_parse_retrieve_args parses the retrieve() options off its
@@ -2290,30 +2289,30 @@ my @legal_retrieve_args = (descending => '(direction of sort)',
 		'start_epoch=s' => 'date',
 		);
 sub _parse_retrieve_args {
-my @args = @_;
-unless (ref ($args[0]) eq 'HASH') {
-    my %lgl = (@legal_retrieve_args,
-	ref $args[0] eq 'ARRAY' ? @{shift @args} : ());
-    my $opt = {};
-    local @ARGV = @args;
+    my @args = @_;
+    unless (ref ($args[0]) eq 'HASH') {
+	my %lgl = (@legal_retrieve_args,
+	    ref $args[0] eq 'ARRAY' ? @{shift @args} : ());
+	my $opt = {};
+	local @ARGV = @args;
 
-    GetOptions ($opt, keys %lgl) or croak <<eod;
+	GetOptions ($opt, keys %lgl) or croak <<eod;
 Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
 	"\n  -$q $lgl{$_}"} sort keys %lgl]}
 with dates being either Perl times, or numeric year-month-day, with any
 non-numeric character valid as punctuation.
 eod
 
-    $opt->{sort} ||= 'catnum';
+	$opt->{sort} ||= 'catnum';
 
-    ($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<eod;
+	($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<eod;
 Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
         (the default) or 'epoch'.
 eod
 
-    @args = ($opt, @ARGV);
+	@args = ($opt, @ARGV);
     }
-return @args;
+    return @args;
 }
 
 #	$opt = _parse_retrieve_dates ($opt);
@@ -2329,38 +2328,38 @@ return @args;
 #	The return is the same hash reference that was passed in.
 
 sub _parse_retrieve_dates {
-my $opt = shift;
-my $ctl = shift || {};
+    my $opt = shift;
+    my $ctl = shift || {};
 
-my $found;
-foreach my $key (qw{end_epoch start_epoch}) {
-    next unless $opt->{$key};
-    $opt->{$key} !~ m/\D/ or
-	$opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
-	    $opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
-	croak <<eod;
+    my $found;
+    foreach my $key (qw{end_epoch start_epoch}) {
+	next unless $opt->{$key};
+	$opt->{$key} !~ m/\D/ or
+	    $opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
+		$opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
+	    croak <<eod;
 Error - Illegal date '$opt->{$key}'. Valid dates are a number
 	(interpreted as a Perl date) or numeric year-month-day.
 eod
-    $found++;
+	$found++;
     }
 
-if ($found) {
-    if ($found == 1) {
-	$opt->{start_epoch} ||= $opt->{end_epoch} - 86400;
-	$opt->{end_epoch} ||= $opt->{start_epoch} + 86400;
+    if ($found) {
+	if ($found == 1) {
+	    $opt->{start_epoch} ||= $opt->{end_epoch} - 86400;
+	    $opt->{end_epoch} ||= $opt->{start_epoch} + 86400;
 	}
-    $opt->{start_epoch} <= $opt->{end_epoch} or croak <<eod;
+	$opt->{start_epoch} <= $opt->{end_epoch} or croak <<eod;
 Error - End epoch must not be before start epoch.
 eod
-    unless ($ctl->{perldate}) {
-	foreach my $key (qw{start_epoch end_epoch}) {
-	    $opt->{$key} = [gmtime ($opt->{$key})];
+	unless ($ctl->{perldate}) {
+	    foreach my $key (qw{start_epoch end_epoch}) {
+		$opt->{$key} = [gmtime ($opt->{$key})];
 	    }
 	}
     }
 
-return $opt;
+    return $opt;
 }
 
 #	_parse_search_args parses the search_*() options off its
@@ -2378,36 +2377,27 @@ my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
 my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
 
 sub _parse_search_args {
-my @args = @_;
-unless (ref ($args[0]) eq 'HASH') {
-    ref $args[0] eq 'ARRAY' and my @extra = @{shift @args};
-    @args = _parse_retrieve_args ([@legal_search_args, @extra], @args);
+    my @args = @_;
+    unless (ref ($args[0]) eq 'HASH') {
+	ref $args[0] eq 'ARRAY' and my @extra = @{shift @args};
+	@args = _parse_retrieve_args ([@legal_search_args, @extra], @args);
 
-##    my %lgl = (@legal_search_args, ref $_[0] eq 'ARRAY' ? @{shift @args} : ());
-##    my $opt = {};
-##    local @ARGV = @args;
-
-##    GetOptions ($opt, keys %lgl) or croak <<eod;
-##Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
-##	"\n  -$q $lgl{$_}"} sort keys %lgl]}
-##eod
-    my $opt = $args[0];
-    $opt->{status} ||= 'all';
-    $legal_search_status{$opt->{status}} or croak <<eod;
+	my $opt = $args[0];
+	$opt->{status} ||= 'all';
+	$legal_search_status{$opt->{status}} or croak <<eod;
 Error - Illegal status '$opt->{status}'. You must specify one of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
 eod
-    $opt->{exclude} ||= [];
-    $opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
-    foreach (@{$opt->{exclude}}) {
-	$legal_search_exclude{$_} or croak <<eod;
+	$opt->{exclude} ||= [];
+	$opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
+	foreach (@{$opt->{exclude}}) {
+	    $legal_search_exclude{$_} or croak <<eod;
 Error - Illegal exclusion '$_'. You must specify one or more of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
 eod
 	}
-##    @args = ($opt, @ARGV);
     }
-return @args;
+    return @args;
 }
 
 #	_post is just like _get, except for the method used. DO NOT use
@@ -2416,23 +2406,23 @@ return @args;
 
 sub _post {
     my ($self, $path, @args) = @_;
-{	# Single-iteration loop
-    $self->{cookie_expires} > time () or do {
-	my $resp = $self->login ();
-	return $resp unless $resp->is_success;
+    {	# Single-iteration loop
+	$self->{cookie_expires} > time () or do {
+	    my $resp = $self->login ();
+	    return $resp unless $resp->is_success;
 	};
-    my $url = $self->{debug_url} || "http://@{[DOMAIN]}/$path";
-    my $resp = $self->{agent}->post ($url, [@args]);
-    $self->_dump_headers ($resp) if $self->{dump_headers};
-    return $resp unless $resp->is_success && !$self->{debug_url};
-    local $_ = $resp->content;
-    m/login\.pl/i and do {
-	$self->{cookie_expires} = 0;
-	redo;
+	my $url = $self->{debug_url} || "http://@{[DOMAIN]}/$path";
+	my $resp = $self->{agent}->post ($url, [@args]);
+	$self->_dump_headers ($resp) if $self->{dump_headers};
+	return $resp unless $resp->is_success && !$self->{debug_url};
+	local $_ = $resp->content;
+	m/login\.pl/i and do {
+	    $self->{cookie_expires} = 0;
+	    redo;
 	};
-    return $resp;
+	return $resp;
     }	# end of single-iteration loop
-return;	# Should never arrive here.
+    return;	# Should never arrive here.
 }
 
 #	_search wraps the specific search functions. It is called
@@ -2449,37 +2439,37 @@ return;	# Should never arrive here.
 
 
 sub _search_generic {
-my ($self, $poster, @args) = @_;
-delete $self->{_pragmata};
+    my ($self, $poster, @args) = @_;
+    delete $self->{_pragmata};
 
-@args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
-my $opt = shift;
+    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    my $opt = shift;
 
-@args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
-my $p = Astro::SpaceTrack::Parser->new ();
+    @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+    my $p = Astro::SpaceTrack::Parser->new ();
 
-my @table;
-my %id;
-foreach my $name (@args) {
-    defined (my $resp = $poster->($self, $name, $opt)) or next;
-    return $resp unless $resp->is_success && !$self->{debug_url};
-    my $content = $resp->content;
-    next if $content =~ m/No results found/i;
-    my @this_page = @{$p->parse_string (table => $content)};
-    ref $this_page[0] eq 'ARRAY'
-	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
-	BAD_SPACETRACK_RESPONSE, undef, $content);
-    my @data = @{$this_page[0]};
-    foreach my $row (@data) {
-	pop @$row; pop @$row;
+    my @table;
+    my %id;
+    foreach my $name (@args) {
+	defined (my $resp = $poster->($self, $name, $opt)) or next;
+	return $resp unless $resp->is_success && !$self->{debug_url};
+	my $content = $resp->content;
+	next if $content =~ m/No results found/i;
+	my @this_page = @{$p->parse_string (table => $content)};
+	ref $this_page[0] eq 'ARRAY'
+	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	    BAD_SPACETRACK_RESPONSE, undef, $content);
+	my @data = @{$this_page[0]};
+	foreach my $row (@data) {
+	    pop @$row; pop @$row;
 	}
-    if (@table) {shift @data} else {push @table, shift @data};
-    foreach my $row (@data) {
-	push @table, $row unless $id{$row->[0]}++;
+	if (@table) {shift @data} else {push @table, shift @data};
+	foreach my $row (@data) {
+	    push @table, $row unless $id{$row->[0]}++;
 	}
     }
-my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
-return wantarray ? ($resp, \@table) : $resp;
+    my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
+    return wantarray ? ($resp, \@table) : $resp;
 }
 
 
@@ -2487,18 +2477,18 @@ return wantarray ? ($resp, \@table) : $resp;
 #	as a list. It dies if anything goes wrong.
 
 sub _source {
-my $self = shift;
-wantarray or die <<eod;
+    my $self = shift;
+    wantarray or die <<eod;
 Error - _source () called in scalar or no context. This is a bug.
 eod
-my $fn = shift or die <<eod;
+    my $fn = shift or die <<eod;
 Error - No source file name specified.
 eod
-my $fh = FileHandle->new ("<$fn") or die <<eod;
+    my $fh = FileHandle->new ("<$fn") or die <<eod;
 Error - Failed to open source file '$fn'.
         $!
 eod
-return <$fh>;
+    return <$fh>;
 }
 
 1;
