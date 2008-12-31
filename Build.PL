@@ -23,6 +23,7 @@ my %attr = (
 	'HTTP::Response' => 0,
 	'HTTP::Status' => 0,
 	'LWP::UserAgent' => 0,
+	'Params::Util' => 0.12,
     },
 );
 

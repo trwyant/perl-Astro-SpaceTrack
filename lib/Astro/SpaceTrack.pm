@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.035_02';
+our $VERSION = '0.035_03';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -107,6 +107,7 @@ use HTTP::Response;	# Not in the base, but comes with LWP.
 use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
 use LWP::UserAgent;	# Not in the base.
+use Params::Util 0.12 qw{_HANDLE _INSTANCE};
 use POSIX qw{strftime};
 use Text::ParseWords;
 use Time::Local;
@@ -1613,7 +1614,7 @@ my ($read, $print, $out, $rdln);
 
 sub shell {
     my @args = @_;
-    my $self = eval {$args[0]->isa(__PACKAGE__)} ? shift @args :
+    my $self = _INSTANCE($args[0], __PACKAGE__) ? shift @args :
 	Astro::SpaceTrack->new (addendum => <<eod);
 
 'help' gets you a list of valid commands.
@@ -1623,8 +1624,9 @@ eod
 
     $out = \*STDOUT;
     $print = sub {
-	my $hndl = eval {$_[0]->isa('FileHandle')} ? shift : $out;
-	print $hndl @_
+	my $hndl = _HANDLE($_[0]) ? shift : $out;
+	print $hndl @_;
+	return;
     };
 
     unshift @args, 'banner' if $self->{banner} && !$self->{filter};
@@ -1730,7 +1732,7 @@ cannot be read.
 
 # We really just delegate to _source, which unpacks.
 sub source {
-    my $self = eval {$_[0]->isa(__PACKAGE__)} ? shift :
+    my $self = _INSTANCE($_[0], __PACKAGE__) ? shift :
 	Astro::SpaceTrack->new ();
     $self->shell ($self->_source (@_), 'exit');
     return;

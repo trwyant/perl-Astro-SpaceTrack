@@ -104,6 +104,7 @@ my %attr = (
 	'HTTP::Response' => 0,
 	'HTTP::Status' => 0,
 	'LWP::UserAgent' => 0,
+	'Params::Util' => 0.12,
     },
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     EXE_FILES => \@exe_files,
