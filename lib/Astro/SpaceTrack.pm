@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.035_03';
+our $VERSION = '0.035_04';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -101,8 +101,8 @@ our %EXPORT_TAGS = (
 use Astro::SpaceTrack::Parser;
 use Carp;
 use Compress::Zlib ();
-use FileHandle;
 use Getopt::Long;
+use IO::File;
 use HTTP::Response;	# Not in the base, but comes with LWP.
 use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
@@ -663,7 +663,7 @@ sub file {
 	and return $self->_handle_observing_list (<$name>);
     -e $name or return HTTP::Response->new (
 	RC_NOT_FOUND, "Can't find file $name");
-    my $fh = FileHandle->new ($name) or
+    my $fh = IO::File->new($name, '<') or
 	return HTTP::Response->new (
 	    RC_INTERNAL_SERVER_ERROR, "Can't open $name: $!");
     local $/ = undef;
@@ -1686,7 +1686,7 @@ eod
 	};
 	my @fh;
 	$redir and do {
-	    @fh = (FileHandle->new ($redir)) or do {warn <<eod; next};
+	    @fh = (IO::File->new ($redir)) or do {warn <<eod; next};
 Error - Failed to open $redir
 	$^E
 eod
@@ -2486,7 +2486,7 @@ eod
     my $fn = shift or die <<eod;
 Error - No source file name specified.
 eod
-    my $fh = FileHandle->new ("<$fn") or die <<eod;
+    my $fh = IO::File->new ($fn, '<') or die <<eod;
 Error - Failed to open source file '$fn'.
         $!
 eod
