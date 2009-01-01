@@ -223,3 +223,8 @@
     Remove '## no critic' flags in code, which are not needed at
 	the desired severity (--stern) if run with the distributed
 	t/perlcriticrc file.
+
+0.037 01-Jan-2009 T. R. Wyant
+    Retract copyright year test in t/basic.t
+    Update version and copyright in Astro::SpaceTrack. No other
+	changes.
