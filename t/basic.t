@@ -29,7 +29,7 @@ sub prompt {
 }
 
 BEGIN {
-plan (tests => 68);
+plan (tests => 67);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -137,11 +137,6 @@ $st or $skip_spacetrack = 'Unable to instantiate Astro::SpaceTrack';
     print "# Test $test_num - Banner.\n";
     $skip_spacetrack or my $rslt = $st->banner();
     skip($skip_spacetrack, $rslt && $rslt->is_success());
-
-    $test_num++;
-    my $year = (localtime)[5] + 1900;
-    print "# Test $test_num - Banner has current copyright.\n";
-    skip($skip_spacetrack, $rslt && ($rslt->content() =~ m/Copyright.*$year/));
 }
 
 $test_num++;
