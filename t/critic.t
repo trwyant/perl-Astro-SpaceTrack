@@ -6,10 +6,10 @@ use warnings;
 use File::Spec;
 
 BEGIN {
-##    unless ($ENV{DEVELOPER_TEST}) {
-##	print "1..0 # skip Environment variable DEVELOPER_TEST not set.\n";
-##	exit;
-##    }
+    unless ($ENV{DEVELOPER_TEST}) {
+	print "1..0 # skip Environment variable DEVELOPER_TEST not set.\n";
+	exit;
+    }
     eval {
 	require Test::More;
 	Test::More->VERSION(0.40);

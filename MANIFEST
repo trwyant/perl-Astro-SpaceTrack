@@ -15,10 +15,12 @@ lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
 t/basic.t
 t/celestrak_datasets.t
+t/critic.t
 t/executable.t
 t/file.dat
 t/iridium_status.t
 t/manifest.t
+t/perlcriticrc
 t/pod.t
 t/pod_coverage.t
 t/spacetrack_datasets.t
