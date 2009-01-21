@@ -62,7 +62,7 @@ The following script can be installed:
 
 SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
 but will not be installed because you do not have the Tk package
-installed. If you want this, install Tk and then rerun Makefile.PL.
+installed. If you want this, install Tk and then rerun Build.PL.
 
 eod
 
@@ -75,7 +75,7 @@ if ($opt{n}) {
     }
   else {
     print <<eod;
-To supress the following prompts, run Makefile.PL with the -y option to
+To supress the following prompts, run Build.PL with the -y option to
 install the scripts, or with the -n option not to install the scripts.
 Setting environment variable PERL_MM_USE_DEFAULT true, or running non-
 interactively without data on STDIN will also cause the scripts not to
