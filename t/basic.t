@@ -23,7 +23,7 @@ sub prompt {
     my @args = @_;
     print STDERR @args;
     # We're a test, and we're trying to be lightweight.
-    return unless defined (my $input = <STDIN>);	## no critic ProhibitExplicitStdin
+    return unless defined (my $input = <STDIN>);	## no critic (ProhibitExplicitStdin)
     chomp $input;
     return $input;
 }
