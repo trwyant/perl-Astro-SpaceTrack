@@ -64,6 +64,8 @@ stdout
 sts
 txt
 unzip
+unzipped
 username
 webcmd
 www
+xxx
