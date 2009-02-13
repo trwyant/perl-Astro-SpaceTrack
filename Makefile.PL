@@ -103,7 +103,6 @@ my %attr = (
 	'HTML::Parser' => 0,
 	'HTTP::Response' => 0,
 	'HTTP::Status' => 0,
-	'IO::Uncompress::Unzip' => 0,
 	'LWP::UserAgent' => 0,
 	'Params::Util' => 0.12,
     },
