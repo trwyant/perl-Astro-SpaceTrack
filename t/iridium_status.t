@@ -20,6 +20,7 @@ unless ($ENV{DEVELOPER_TEST}) {
 my %known_inconsistent = (
 ###    27375 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
+    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -31,6 +32,10 @@ my %known_inconsistent = (
 #		about 14 seconds behind it. No change Kelso.
 # 23-Dec-2008 - McCants has 24948 (Iridium 28) uncontrolled, with 27375
 # 		(Iridium 98) replacing it.
+# 10-Feb-2009 - Iridium 33 (24946) hit Cosmos 2251 (22675).
+#               11-Feb-2009 - Sladen noted probably nonfunctional, though
+#                   he still carries it in his operational grid.
+#               12-Feb-2009 - McCants noted tumbling.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -119,7 +124,7 @@ foreach (["Mike McCants' Iridium status",
  24926   Dummy mass 2   dum      Celestrak
  24944   Iridium 29              Celestrak
  24945   Iridium 32              Celestrak
- 24946   Iridium 33              Celestrak
+ 24946   Iridium 33     tum      Destroyed by a collision on Feb. 10, 2009
  24948   Iridium 28     unc      Assumed failed about July 19, 2008
  24949   Iridium 30              Celestrak
  24950   Iridium 31              Celestrak
@@ -309,7 +314,7 @@ eod
  24926   Dummy mass 2   [-]      Dummy
  24944   Iridium 29     [+]      Plane 3
  24945   Iridium 32     [+]      Plane 3
- 24946   Iridium 33     [+]      Plane 3
+ 24946   Iridium 33     [-]      Plane 3
  24948   Iridium 28     [-]      Plane 3 - Failed on station?
  24949   Iridium 30     [+]      Plane 3
  24950   Iridium 31     [+]      Plane 3
