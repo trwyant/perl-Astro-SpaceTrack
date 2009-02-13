@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.037';
+our $VERSION = '0.037_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -103,6 +103,7 @@ use Carp;
 use Compress::Zlib ();
 use Getopt::Long;
 use IO::File;
+use IO::Uncompress::Unzip ();
 use HTTP::Response;	# Not in the base, but comes with LWP.
 use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
@@ -166,20 +167,34 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	radar => {name => 'Radar Calibration'},
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
-	},
+    },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
 	mccants => {name => 'McCants'},
 	sladen => {name => 'Sladen'},
     },
+    mccants => {
+	classified => {
+	    name => 'Classified elements',
+	    url => 'http://www.io.com/~mmccants/tles/classfd.zip',
+	},
+	integrated => {
+	    name => 'Integrated classified elements',
+	    url => 'http://www.io.com/~mmccants/tles/inttles.zip',
+	},
+	'96xxx' => {
+	    name => 'Integrated 96xxx elements',
+	    url => 'http://www.io.com/~mmccants/tles/int96tles.zip',
+	},
+    },
     spaceflight => {
 	iss => {name => 'International Space Station',
-		url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
-		},
-	shuttle => {name => 'Current shuttle mission',
-		url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
-		},
+	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
 	},
+	shuttle => {name => 'Current shuttle mission',
+	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
+	},
+    },
     spacetrack => {
 	md5 => {name => 'MD5 checksums', number => 0, special => 1},
 	full => {name => 'Full catalog', number => 1},
@@ -194,8 +209,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	amateur => {name => 'Amateur Radio satellites', number => 19},
 	visible => {name => 'Visible satellites', number => 21},
 	special => {name => 'Special satellites', number => 23},
-	},
-    );
+    },
+);
 
 my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
@@ -217,7 +232,7 @@ my %mutator = (	# Mutators for the various attributes.
     verbose => \&_mutate_attrib,
     webcmd => \&_mutate_attrib,
     with_name => \&_mutate_attrib,
-    );
+);
 # Maybe I really want a cookie_file attribute, which is used to do
 # $self->{agent}->cookie_jar ({file => $self->{cookie_file}, autosave => 1}).
 # We'll want to use a false attribute value to pass an empty hash. Going to
@@ -1157,6 +1172,31 @@ eod
 }
 
 
+=for html <a name="mccants"></a>
+
+=item $resp = $st->mccants (catalog);
+
+This method retrieves the given TLE catalog from Mike McCants' web
+sites. The valid catalog names are 'classified', 'integrated', and
+'96xxx', which retrieve the corresponding catalogs. See
+L<http://www.io.com/~mmccants/tles/index.html> for details.
+
+The requested data are returned in the content of the returned
+HTTP::Response object. Mr. McCants maintains these data as zip file, but
+they will be unzipped for you, and have their line endings adjusted to
+your local system.
+
+No Space Track username and password are required to use this method,
+since it does not access the Space Track web site.
+
+=cut
+
+sub mccants {
+    my ($self, @args) = @_;
+    return $self->_catalog_direct(mccants => @args);
+}
+
+
 =for html <a name="names"></a>
 
 =item $resp = $st->names (source)
@@ -1987,7 +2027,7 @@ Requested file  doesn't exist");history.go(-1);
 	    $resp->remove_header ('content-disposition');
 	    $resp->header (
 		'content-type' => 'text/plain',
-    ##	    'content-length' => length ($resp->content),
+##		'content-length' => length ($resp->content),
 	    );
 	    $self->_convert_content ($resp);
 	    $self->_add_pragmata($resp,
@@ -2020,6 +2060,58 @@ sub _add_pragmata {
 	$resp->push_header(pragma => "$name = $value");
     }
     return;
+}
+
+#	_catalog_direct direct-fetches an arbitrary catalog from an
+#	arbitrary source. Its arguments are $self, $source, and $name of
+#	the catalog. $catalogs{$source}{$name}{url} must exist, and is
+#	used as the URL to fetch the catalog. If the response contains
+#	header Content-Type: application/zip, the content is unzipped.
+#	The return is the response object. On success the content will
+#	be unzipped if needed and have its line endings adjusted, and
+#	headers
+#	Pragma: spacetrack-type = orbit
+#	Pragma: spacetrack-source = $source
+#	will be added.
+
+sub _catalog_direct {
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
+
+    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    my ($opt, $source, $name) = @args;
+    $source or confess "Programming error - no source passed";
+    defined $name or $name = '';
+    $catalogs{$source}{$name}
+	or return $self->_no_such_catalog(
+	$source => $name);
+    my $url = $catalogs{$source}{$name}{url}
+	or confess "Programming error - no URL for $source $name";
+    my $resp = $self->{agent}->get($url);
+    $resp->is_success or return $resp;
+    foreach my $type ($resp->header ('Content-Type')) {
+	if ($type eq 'application/zip') {
+	    $resp->content(_unzip($resp->content()));
+	    last;
+	}
+    }
+    $self->_convert_content($resp);
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'orbit',
+	'spacetrack-source' => $source,
+    );
+    $self->_dump_headers ($resp) if $self->{dump_headers};
+    return $resp;
+}
+
+sub _unzip {
+    my ($content) = @_;
+
+    my $output;
+
+    IO::Uncompress::Unzip::unzip(\$content, \$output);
+
+    return $output;
 }
 
 #	_check_cookie looks for our session cookie. If it's found, it returns
