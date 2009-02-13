@@ -29,7 +29,7 @@ sub prompt {
 }
 
 BEGIN {
-plan (tests => 67);
+plan (tests => 70);
 print "# Test 1 - Loading the library.\n"
 }
 
@@ -369,6 +369,21 @@ $test_num++;
 print "# Test $test_num - Check the content source of Celestrak data set.\n";
 skip ($skip_celestrak,
     $skip_celestrak || ($st->content_source || '') eq 'celestrak');
+
+$test_num++;
+print "# Test $test_num - Try to retrieve data from Mike McCants.\n";
+skip ($skip_mccants,
+    $skip_mccants || _expect_success(mccants => 'classified'));
+
+$test_num++;
+print "# Test $test_num - Check content type of McCants data.\n";
+skip($skip_mccants, $skip_mccants || $st->content_type() eq 'orbit');
+
+$test_num++;
+print "# Test $test_num - Check content source of McCants data.\n";
+skip($skip_mccants,
+    $skip_mccants || ($st->content_source() || '') eq 'mccants');
+
 $test_num++;
 print "# Test $test_num - Try to retrieve data from Human Space Flight.\n";
 skip ($skip_spaceflight,
