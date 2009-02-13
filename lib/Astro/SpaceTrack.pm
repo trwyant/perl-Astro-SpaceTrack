@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.037_01';
+our $VERSION = '0.037_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -997,6 +997,9 @@ The BODY_STATUS constants are exportable using the :status tag.
 	},
 #	sladen => undef,	# Not needed; done programmatically.
     );
+    while (my ($key, $val) = each %{$status_portable{kelso}}) {
+	$key and $status_portable{kelso_inverse}{$val} = $key;
+    }
 
     sub iridium_status {
 	my $self = shift;
@@ -1064,8 +1067,12 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    my $fail;
 	    my $re = qr{(\d+)};
 	    local $_ = $resp->content;
-	    s{<em>.*?</em>}{}igms;	# Strip emphasis notes
+####	    s{<em>.*?</em>}{}igms;	# Strip emphasis notes
 	    s/<.*?>//gms;	# Strip markup
+	    # Parenthesized numbers are assumed to represent tumbling
+	    # satellites in the in-service or spare grids.
+	    my %exception;
+	    s/\((\d+)\)/$exception{$1} = BODY_STATUS_IS_TUMBLING; $1/gems;
 	    s/\(.*?\)//g;	# Strip parenthetical comments
 	    foreach (split '\n', $_) {
 		if (m/&lt;-+\s+failed\s+-+&gt;/i) {
@@ -1073,15 +1080,16 @@ The BODY_STATUS constants are exportable using the :status tag.
 		    $re = qr{(\d+)(\w?)};
 		} elsif (s/^\s*(plane\s+\d+)\s*:\s*//i) {
 		    my $plane = $1;
-		    s/^\D+//;	# Strip leading non-digits
-		    s/\s+$//;	# Strip trailing whitespace
+##		    s/^\D+//;	# Strip leading non-digits
+		    s/\b[[:alpha:]].*//;	# Strip trailing comments
+		    s/\s+$//;			# Strip trailing whitespace
 		    my $inx = 0;	# First 11 functional are in service
 		    while (m/$re/g) {
 			my $num = +$1;
 			my $detail = $2;
 			my $id = $oid{$num} or do {
-			    # This is the normal situation for decayed satellites.
-    #			warn "No oid for Iridium $num\n";
+#			    This is normal for decayed satellites.
+#			    warn "No oid for Iridium $num\n";
 			    next;
 			};
 			my $name = "Iridium $num";
@@ -1095,12 +1103,15 @@ The BODY_STATUS constants are exportable using the :status tag.
 				    $plane . ' - Failed on station?',
 				    BODY_STATUS_IS_TUMBLING];
 			    }
-			} elsif ($inx++ > 10) {
-			    $rslt{$id} = [$id, $name, "[S]", $plane,
-				BODY_STATUS_IS_SPARE];
 			} else {
-			    $rslt{$id} = [$id, $name, "[+]", $plane,
-				BODY_STATUS_IS_OPERATIONAL];
+			    my $status = $inx++ > 10 ?
+				BODY_STATUS_IS_SPARE :
+				BODY_STATUS_IS_OPERATIONAL;
+			    exists $exception{$num}
+				and $status = $exception{$num};
+			    $rslt{$id} = [$id, $name,
+				$status_portable{kelso_inverse}{$status},
+				$plane, $status];
 			}
 		    }
 		} elsif (m/Notes:/) {
