@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.038';
+our $VERSION = '0.038_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -466,13 +466,35 @@ end; for example, the name of the 'International Space Station' data set
 is 'stations', since the URL for this is
 L<http://celestrak.com/NORAD/elements/stations.txt>.
 
-As of October 11 2007, the data set for the debris from the People's
-Republic of China's anti-satellite test against their Fengyun 1C
-satellite is available from Celestrak only by direct-fetching ($st->set
-(direct => 1), see below), as data set '1999-025'. I have not
-corresponded with Dr. Kelso on this, but I think it reasonable to
-believe that the effect of asking Space Track for all 2126 pieces of
-debris at once would not be good.
+The Celestrak web site makes a few items available for direct-fetching
+only (C<$st->set(direct => 1)>, see below.) These are typically debris
+from collisions or explosions. I have not corresponded with Dr. Kelso on
+this, but I think it reasonable to believe that asking Space Track for a
+couple thousand sets of data at once would not be a good thing.
+
+As of this release, the following data sets may be direct-fetched only:
+
+=over
+
+=item 1999-025
+
+This is the debris of Chinese communication satellite Fengyun 1C,
+created by an antisatellite test on January 11 2007. There are on the
+order of 2000 pieces of debris in the data set.
+
+=item cosmos-2251-debris
+
+This is the debris of Russian communication satellite Cosmos 2251,
+created by its collision with Iridium 33 on February 10 2009. As of
+February 18 2009 there are 15 pieces of debris in the data set.
+
+=item iridium-33-debris
+
+This is the debris of U.S. communication satellite Iridium 33, created
+by its collision with Cosmos 2251 on February 10 2009. As of February 18
+2009 there are 9 pieces of debris in the data set.
+
+=back
 
 The data set for the current US Space Shuttle Mission (if any) will be
 available as data set 'sts'. If there is no current mission, you will
