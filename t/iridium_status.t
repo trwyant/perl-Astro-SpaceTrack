@@ -20,7 +20,7 @@ unless ($ENV{DEVELOPER_TEST}) {
 my %known_inconsistent = (
 ###    27375 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
-    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
+###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -36,6 +36,7 @@ my %known_inconsistent = (
 #               11-Feb-2009 - Sladen noted probably nonfunctional, though
 #                   he still carries it in his operational grid.
 #               12-Feb-2009 - McCants noted tumbling.
+#               18-Feb-2009 - Kelso noted tumbling.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -219,7 +220,7 @@ eod
  24926   Dummy mass 2   [-]      Tumbling
  24944   Iridium 29     [+]      
  24945   Iridium 32     [+]      
- 24946   Iridium 33     [+]      
+ 24946   Iridium 33     [-]      Tumbling
  24948   Iridium 28     [-]      Tumbling
  24949   Iridium 30     [+]      
  24950   Iridium 31     [+]      
