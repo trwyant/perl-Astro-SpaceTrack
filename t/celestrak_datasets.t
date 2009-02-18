@@ -32,7 +32,17 @@ foreach (@$names) {
     };
 }
 $expect{'1999-025'} = {
-    name => 'Fengyun 1C Debris',
+    name => 'Fengyun 1C debris',
+    note => 'Not actually provided as a fetchable data set.',
+    todo => 0,
+};
+$expect{'cosmos-2251-debris'} = {
+    name => 'Cosmos 2251 debris',
+    note => 'Not actually provided as a fetchable data set.',
+    todo => 0,
+};
+$expect{'iridium-33-debris'} = {
+    name => 'Iridium 33 debris',
     note => 'Not actually provided as a fetchable data set.',
     todo => 0,
 };
