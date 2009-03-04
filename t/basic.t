@@ -60,10 +60,12 @@ $agt->get ('http://spaceflight.nasa.gov/')->is_success
 $agt->get ('http://www.amsat.org/')->is_success
     or $skip_amsat = NOACCESS;
 
+my $spacetrack_user = $ENV{SPACETRACK_USER};
+
 if (!$agt->get ('http://www.space-track.org/')->is_success) {
     $skip_spacetrack = NOACCESS;
     }
-  elsif ($ENV{SPACETRACK_USER}) {
+  elsif ($spacetrack_user) {
     # Do nothing if we have the environment variable.
     }
   elsif ($ENV{AUTOMATED_TESTING}) {
@@ -109,7 +111,7 @@ eod
     $user and $pass = prompt ("Space-Track password: ");
 
     if ($user && $pass) {
-	$ENV{SPACETRACK_USER} = "$user/$pass";
+	$spacetrack_user = "$user/$pass";
 	}
       else {
 	$skip_spacetrack = "No Space Track account provided.";
@@ -119,7 +121,10 @@ eod
 $test_num++;
 print "# Test $test_num - Instantiate the object.\n";
 my $st;
-ok ($st = Astro::SpaceTrack->new ());
+{
+    local $ENV{SPACETRACK_USER} = $spacetrack_user;
+    ok ($st = Astro::SpaceTrack->new ());
+}
 $st or $skip_spacetrack = 'Unable to instantiate Astro::SpaceTrack';
 
 {
