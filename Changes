@@ -1,3 +1,9 @@
+0.039 09-Mar-2009 T. R. Wyant
+    Document Celestrak 'direct-fetch-only' data sets
+	'cosmos-2251-debris' and 'iridium-33-debris'.
+    Fix 'spaceflight' retrieval test, which failed if all NASA's
+	orbital elements had epochs in the future.
+
 0.038 13-Feb-2009 T. R. Wyant
     Correct parsing of Rod Sladen's Iridium status web page to
 	track the way he recorded the demise of Iridium 33.
