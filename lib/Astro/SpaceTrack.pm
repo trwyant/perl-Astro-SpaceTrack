@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.038_01';
+our $VERSION = '0.038_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -479,20 +479,30 @@ As of this release, the following data sets may be direct-fetched only:
 =item 1999-025
 
 This is the debris of Chinese communication satellite Fengyun 1C,
-created by an antisatellite test on January 11 2007. There are on the
-order of 2000 pieces of debris in the data set.
+created by an antisatellite test on January 11 2007. As of March 9
+2009 there are 2375 pieces of debris in the data set.
+
+=item usa-193-debris
+
+This is the debris of U.S. spy satellite USA-193 shot down by the U.S.
+on February 20 2008. As of March 9 2009 there is only 1 piece of
+debris in the data set, down from a maximum of 173. I presume that when
+this decays, a direct fetch of 'usa-193-debris' will return 404, but
+your guess is as good as mine.
 
 =item cosmos-2251-debris
 
 This is the debris of Russian communication satellite Cosmos 2251,
 created by its collision with Iridium 33 on February 10 2009. As of
-February 18 2009 there are 15 pieces of debris in the data set.
+March 9 there are 357 pieces of debris in the data set, but
+more are expected.
 
 =item iridium-33-debris
 
 This is the debris of U.S. communication satellite Iridium 33, created
-by its collision with Cosmos 2251 on February 10 2009. As of February 18
-2009 there are 9 pieces of debris in the data set.
+by its collision with Cosmos 2251 on February 10 2009. As of March 9
+2009 there are 159 pieces of debris in the data set, but more are
+expected.
 
 =back
 
@@ -585,7 +595,7 @@ sub _celestrak_direct {
 		$1 == RC_NOT_FOUND
 		    and return $self->_no_such_catalog(
 		    celestrak => $name, $msg);
-		return HTTP::Response->new ($1, "$msg\n")
+		return HTTP::Response->new (+$1, "$msg\n")
 	    }
 	}
 	my $type = lc $resp->header('Content-Type')
@@ -2416,7 +2426,7 @@ sub _parse_retrieve_dates {
 	next unless $opt->{$key};
 	$opt->{$key} !~ m/\D/ or
 	    $opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
-		$opt->{$key} = eval {timegm (0, 0, 0, $3, $2-1, $1)} or
+		$opt->{$key} = eval {timegm (0, 0, 0, +$3, $2-1, +$1)} or
 	    croak <<eod;
 Error - Illegal date '$opt->{$key}'. Valid dates are a number
 	(interpreted as a Perl date) or numeric year-month-day.
