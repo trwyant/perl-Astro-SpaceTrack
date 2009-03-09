@@ -66,6 +66,7 @@ sts
 txt
 unzip
 unzipped
+usa
 username
 webcmd
 www
