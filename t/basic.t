@@ -379,7 +379,7 @@ $test_num++;
 print "# Test $test_num - Try to retrieve data from Human Space Flight.\n";
 skip ($skip_spaceflight,
 ##    $skip_spaceflight || $st->spaceflight()->is_success);
-    $skip_spaceflight || _expect_success('spaceflight'));
+    $skip_spaceflight || _expect_success('spaceflight', '-all'));
 
 $test_num++;
 print "# Test $test_num - Check content type of Human Space Flight data set.\n";
