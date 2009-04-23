@@ -1,3 +1,8 @@
+0.040 22-Apr-2009 T. R. Wyant
+    Suppress undefined value warnings generated when username and
+	password are set via 'set' rather than via the relevant
+	environment variables when the object is instantiated.
+
 0.039 09-Mar-2009 T. R. Wyant
     Document Celestrak 'direct-fetch-only' data sets
 	'cosmos-2251-debris' and 'iridium-33-debris'.
