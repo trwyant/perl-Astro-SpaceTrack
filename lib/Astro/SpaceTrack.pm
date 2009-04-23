@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.039';
+our $VERSION = '0.039_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2296,14 +2296,22 @@ sub _mutate_authen {
 }
 
 #	_mutate_cookie sets the session cookie, in both the object and
-#	the user agent's cookie jar.
+#	the user agent's cookie jar. If the session cookie is undef, we
+#	delete the session cookie from the cookie jar; otherwise we set
+#	it to the specified value.
 
 # This mutates the user agent's cookie jar, then co-routines off to
 # _mutate attrib.
 sub _mutate_cookie {
-    ($_[0]->{agent} && $_[0]->{agent}->cookie_jar)
-	and $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
-	    SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
+    if ($_[0]->{agent} && $_[0]->{agent}->cookie_jar) {
+	if (defined $_[2]) {
+	    $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
+		SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
+	} else {
+	    $_[0]->{agent}->cookie_jar->clear(
+		DOMAIN, SESSION_PATH, SESSION_KEY);
+	}
+    }
     goto &_mutate_attrib;
 }
 
