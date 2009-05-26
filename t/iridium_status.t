@@ -21,7 +21,7 @@ my %known_inconsistent = (
 ###    27375 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
 ###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
-    27372 => {mccants => 1},	# Kelso & Sladen: operational;
+###    27372 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
@@ -40,6 +40,7 @@ my %known_inconsistent = (
 #               12-Feb-2009 - McCants noted tumbling.
 #               18-Feb-2009 - Kelso noted tumbling.
 #               09-Mar-2009 - Sladen & Kelso note Iridium 91 in service.
+#               22-May-2009 - Mike McCants notes Iridium 91 in service.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -188,7 +189,7 @@ foreach (["Mike McCants' Iridium status",
  25578   Iridium 11     ?        Spare   was called Iridium 20
  25777   Iridium 14     ?        Spare   was called Iridium 14A
  25778   Iridium 21              Replaced Iridium 74   was called Iridium 21A
- 27372   Iridium 91     ?        Spare   was called Iridium 90
+ 27372   Iridium 91              Replaced Iridium 33 about Mar. 2, 2009   was called Iridium 90
  27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
  27374   Iridium 94     ?        Spare
  27375   Iridium 95              Replaced Iridium 28 about July 26, 2008
