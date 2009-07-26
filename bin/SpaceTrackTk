@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.020';
+our $VERSION = '0.020_01';
 
 my @pad = qw{-padx 5 -pady 5};
 
@@ -143,16 +143,22 @@ my %dswdgt = (
 		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{all},
 		-relief => 'flat')->grid (
 		    -row => 0, -column => 0, -sticky => 'w', @pad);
-		$frame->Label (-text => 'ISS:')->grid (
+		$frame->Label (-text => 'Retrieve effective date:')->grid(
 		    -row => 0, -column => 1, -sticky => 'e', @pad);
+		$frame->Checkbutton(
+		    -variable => \$dsdata{spaceflight}{effective},
+		    -relief => 'flat')->grid(
+		    -row => 0, -column => 2, -sticky => 'w', @pad);
+		$frame->Label (-text => 'ISS:')->grid (
+		    -row => 0, -column => 3, -sticky => 'e', @pad);
 		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{iss},
 		    -relief => 'flat')->grid (
-		    -row => 0, -column => 2, -sticky => 'w', @pad);
+		    -row => 0, -column => 4, -sticky => 'w', @pad);
 		$frame->Label (-text => 'Shuttle:')->grid (
-		    -row => 0, -column => 3, -sticky => 'e', @pad);
+		    -row => 0, -column => 5, -sticky => 'e', @pad);
 		$frame->Checkbutton (-variable => \$dsdata{spaceflight}{sts},
 		    -relief => 'flat')->grid (
-		    -row => 0, -column => 4, -sticky => 'w', @pad);
+		    -row => 0, -column => 6, -sticky => 'w', @pad);
 		$dsdata{spaceflight}{iss} = $dsdata{spaceflight}{sts} = 1;
 		$frame
 		},
@@ -187,6 +193,7 @@ my %dsxfrm = (
     spaceflight => sub {
 	my @rslt;
 	push @rslt, '-all' if $dsdata{spaceflight}{all};
+	push @rslt, '-effective' if $dsdata{spaceflight}{effective};
 	push @rslt, 'iss' if $dsdata{spaceflight}{iss};
 	push @rslt, 'shuttle' if $dsdata{spaceflight}{sts};
 	@rslt},
