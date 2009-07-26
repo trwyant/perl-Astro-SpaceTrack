@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.040';
+our $VERSION = '0.040_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -1824,6 +1824,32 @@ spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 2006
 you get the International Space Station, and the current Space Shuttle
 mission, if any.
 
+You can specify either or both of the arguments 'ISS' and 'SHUTTLE'
+(case-insensitive) to retrieve the data for the international space
+station or the space shuttle respectively. If neither of these is
+specified, both are retrieved.
+
+In addition you can specify options, either as command-style options
+(e.g. C<-all>) or by passing them in a hash as the first argument (e.g.
+C<{all => 1}>). The options specific to this method are:
+
+ all
+  causes all TLEs for a body to be downloaded;
+ effective
+  causes the effective date to be added to the data.
+
+In addition, any of the L</retrieve> options is valid for this method as
+well.
+
+The -all option is recommended, but is not the default for historical
+reasons. If you specify -start_epoch, -end_epoch, or -last5, -all will
+be ignored.
+
+The -effective option hacks the effective date of the data onto the end
+of the common name (i.e. the first line of the 'NASA TLE') in the form
+C<--effective=date> where the effective date is encoded the same way the
+epoch is. Specifying this forces the generation of a 'NASA TLE'.
+
 No Space Track account is needed to access this data, even if the
 'direct' attribute is false. But if the 'direct' attribute is true,
 the setting of the 'with_name' attribute is ignored.
@@ -1837,17 +1863,18 @@ This method is a web page scraper. any change in the location of the
 web pages, or any substantial change in their format, will break this
 method.
 
-You can specify the L</retrieve> options on this method as well. In
-addition, you can specify -all to get all data. -all will be ignored
-if -start_epoch, -end_epoch, or -last5 is specified.
-
 =cut
 
 sub spaceflight {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    @args = _parse_retrieve_args ([all => 'retrieve all data'], @args)
+    @args = _parse_retrieve_args (
+	[
+	    'all!' => 'retrieve all data',
+	    'effective!' => 'include effective date',
+	],
+	@args)
 	unless ref $args[0] eq 'HASH';
     my $opt = _parse_retrieve_dates (shift @args, {perldate => 1});
 
@@ -1871,9 +1898,14 @@ sub spaceflight {
     foreach my $url (@list) {
 	my $resp = $self->{agent}->get ($url);
 	return $resp unless $resp->is_success;
-	my (@data, $acquire);
+	my (@data, $acquire, $effective);
 	foreach (split '\n', $resp->content) {
 	    chomp;
+	    m{Vector\s+Time\s+\(GMT\):\s+
+		(\d+/\d+/\d+:\d+:\d+\.\d+)}x and do {
+		$effective = "--effective $1";
+		next;
+	    };
 	    m/TWO LINE MEAN ELEMENT SET/ and do {
 		$acquire = 1;
 		@data = ();
@@ -1881,12 +1913,21 @@ sub spaceflight {
 	    };
 	    next unless $acquire;
 	    s/^\s+//;
-	    $_ and do {push @data, "$_\n"; next};
+	    $_ and do {push @data, $_; next};
 	    @data and do {
 		$acquire = undef;
 		(@data == 2 || @data == 3) or next;
 		shift @data
-		    if @data == 3 && !$self->{direct} && !$self->{with_name};
+		    if @data == 3 && !$self->{direct} &&
+			!$self->{with_name};
+		if ($opt->{effective}) {
+		    if (@data == 2) {
+			unshift @data, $effective;
+		    } else {
+			$data[0] .= " $effective";
+		    }
+		}
+		$effective = undef;
 		my $ix = @data - 2;
 		my $id = substr ($data[$ix], 2, 5) + 0;
 		my $yr = substr ($data[$ix], 18, 2);
@@ -1899,7 +1940,7 @@ sub spaceflight {
 		    $tle{$id} ||= [];
 		    my @keys = $opt->{descending} ? (-$id, -$ep) : ($id, $ep);
 		    @keys = reverse @keys if $opt->{sort} eq 'epoch';
-		    push @{$tle{$id}}, [@keys, join '', @data];
+		    push @{$tle{$id}}, [@keys, join '', map {"$_\n"} @data];
 		}
 		@data = ();
 	    };
@@ -2380,12 +2421,13 @@ sub _no_such_catalog {
 #	returns its argument list, under the assumption that it
 #	has already been called.
 
-my @legal_retrieve_args = (descending => '(direction of sort)',
-		'end_epoch=s' => 'date',
-		last5 => '(ignored f -start_epoch or -end_epoch specified)',
-		'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
-		'start_epoch=s' => 'date',
-		);
+my @legal_retrieve_args = (
+    descending => '(direction of sort)',
+    'end_epoch=s' => 'date',
+    last5 => '(ignored if -start_epoch or -end_epoch specified)',
+    'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
+    'start_epoch=s' => 'date',
+);
 sub _parse_retrieve_args {
     my @args = @_;
     unless (ref ($args[0]) eq 'HASH') {
@@ -2396,6 +2438,7 @@ sub _parse_retrieve_args {
 
 	GetOptions ($opt, keys %lgl) or croak <<eod;
 Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
+	$q =~ s/!//;
 	"\n  -$q $lgl{$_}"} sort keys %lgl]}
 with dates being either Perl times, or numeric year-month-day, with any
 non-numeric character valid as punctuation.
