@@ -30,6 +30,7 @@ fallback
 Fengyun
 IDs
 ISP
+ISS
 Kelso
 Kelso's
 kelso
