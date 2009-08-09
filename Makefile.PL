@@ -118,6 +118,7 @@ $mmv >= 6.31 and $attr{LICENSE} = 'perl';
 
 $mmv >= 6.4501 and $attr{META_MERGE} = {
     resources => {
+	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
 	license => 'http://dev.perl.org/licenses/',
     },
 };
