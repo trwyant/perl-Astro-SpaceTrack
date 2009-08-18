@@ -2,7 +2,10 @@
     Add ability to parse effective date from NASA Human Spaceflight.
         Add this to line 0 of the NASA TLE as --effective date_text.
         This is optional, and done only if '-effective' is passed
-        to the spaceflight() method.
+	to the spaceflight() method. The reason this was done was to
+	support the 'effective' attribute of Astro::Coord::ECI::TLE.
+	Thanks to Thomas Wehr for reporting the problem this addresses,
+	and T. S. Kelso for explaining what was needed to fix it.
 
 0.040 22-Apr-2009 T. R. Wyant
     Suppress undefined value warnings generated when username and
