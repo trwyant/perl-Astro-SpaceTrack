@@ -1,4 +1,4 @@
-0.040_01 26-Jul-2009 T. R. Wyant
+0.041 18-Aug-2009 T. R. Wyant
     Add ability to parse effective date from NASA Human Spaceflight.
         Add this to line 0 of the NASA TLE as --effective date_text.
         This is optional, and done only if '-effective' is passed
