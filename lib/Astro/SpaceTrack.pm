@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.041';
+our $VERSION = '0.041_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2584,7 +2584,7 @@ sub _search_generic {
     delete $self->{_pragmata};
 
     @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
-    my $opt = shift;
+    my $opt = shift @args;
 
     @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
     my $p = Astro::SpaceTrack::Parser->new ();
