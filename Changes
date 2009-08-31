@@ -1,3 +1,8 @@
+0.042 30-Aug-2009 T. R. Wyant
+    Add options back to Space Track search requests. These were lost in
+	version 0.035 when Perl::Critic compliance was added. Thanks to
+	Thomas Wehr for finding this.
+
 0.041 18-Aug-2009 T. R. Wyant
     Add ability to parse effective date from NASA Human Spaceflight.
         Add this to line 0 of the NASA TLE as --effective date_text.
