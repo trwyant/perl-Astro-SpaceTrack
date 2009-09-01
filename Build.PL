@@ -25,6 +25,7 @@ my %attr = (
 	'LWP::UserAgent' => 0,
 	'Params::Util' => 0.12,
     },
+    configure_requires => {},	# Don't require Module::Build
 );
 
 $mbv >= 0.28 and $attr{meta_merge} = {
@@ -36,9 +37,14 @@ $mbv >= 0.28 and $attr{meta_merge} = {
     },
 };
 
+$mbv >= 0.34
+    and $attr{auto_configure_requires} = 0;	# Don't require Module::Build
+
 #	Generate a builder object.
 
 my $bldr = Module::Build->new (%attr);
+use YAML;
+print Dump($bldr);
 
 #	Find out what the user wants to do.
 
