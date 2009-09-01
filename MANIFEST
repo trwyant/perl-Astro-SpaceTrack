@@ -24,4 +24,5 @@ t/perlcriticrc
 t/pod.t
 t/pod_coverage.t
 t/spacetrack_datasets.t
+t/spacetrack_request.t
 META.yml

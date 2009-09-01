@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.042';
+our $VERSION = '0.042_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -1532,13 +1532,14 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
-You can specify the L</retrieve> options on this method as well.
-
+You can specify the L</retrieve> and L</search_date> options on this
+method as well.
+ 
 =cut
 
 sub search_id {
     my ($self, @args) = @_;
-    ## @args = _parse_search_args (@args);
+    @args = _parse_search_args (@args);
     return $self->_search_generic (sub {
 	my ($self, $name, $opt) = @_;
 	my ($year, $number, $piece) =
@@ -1920,7 +1921,7 @@ sub spaceflight {
 		shift @data
 		    if @data == 3 && !$self->{direct} &&
 			!$self->{with_name};
-		if ($opt->{effective}) {
+		if ($effective && $opt->{effective}) {
 		    if (@data == 2) {
 			unshift @data, $effective;
 		    } else {
@@ -2048,7 +2049,7 @@ Requested file  doesn't exist");history.go(-1);
 
 =cut
 
-    $resp->is_success and do {
+    ($resp->is_success() && !$self->{debug_url}) and do {
 	my $content = $resp->content ();
 	if ($content =~ m/<html>/) {
 	    if ($content =~ m/Requested file doesn't exist/i) {
@@ -2228,6 +2229,31 @@ sub _dump_headers {
     return;
 }
 
+#	_dump_request dumps the request if desired.
+#
+#	If the debug_url is defined, and has the 'dump-request:' scheme,
+#	AND any of several YAML modules can be loaded, this routine
+#	returns an HTTP::Response object with status RC_OK and whose
+#	content is the request and its arguments encoded in YAML.
+#
+#	If any of the conditions fails, this module simply returns. The
+#	moral: don't try to dump requests unless YAML is installed.
+
+sub _dump_request {
+    my ($self, $url, @args) = @_;
+    ($self->{debug_url} || '') =~ m/ \A dump-request: /smx or return;
+    my $dumper = _get_yaml_dumper() or return;
+    (my $method = (caller 1)[3]) =~ s/ \A (?: .* :: )? _? //smx;
+    my %data = (
+	args => {@args},
+	method => $method,
+	url => $url,
+    );
+    my $yaml = $dumper->( \%data );
+    $yaml =~ s/ \n{2,} /\n/smxg;
+    return HTTP::Response->new( RC_OK, undef, undef, $yaml );
+}
+
 #	_get gets the given path on the domain. Arguments after the
 #	first are the CGI parameters. It checks the currency of the
 #	session cookie, and executes a login if it deems it necessary.
@@ -2238,20 +2264,25 @@ sub _dump_headers {
 sub _get {
     my ($self, $path, @args) = @_;
     my $cgi = '';
-    while (@args) {
-	my $name = shift @args;
-	my $val = shift @args || '';
-	$cgi .= "&$name=$val";
+    {
+	my @unpack = @args;
+	while (@unpack) {
+	    my $name = shift @unpack;
+	    my $val = shift @unpack || '';
+	    $cgi .= "&$name=$val";
+	}
     }
     $cgi and substr ($cgi, 0, 1) = '?';
     {	# Single-iteration loop
-	$self->{cookie_expires} > time () or do {
+	$self->{debug_url} or $self->{cookie_expires} > time () or do {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $resp = $self->{agent}->get ("http://@{[DOMAIN]}/$path$cgi");
+	my $url = "http://@{[DOMAIN]}/$path";
+	my $resp = $self->_dump_request($url, @args) ||
+	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers ($resp) if $self->{dump_headers};
-	return $resp unless $resp->is_success;
+	return $resp unless $resp->is_success && !$self->{debug_url};
 	local $_ = $resp->content;
 	m/login\.pl/i and do {
 	    $self->{cookie_expires} = 0;
@@ -2278,6 +2309,48 @@ sub _get {
 # </body></html>
 #	If this happens, it would be good to retry the login.
 
+	
+{
+
+    my ($dumper, $loader, $package, $tried);
+
+#	_get_yaml_dumper retrieves a YAML dumper. If one can be found,
+#	a code reference to it is returned. Otherwise we simply return.
+
+    sub _get_yaml_dumper {
+	$dumper and return $dumper;
+	($package ||= _get_yaml_package()) or return;
+	$dumper = $package->can('Dump');
+	return $dumper;
+    }
+
+#	_get_yaml_loader retrieves a YAML loader. If one can be found,
+#	a code reference to it is returned. Otherwise we simply return.
+
+    sub _get_yaml_loader {
+	$loader and return $loader;
+	($package ||= _get_yaml_package()) or return;
+	$loader = $package->can('Load');
+	return $loader;
+    }
+
+#	_get_yaml_package tries to load several YAML packages, returning
+#	the name of the first which is loaded successfully. If none can
+#	be loaded, it returns undef. Subsequent calls simply return
+#	whatever the first call did.
+
+    sub _get_yaml_package {
+	$tried and return $package;
+	$tried++;
+	$package =
+	    eval { require YAML::XS;   'YAML::XS'   } ||
+	    eval { require YAML::Syck; 'YAML::Syck' } ||
+	    eval { require YAML;       'YAML'       } ||
+	    eval { require YAML::Tiny; 'YAML::Tiny' }
+	;
+	return $package;
+    }
+}
 
 #	_handle_observing_list takes as input any number of arguments.
 #	each is split on newlines, and lines beginning with a five-digit
@@ -2548,12 +2621,13 @@ eod
 sub _post {
     my ($self, $path, @args) = @_;
     {	# Single-iteration loop
-	$self->{cookie_expires} > time () or do {
+	$self->{debug_url} or $self->{cookie_expires} > time () or do {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = $self->{debug_url} || "http://@{[DOMAIN]}/$path";
-	my $resp = $self->{agent}->post ($url, [@args]);
+	my $url = "http://@{[DOMAIN]}/$path";
+	my $resp = $self->_dump_request( $url, @args) ||
+	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers ($resp) if $self->{dump_headers};
 	return $resp unless $resp->is_success && !$self->{debug_url};
 	local $_ = $resp->content;
