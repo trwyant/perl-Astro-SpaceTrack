@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.042_01';
+our $VERSION = '0.042_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2105,16 +2105,6 @@ sub _add_pragmata {
 	$resp->push_header(pragma => "$name = $value");
     }
     return;
-}
-
-sub _unzip {
-    my ($content) = @_;
-
-    my $output;
-
-    IO::Uncompress::Unzip::unzip(\$content, \$output);
-
-    return $output;
 }
 
 #	_check_cookie looks for our session cookie. If it's found, it returns
