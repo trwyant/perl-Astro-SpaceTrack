@@ -1,7 +1,13 @@
+0.043 01-Sep-2009 T. R. Wyant
+    Add the retrieve() options to search_id(), which never had them
+	before.
+    Test the request arguments generated for each of the Space Track
+	methods, to try to make sure we do not lose them again.
+
 0.042 30-Aug-2009 T. R. Wyant
-    Add options back to Space Track search requests. These were lost in
-	version 0.035 when Perl::Critic compliance was added. Thanks to
-	Thomas Wehr for finding this.
+    Add the retrieve() options back to Space Track search requests.
+	These were lost in version 0.035 when Perl::Critic compliance
+	was added. Thanks to Thomas Wehr for finding this.
 
 0.041 18-Aug-2009 T. R. Wyant
     Add ability to parse effective date from NASA Human Spaceflight.
