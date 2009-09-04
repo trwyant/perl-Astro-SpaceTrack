@@ -43,8 +43,6 @@ $mbv >= 0.34
 #	Generate a builder object.
 
 my $bldr = Module::Build->new (%attr);
-use YAML;
-print Dump($bldr);
 
 #	Find out what the user wants to do.
 
