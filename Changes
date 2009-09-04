@@ -1,3 +1,9 @@
+0.044 03-Sep-2009 T. R. Wyant
+    Get rid of YAML dump in Build.PL, that was carelessly left in
+        after I convinced Module::Build not to insert itself as
+        required for configuration (because I also distribute
+        Makefile.PL
+
 0.043 01-Sep-2009 T. R. Wyant
     Add the retrieve() options to search_id(), which never had them
 	before.
