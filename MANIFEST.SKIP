@@ -13,11 +13,13 @@ CVS/
 ^MANIFEST\.
 ^mccants\.expect$
 ^mccants\.got$
+^meta/
 ^pm_to_blib$
 ^pod2htm.\.tmp$
 ^sladen\.expect$
 ^sladen\.got$
 ^t/pod_spelling\.t$
+\.svn/
 \.swp$
 ^test_environment$
 ^TODO$
