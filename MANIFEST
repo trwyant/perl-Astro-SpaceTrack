@@ -17,8 +17,6 @@ lib/Astro/SpaceTrack/Parser.pm
 META.yml
 t/basic.t
 t/file.dat
-t/pod.t
-t/pod_coverage.t
 t/spacetrack_request.t
 xt/celestrak_datasets.t
 xt/critic.t
@@ -26,4 +24,7 @@ xt/executable.t
 xt/iridium_status.t
 xt/manifest.t
 xt/perlcriticrc
+xt/pod.t
+xt/pod_coverage.t
+xt/pod_spelling.t
 xt/spacetrack_datasets.t
