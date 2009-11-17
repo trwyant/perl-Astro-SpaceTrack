@@ -116,6 +116,12 @@ my %attr = (
 
 $mmv >= 6.31 and $attr{LICENSE} = 'perl';
 
+$mmv >= 6.4501 and $attr{META_ADD} = {
+    no_index => {
+	directory => [ qw{ inc t xt } ],
+    },
+};
+
 $mmv >= 6.4501 and $attr{META_MERGE} = {
     resources => {
 	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
