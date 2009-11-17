@@ -6,11 +6,6 @@ use warnings;
 use Astro::SpaceTrack;
 use Test;
 
-unless ($ENV{DEVELOPER_TEST}) {
-    print "1..0 # skip Environment variable DEVELOPER_TEST not set.\n";
-    exit;
-}
-
 # The following hash is used to compute the todo list. The keys are
 # the OIDs for the Iridium satellites. The value for each key is a hash
 # containing the names of inconsistent data sources and a true value for

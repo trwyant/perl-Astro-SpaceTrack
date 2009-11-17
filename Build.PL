@@ -3,6 +3,9 @@ use 5.006;
 use strict;
 use warnings;
 
+use lib qw{ inc };
+
+use Astro::SpaceTrack::Build;
 use Config;
 use FileHandle;
 use Module::Build;
@@ -30,7 +33,7 @@ my %attr = (
 
 $mbv >= 0.28 and $attr{meta_merge} = {
     no_index => {
-	directory => [qw{inc t}],
+	directory => [qw{ inc t xt }],
     },
     resources => {
 	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
@@ -42,7 +45,7 @@ $mbv >= 0.34
 
 #	Generate a builder object.
 
-my $bldr = Module::Build->new (%attr);
+my $bldr = Astro::SpaceTrack::Build->new (%attr);
 
 #	Find out what the user wants to do.
 
