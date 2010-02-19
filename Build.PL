@@ -28,6 +28,9 @@ my %attr = (
 	'LWP::UserAgent' => 0,
 	'Params::Util' => 0.12,
     },
+    build_requires => {
+	'Test::More' => 0.40,
+    },
     configure_requires => {},	# Don't require Module::Build
 );
 

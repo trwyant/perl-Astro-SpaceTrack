@@ -116,17 +116,24 @@ my %attr = (
 
 $mmv >= 6.31 and $attr{LICENSE} = 'perl';
 
-$mmv >= 6.4501 and $attr{META_ADD} = {
-    no_index => {
-	directory => [ qw{ inc t xt } ],
-    },
-};
+if ( $mmv >= 6.4501 ) {
+    $attr{META_ADD} = {
+	no_index => {
+	    directory => [ qw{ inc t xt } ],
+	    build_requires => {
+		'Test::More' => 0.40,
+	    }
+	},
+    };
+    $attr{META_MERGE} = {
+	resources => {
+	    bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
+	    license => 'http://dev.perl.org/licenses/',
+	},
+    };
+} else {
+    $attr{PREREQ_PM}{'Test::More'} = 0.40;
+}
 
-$mmv >= 6.4501 and $attr{META_MERGE} = {
-    resources => {
-	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
-	license => 'http://dev.perl.org/licenses/',
-    },
-};
 
 WriteMakefile (%attr);

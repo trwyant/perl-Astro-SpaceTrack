@@ -5,41 +5,22 @@ use warnings;
 
 my $loader;
 
+use Test::More 0.40;
+
+use Astro::SpaceTrack;
+
 BEGIN {
-
-##  unless ($ENV{DEVELOPER_TEST}) {
-##	print "1..0 # skip Environment variable DEVELOPER_TEST not set.\n";
-##	exit;
-##  }
-
-    eval {
-	require Astro::SpaceTrack;
-	Astro::SpaceTrack->import();
-	1;
-    } or do {
-	print "1..0 # skip Unable to load Astro::SpaceTrack.\n";
-	exit;
-    };
 
     $loader = Astro::SpaceTrack->_get_yaml_loader() or do {
 	print "1..0 # skip YAML required to check Space Track requests.\n";
 	exit;
     };
 
-    eval {
-	require Test::More;
-	Test::More->VERSION(0.40);
-	Test::More->import();
-	1;
-    } or do {
-	print "1..0 # skip Test::More required to check Space Track requests.\n";
-	exit;
-    };
 }
 
 plan( tests => 41 );
 
-my $st = Astro::SpaceTrack->new(debug_url => 'dump-request:');
+my $st = Astro::SpaceTrack->new( debug_url => 'dump-request:' );
 
 is_resp(qw{retrieve 25544}, {
 	args => {
@@ -330,7 +311,7 @@ is_resp(qw{search_date -exclude rocket 2009-04-01}, {
 );
 
 {
-    no warnings qw{qw};
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
     is_resp(qw{search_date -exclude debris,rocket 2009-04-01}, {
 	    args => {
 		_sessionid => '',
@@ -503,7 +484,7 @@ is_resp(qw{search_id -exclude rocket 98067}, {
 );
 
 {
-    no warnings qw{qw};
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
     is_resp(qw{search_id -exclude debris,rocket 98067}, {
 	    args => {
 		_sessionid => '',
@@ -636,7 +617,7 @@ is_resp(qw{search_name -exclude rocket ISS}, {
 );
 
 {
-    no warnings qw{qw};
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
     is_resp(qw{search_name -exclude debris,rocket ISS}, {
 	    args => {
 		_sessionid => '',
@@ -699,7 +680,7 @@ is_resp(qw{spacetrack 10}, {
     },
 );
 
-sub is_resp {
+sub is_resp {	## no critic (RequireArgUnpacking)
     my ($method, @args) = @_;
     my $query = pop @args;
     my $name = "\$st->$method(" . join( ', ', map {"'$_'"} @args ) . ')';

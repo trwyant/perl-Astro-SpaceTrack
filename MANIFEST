@@ -17,6 +17,7 @@ lib/Astro/SpaceTrack/Parser.pm
 META.yml
 t/basic.t
 t/file.dat
+t/query.t
 t/spacetrack_request.t
 xt/celestrak_datasets.t
 xt/critic.t
