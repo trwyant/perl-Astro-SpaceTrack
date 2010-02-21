@@ -354,7 +354,7 @@ sub amsat {
     ) {
 	my $resp = $self->{agent}->get ($url);
 	return $resp unless $resp->is_success;
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
 	my ($tle, @data, $epoch);
 	foreach (split '\n', $resp->content) {
 	    push @data, "$_\n";
@@ -373,7 +373,7 @@ sub amsat {
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'amsat',
     );
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
     return $resp;
 }
 
@@ -544,7 +544,7 @@ sub celestrak {
 	return $check;
     }
     $self->_convert_content ($resp);
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
     $resp = $self->_handle_observing_list ($opt, $resp->content);
     return ($resp->is_success || !$self->{fallback}) ? $resp :
 	$self->_celestrak_direct ($opt, $name);
@@ -572,7 +572,7 @@ sub _celestrak_direct {
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'celestrak',
     );
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
     return $resp;
 }
 
@@ -767,7 +767,7 @@ sub get {
     $self->_add_pragmata($resp,
 	'spacetrack-type' => 'get',
     );
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
     return wantarray ? ($resp, $self->{$name}) : $resp;
 }
 
@@ -873,7 +873,7 @@ eod
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'help',
 	);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
 	return $resp;
     }
 }
@@ -1143,7 +1143,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    'spacetrack-type' => 'iridium-status',
 	    'spacetrack-source' => $fmt,
 	);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
 	return wantarray ? ($resp, [values %rslt]) : $resp;
     }
 }	# End of local symbol block.
@@ -1188,7 +1188,7 @@ eod
 	    ]);
 
     $resp->is_success or return $resp;
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
 
     $self->_check_cookie () > time ()
 	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
@@ -1965,7 +1965,7 @@ sub spaceflight {
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'spaceflight',
     );
-    $self->_dump_headers ($resp) if $self->{dump_headers};
+    $self->_dump_headers( $resp );
     return $resp;
 }
 
@@ -2204,8 +2204,8 @@ use Data::Dumper;
 #	object.
 
 sub _dump_headers {
-    my $self = shift;
-    my $resp = shift;
+    my ( $self, $resp ) = @_;
+    $self->{dump_headers} or return;
     local $Data::Dumper::Terse = 1;
     my $rqst = $resp->request;
     $rqst = ref $rqst ? $rqst->as_string : "undef\n";
@@ -2231,7 +2231,9 @@ sub _dump_headers {
 
 sub _dump_request {
     my ($self, $url, @args) = @_;
-    ($self->{debug_url} || '') =~ m/ \A dump-request: /smx or return;
+    my $display = $self->{dump_headers} & 0x02;
+    my $respond = ( $self->{debug_url} || '' ) =~ m/ \A dump-request: /smx;
+    $display or $respond or return;
     my $dumper = _get_yaml_dumper() or return;
     (my $method = (caller 1)[3]) =~ s/ \A (?: .* :: )? _? //smx;
     my %data = (
@@ -2241,7 +2243,9 @@ sub _dump_request {
     );
     my $yaml = $dumper->( \%data );
     $yaml =~ s/ \n{2,} /\n/smxg;
-    return HTTP::Response->new( RC_OK, undef, undef, $yaml );
+    $display and print $yaml;
+    $respond and return HTTP::Response->new( RC_OK, undef, undef, $yaml );
+    return;
 }
 
 #	_get gets the given path on the domain. Arguments after the
@@ -2271,7 +2275,7 @@ sub _get {
 	my $url = "http://@{[DOMAIN]}/$path";
 	my $resp = $self->_dump_request($url, @args) ||
 	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
 	return $resp unless $resp->is_success && !$self->{debug_url};
 	local $_ = $resp->content;
 	m/login\.pl/i and do {
@@ -2375,7 +2379,7 @@ sub _handle_observing_list {
 		'spacetrack-source' => 'spacetrack',
 	    );
 	}
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
     }
     return wantarray ? ($resp, \@data) : $resp;
 }
@@ -2618,7 +2622,7 @@ sub _post {
 	my $url = "http://@{[DOMAIN]}/$path";
 	my $resp = $self->_dump_request( $url, @args) ||
 	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
-	$self->_dump_headers ($resp) if $self->{dump_headers};
+	$self->_dump_headers( $resp );
 	return $resp unless $resp->is_success && !$self->{debug_url};
 	local $_ = $resp->content;
 	m/login\.pl/i and do {
@@ -2929,3 +2933,5 @@ implied. The author will not be liable for any damages of any sort
 relating in any way to this software.
 
 =cut
+
+# ex: set textwidth=72 :
