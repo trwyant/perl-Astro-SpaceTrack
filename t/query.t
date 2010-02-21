@@ -111,8 +111,12 @@ SKIP: {
 
 	TODO: {
 
-	    local $TODO = 'Dates before 2010 do not work. Database problem.';
+	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
 
+	    # The actual date search succeeds, returning 29251. But this
+	    # is STS 121, landed 2006-07-17. Until the database is
+	    # rebuilt the retrieval of the latest TLE fails, so the
+	    # whole thing returns a 404.
 	    is_success( $st, search_date => '2006-07-04',
 		"Search for date '2006-07-04'" );
 
@@ -120,10 +124,6 @@ SKIP: {
 
 	    is( $st->content_source(), 'spacetrack',
 		"Content source is 'spacetrack'" );
-
-	}
-
-	TODO: {
 
 	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
 
