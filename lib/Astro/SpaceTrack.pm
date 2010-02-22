@@ -479,30 +479,32 @@ As of this release, the following data sets may be direct-fetched only:
 =item 1999-025
 
 This is the debris of Chinese communication satellite Fengyun 1C,
-created by an antisatellite test on January 11 2007. As of March 9
-2009 there are 2375 pieces of debris in the data set.
+created by an antisatellite test on January 11 2007. As of February 21
+2010 there are 2631 pieces of debris in the data set. This is an
+increase from the 2375 recorded on March 9 2009.
 
 =item usa-193-debris
 
 This is the debris of U.S. spy satellite USA-193 shot down by the U.S.
-on February 20 2008. As of March 9 2009 there is only 1 piece of
-debris in the data set, down from a maximum of 173. I presume that when
-this decays, a direct fetch of 'usa-193-debris' will return 404, but
-your guess is as good as mine.
+on February 20 2008. As of February 21 2010 there are no pieces of
+debris in the data set. I noted 1 piece on March 9 2009, but this was an
+error - that piece actually decayed October 9 2008, but I misread the
+data. The maximum was 173. Note that as of February 21 2010 you still
+get the remaining piece when you direct-fetch the data from Celestrak.
 
 =item cosmos-2251-debris
 
 This is the debris of Russian communication satellite Cosmos 2251,
 created by its collision with Iridium 33 on February 10 2009. As of
-March 9 there are 357 pieces of debris in the data set, but
-more are expected.
+February 21 2010 there are 1105 pieces of debris in the data set, up
+from the 357 that had been cataloged as of March 9 2009.
 
 =item iridium-33-debris
 
 This is the debris of U.S. communication satellite Iridium 33, created
-by its collision with Cosmos 2251 on February 10 2009. As of March 9
-2009 there are 159 pieces of debris in the data set, but more are
-expected.
+by its collision with Cosmos 2251 on February 10 2009. As of February 21
+2010 there are 461 pieces of debris in the data set, up from the 159
+that had been cataloged as of March 9 2009.
 
 =back
 
