@@ -420,11 +420,15 @@ and you must abide by that site's restrictions, which include
 not making the data available to a third party without prior
 permission.
 
-Copyright 2005, 2006, 2007, 2008, 2009 T. R. Wyant (wyant at cpan dot
-org).  All rights reserved.
+Copyright 2005-2010 T. R. Wyant (wyant at cpan dot org).
 
-This module is free software; you can use it, redistribute it
-and/or modify it under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl 5.10.0. For more details, see the full text
+of the licenses in the directory LICENSES.
+
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
 @{[$self->{addendum} || '']}
 eod
     }
