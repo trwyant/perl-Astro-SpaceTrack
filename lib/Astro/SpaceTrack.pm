@@ -2915,22 +2915,22 @@ assistance and encouragement.
 
 Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
-Copyright 2005, 2006, 2007, 2008, 2009 by Thomas R. Wyant, III (F<wyant
-at cpan dot org>). All rights reserved.
+Copyright 2005-2010 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 LICENSE
 
-This module is free software; you can use it, redistribute it
-and/or modify it under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl 5.10.0. For more details, see the full text
+of the licenses in the directory LICENSES.
 
-The data obtained by this module is provided subject to the Space
-Track user agreement (L<http://www.space-track.org/perl/user_agreement.pl>).
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
 
-This software is provided without any warranty of any kind, express or
-implied. The author will not be liable for any damages of any sort
-relating in any way to this software.
+The data obtained by this module may be subject to the Space Track user
+agreement (L<http://www.space-track.org/perl/user_agreement.pl>).
 
 =cut
 

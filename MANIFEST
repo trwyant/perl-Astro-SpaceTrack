@@ -14,6 +14,8 @@ eg/spaceflight
 inc/Astro/SpaceTrack/Build.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
+LICENSES/Artistic
+LICENSES/Copying
 META.yml
 t/basic.t
 t/file.dat
