@@ -5,7 +5,7 @@ use warnings;
 
 use lib qw{ inc };
 
-use Astro::SpaceTrack::Build;
+use My::Module::Build;
 use Config;
 use FileHandle;
 use Module::Build;
@@ -48,7 +48,7 @@ $mbv >= 0.34
 
 #	Generate a builder object.
 
-my $bldr = Astro::SpaceTrack::Build->new (%attr);
+my $bldr = My::Module::Build->new (%attr);
 
 #	Find out what the user wants to do.
 

@@ -11,7 +11,7 @@ eg/celestrak
 eg/sh_data
 eg/sh_script
 eg/spaceflight
-inc/Astro/SpaceTrack/Build.pm
+inc/My/Module/Build.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
 LICENSES/Artistic

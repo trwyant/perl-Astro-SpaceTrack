@@ -1,4 +1,4 @@
-package Astro::SpaceTrack::Build;
+package My::Module::Build;
 
 use strict;
 use warnings;
