@@ -1,3 +1,7 @@
+0.045		01-Mar-2010	T. R. Wyant
+    Redo README to be more like the CPAN-recommended organization and
+        contents.
+
 0.044_01	22-Feb-2010	T. R. Wyant
     Move developer tests to xt/, and run them with Build target
         authortest, supplied by inc/My/Module/Build.pm. The author tests
