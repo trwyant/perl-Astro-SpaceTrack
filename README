@@ -1,8 +1,11 @@
-Astro::SpaceTrack
+Astro-SpaceTrack is Copyright (C) 2005-2010 by Thomas R. Wyant, III
+
+DESCRIPTION
 
 This library logs in to the Space Track web site and downloads orbital
-elements. It does nothing that you can't do with a web browser, but it
-does give you a way to automate things.
+elements. It is also capable of accessing other sources of satellite
+orbital elements. It does nothing that you can't do with a web browser,
+but it does give you a way to automate things.
 
 Note that you are required to register for a username and password before
 making use of the Space Track web site.
@@ -14,6 +17,8 @@ At some point along its career, this module has been seen to work under
 the following operating systems (or, more correctly, values of $^O):
 cygwin, darwin, MacOS, MSWin32, and VMS. CPAN Testers
 (http://testers.cpan.org/) adds Linux and Freebsd to the list.
+
+INSTALLATION
 
 This module is installable by the usual incantation:
 
@@ -68,4 +73,12 @@ SpaceTrack.pm and the SpaceTrack folder into the Astro directory
 (creating it if necessary) in the appropriate place in your @INC
 directories. Read Makefile.PL for how to generate the applications.
 
-Tom Wyant
+LICENSING INFORMATION
+
+This package is free software; you can redistribute it and/or modify it
+under the same terms as Perl 5.10.0. For more details, see the full text
+of the licenses in the directory LICENSES.
+
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
