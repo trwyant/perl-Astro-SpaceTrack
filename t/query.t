@@ -355,8 +355,11 @@ sub prompt {
     sub site_check {
 	my ( $site, $tests ) = @_;
 	exists $skip_site{$site} and return $skip_site{$site};
-	my $url = $info{$site}{url}
-	    or die "Programming error - No known url for '$site'";
+	my $url = $info{$site}{url} or do {
+	    my $skip = "Programming error - No known url for '$site'";
+	    diag( $skip );
+	    return ( $skip_site{$site} = $skip );
+	};
 	$ua ||= LWP::UserAgent->new();
 	my $rslt = $ua->get( $url );
 	$rslt->is_success()
