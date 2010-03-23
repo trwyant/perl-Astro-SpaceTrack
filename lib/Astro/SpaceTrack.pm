@@ -2724,6 +2724,7 @@ sub _search_generic {
 	return $resp unless $resp->is_success && !$self->{debug_url};
 	my $content = $resp->content;
 	next if $content =~ m/No results found/i;
+	$content =~ s/ &nbsp; / /smxg;
 	my @this_page = @{$p->parse_string (table => $content)};
 	ref $this_page[0] eq 'ARRAY'
 	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,

@@ -80,7 +80,13 @@ my %target = (
 	    my $self = shift;
 	    foreach my $table (@{$self->{_spacetrack_tables}}) {
 		foreach my $row (@$table) {
-		    @$row = map {join ' ', @$_} @$row;
+		    @$row = map {
+			my $data = join ' ', @$_;
+			$data =~ s/ \s+ / /smxg;
+			$data =~ s/ \A \s+ //smx;
+			$data =~ s/ \s+ \z //smx;
+			$data;
+		    } @$row;
 		}
 	    }
 	    return $self->{_spacetrack_tables};
