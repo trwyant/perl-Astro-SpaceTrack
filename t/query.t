@@ -18,7 +18,7 @@ BEGIN {
     };
 }
 
-plan( tests => 66 );
+plan( tests => 75 );
 
 my $st;
 {
@@ -32,7 +32,7 @@ my $st;
 
 SKIP: {
 
-    skip_site( 'www.space-track.org', 32 );
+    skip_site( 'www.space-track.org', 41 );
 
     my @names = $st->attribute_names();
     my %present = map {$_ => 1} @names;
@@ -49,7 +49,7 @@ SKIP: {
 
     SKIP: {
 
-	skip_site( 'www.space-track.org', 28 );
+	skip_site( 'www.space-track.org', 37 );
 
 	ok( ! defined $st->content_type(), 'Content type should be undef' )
 	    or diag( 'content_type is ', $st->content_type() );
@@ -102,9 +102,26 @@ SKIP: {
 	is( $st->content_source(), 'spacetrack',
 	    "Content source is 'spacetrack'" );
 
+	is_success( $st, search_name => -notle => 'zarya',
+	    "Search for name 'zarya', but only retrieve search results"
+	    );
+
+	is( $st->content_type(), 'search', "Content type is 'search'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
 	is_success( $st, search_id => '98067A', "Search for ID '98067A'" );
 
 	is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
+	is_success( $st, search_id => -notle => '98067A',
+	    "Search for ID '98067A', but only retrieve search results" );
+
+	is( $st->content_type(), 'search', "Content type is 'search'" );
 
 	is( $st->content_source(), 'spacetrack',
 	    "Content source is 'spacetrack'" );
@@ -124,6 +141,18 @@ SKIP: {
 
 	    is( $st->content_source(), 'spacetrack',
 		"Content source is 'spacetrack'" );
+
+	}
+
+	is_success( $st, search_date => -notle => '2006-07-04',
+	    "Search for date '2006-07-04', but only retrieve search results" );
+
+	is( $st->content_type(), 'search', "Content type is 'search'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
+	TODO: {
 
 	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
 

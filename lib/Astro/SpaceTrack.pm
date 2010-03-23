@@ -1448,6 +1448,14 @@ options may be specified:
    you can not combine it with the retrieve() date
    options to find bodies onorbit as of a given date
    in the past.
+ tle
+   specifies that you want TLE data retrieved for all
+   bodies that satisfy the search criteria. This is
+   true by default, but may be negated by specifying
+   -notle ( or { tle => 0 } ). If negated, the content
+   of the response object is the results of the search,
+   one line per body found, with the fields tab-
+   delimited.
 
 Examples:
 
@@ -1459,23 +1467,38 @@ Examples:
     '2005-12-25');
  search_date ({exclude => 'debris,rocket'}, # INVALID!
     '2005-12-25');
+ search_date ( '-notle', '2005-12-25' );
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
 HTTP::Response from login ().
 
-On success, this method returns an HTTP::Response object whose content
-is the relevant element sets. If called in list context, the first
-element of the list is the aforementioned HTTP::Response object, and
-the second element is a list reference to list references  (i.e. a list
-of lists). The first list reference contains the header text for all
-columns returned, and the subsequent list references contain the data
-for each match.
+What you get on success depends on the value specified for the -tle
+option.
 
-If this method succeeds, the response will contain headers
+Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the relevant
+element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
+
+If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the results of
+the relevant search, one line per object found. Within a line the fields
+are tab-delimited, and occur in the same order as the underlying web
+page. The first line of the content is the header lines from the
+underlying web page. It will also have the following headers set:
+
+ Pragma: spacetrack-type = search
+ Pragma: spacetrack-source = spacetrack
+
+If you call this method in list context, the first element of the
+returned object is the aforementioned HTTP::Response object, and the
+second is a reference to an array containing the search results. The
+firse element is a reference to an array containing the header lines
+from the web page. Subsequent elements are references to arrays
+containing the actual search results.
 
 =cut
 
@@ -1519,27 +1542,40 @@ omit both the piece and the launch number and get all launches for the
 year. There is no mechanism to restrict the search to a given on-orbit
 status, or to filter out debris or rocket bodies.
 
+The options are the same as for L</search_date>.
+
 A Space Track username and password are required to use this method.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
 HTTP::Response from login ().
 
-On success, this method returns an HTTP::Response object whose content
-is the relevant element sets. If called in list context, the first
-element of the list is the aforementioned HTTP::Response object, and the
-second element is a list reference to list references  (i.e. a list of
-lists). The first list reference contains the header text for all
-columns returned, and the subsequent list references contain the data
-for each match.
+What you get on success depends on the value specified for the -tle
+option.
 
-If this method succeeds, the response will contain headers
+Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the relevant
+element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
-You can specify the L</retrieve> and L</search_date> options on this
-method as well.
+If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the results of
+the relevant search, one line per object found. Within a line the fields
+are tab-delimited, and occur in the same order as the underlying web
+page. The first line of the content is the header lines from the
+underlying web page. It will also have the following headers set:
+
+ Pragma: spacetrack-type = search
+ Pragma: spacetrack-source = spacetrack
+
+If you call this method in list context, the first element of the
+returned object is the aforementioned HTTP::Response object, and the
+second is a reference to an array containing the search results. The
+firse element is a reference to an array containing the header lines
+from the web page. Subsequent elements are references to arrays
+containing the actual search results.
  
 =cut
 
@@ -1573,28 +1609,42 @@ sub search_id {
 This method searches the Space Track database for the named objects.
 Matches are case-insensitive and all matches are returned.
 
+The options are the same as for L</search_date>. The C<-status> option
+is known to work, but I am not sure about the efficacy the C<-exclude>
+option.
+
 A Space Track username and password are required to use this method.
 
 This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
 HTTP::Response from login ().
 
-On success, this method returns an HTTP::Response object whose content
-is the relevant element sets. If called in list context, the first
-element of the list is the aforementioned HTTP::Response object, and
-the second element is a list reference to list references  (i.e. a list
-of lists). The first list reference contains the header text for all
-columns returned, and the subsequent list references contain the data
-for each match.
+What you get on success depends on the value specified for the -tle
+option.
 
-If this method succeeds, the response will contain headers
+Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the relevant
+element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
-You can specify the L</retrieve> and L</search_date> options on this
-method as well. The L</search_date> -status option is known to work,
-but I am not sure about the efficacy the -exclude option.
+If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the results of
+the relevant search, one line per object found. Within a line the fields
+are tab-delimited, and occur in the same order as the underlying web
+page. The first line of the content is the header lines from the
+underlying web page. It will also have the following headers set:
+
+ Pragma: spacetrack-type = search
+ Pragma: spacetrack-source = spacetrack
+
+If you call this method in list context, the first element of the
+returned object is the aforementioned HTTP::Response object, and the
+second is a reference to an array containing the search results. The
+firse element is a reference to an array containing the header lines
+from the web page. Subsequent elements are references to arrays
+containing the actual search results.
 
 =cut
 
@@ -2584,6 +2634,7 @@ eod
 #	has already been called.
 
 my @legal_search_args = (
+    'tle!' => '(return TLE data from search (defaults true))',
     'status=s' => q{('onorbit', 'decayed', or 'all')},
     'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
 );
@@ -2611,6 +2662,7 @@ Error - Illegal exclusion '$_'. You must specify one or more of
 eod
 	}
     }
+
     return @args;
 }
 
@@ -2660,6 +2712,8 @@ sub _search_generic {
     @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
     my $opt = shift @args;
 
+    exists $opt->{tle} or $opt->{tle} = 1;
+
     @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
     my $p = Astro::SpaceTrack::Parser->new ();
 
@@ -2683,7 +2737,21 @@ sub _search_generic {
 	    push @table, $row unless $id{$row->[0]}++;
 	}
     }
-    my $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
+
+    my $resp;
+    if ( $opt->{tle} ) {
+	$resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
+    } else {
+	my $content;
+	foreach my $datum ( @table ) {
+	    $content .= join( "\t", @{ $datum } ) . "\n";
+	}
+	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'search',
+	    'spacetrack-source' => 'spacetrack',
+	);
+    }
     return wantarray ? ($resp, \@table) : $resp;
 }
 
