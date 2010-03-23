@@ -1,3 +1,12 @@
+0.045_01	22-Mar-2010	T. R. Wyant
+
+    Add -notle option to the search_* methods. This causes them to
+        return the results of the search, rather than going on to
+	retrieve the TLEs. The results are one entry per line with
+	fields tab-delimited, and whitespace compressed and trimmed
+	front and back. No change in the list returned in list context,
+	except for the whitespace massaging.
+
 0.045		01-Mar-2010	T. R. Wyant
     Redo README to be more like the CPAN-recommended organization and
         contents.

@@ -48,7 +48,6 @@ STDERR
 STDOUT
 SpaceTrack
 SpaceTrackTk
-TLE
 Wyant
 ZZ
 attrib
@@ -64,6 +63,7 @@ spaceflight
 spacetrack
 stdout
 sts
+tle
 txt
 unzip
 unzipped

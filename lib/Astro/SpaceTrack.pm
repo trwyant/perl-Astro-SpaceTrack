@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.045';
+our $VERSION = '0.045_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -1496,7 +1496,7 @@ underlying web page. It will also have the following headers set:
 If you call this method in list context, the first element of the
 returned object is the aforementioned HTTP::Response object, and the
 second is a reference to an array containing the search results. The
-firse element is a reference to an array containing the header lines
+first element is a reference to an array containing the header lines
 from the web page. Subsequent elements are references to arrays
 containing the actual search results.
 
@@ -1573,7 +1573,7 @@ underlying web page. It will also have the following headers set:
 If you call this method in list context, the first element of the
 returned object is the aforementioned HTTP::Response object, and the
 second is a reference to an array containing the search results. The
-firse element is a reference to an array containing the header lines
+first element is a reference to an array containing the header lines
 from the web page. Subsequent elements are references to arrays
 containing the actual search results.
  
@@ -1642,7 +1642,7 @@ underlying web page. It will also have the following headers set:
 If you call this method in list context, the first element of the
 returned object is the aforementioned HTTP::Response object, and the
 second is a reference to an array containing the search results. The
-firse element is a reference to an array containing the header lines
+first element is a reference to an array containing the header lines
 from the web page. Subsequent elements are references to arrays
 containing the actual search results.
 
