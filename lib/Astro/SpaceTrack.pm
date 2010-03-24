@@ -835,6 +835,10 @@ The following commands are defined:
   retrieve number ...
     Retieves the latest orbital elements for the given
     catalog numbers.
+  search_date date ...
+    Retrieves orbital elements by launch date.
+  search_decay date ...
+    Retrieves orbital elements by decay date.
   search_id id ...
     Retrieves orbital elements by international designator.
   search_name name ...
@@ -1524,6 +1528,78 @@ sub search_date {
 	    _submit => 'submit',
 	    _submitted => 1,
 	    );
+	}, @args );
+}
+
+
+=for html <a name="search_decay"></a>
+
+=item $resp = $st->search_decay (decay ...)
+
+This method searches the Space Track database for objects decayed on
+the given date. The date is specified as year-month-day, with any
+non-digit being legal as the separator. You can omit -day or specify it
+as 0 to get all decays for the given month. You can omit -month (or
+specify it as 0) as well to get all decays for the given year.
+
+The options are the same as for L</search_date>.
+
+A Space Track username and password are required to use this method.
+
+What you get on success depends on the value specified for the -tle
+option.
+
+Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the relevant
+element sets. It will also have the following headers set:
+
+ Pragma: spacetrack-type = orbit
+ Pragma: spacetrack-source = spacetrack
+
+If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the results of
+the relevant search, one line per object found. Within a line the fields
+are tab-delimited, and occur in the same order as the underlying web
+page. The first line of the content is the header lines from the
+underlying web page. It will also have the following headers set:
+
+ Pragma: spacetrack-type = search
+ Pragma: spacetrack-source = spacetrack
+
+If you call this method in list context, the first element of the
+returned object is the aforementioned HTTP::Response object, and the
+second is a reference to an array containing the search results. The
+first element is a reference to an array containing the header lines
+from the web page. Subsequent elements are references to arrays
+containing the actual search results.
+
+=cut
+
+sub search_decay {
+    my ($self, @args) = @_;
+    @args = _parse_search_args (@args);
+    return $self->_search_generic (
+	{
+	    splice => -1,
+	    poster => sub {
+		my ($self, $name, $opt) = @_;
+		my ($year, $month, $day) =
+		    $name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
+			or return;
+		$year += $year < 57 ? 2000 : $year < 100 ? 1900 : 0;
+		$month ||= 0;
+		$day ||= 0;
+		my $resp = $self->_post ('perl/decay_query.pl',
+		    decay_year => $year,
+		    decay_month => $month,
+		    decay_day => $day,
+		    status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
+		    exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
+		    _sessionid => '',
+		    _submit => 'Submit',
+		    _submitted => 1,
+		);
+	    },
 	}, @args);
 }
 
@@ -2708,6 +2784,13 @@ sub _post {
 sub _search_generic {
     my ($self, $poster, @args) = @_;
     delete $self->{_pragmata};
+    my $splice = -2;
+    if ( ref $poster eq 'HASH' ) {
+	exists $poster->{splice} and $splice = $poster->{splice};
+	exists $poster->{poster}
+	    or confess 'Programming error - no {poster} key in options hash';
+	$poster = $poster->{poster};
+    }
 
     @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
     my $opt = shift @args;
@@ -2730,8 +2813,10 @@ sub _search_generic {
 	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
 	    BAD_SPACETRACK_RESPONSE, undef, $content);
 	my @data = @{$this_page[0]};
-	foreach my $row (@data) {
-	    pop @$row; pop @$row;
+	if ( $splice ) {
+	    foreach my $row (@data) {
+		splice @{ $row }, $splice;
+	    }
 	}
 	if (@table) {shift @data} else {push @table, shift @data};
 	foreach my $row (@data) {
