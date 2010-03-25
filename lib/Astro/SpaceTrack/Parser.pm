@@ -37,43 +37,51 @@ my %target = (
 	},
 	start_action => {
 	    table => sub {
-		my ($self, $tbl) = (shift, []);
-		push @{$self->{_spacetrack_tables}}, $tbl;
-		$self->{_spacetrack_this_table} = $tbl;
+		my ( $self ) = @_;
+		push @{$self->{_spacetrack_tables}}, (
+		    $self->{_spacetrack_this_table} = []
+		);
 		return;
 	    },
 	    tr => sub {
-		my ($self, $row) = (shift, []);
-		push @{$self->{_spacetrack_this_table}}, $row;
-		$self->{_spacetrack_this_row} = $row;
+		my ( $self ) = @_;
+		defined $self->{_spacetrack_this_table}
+		    or $self->_spacetrack_open_tag( 'table' );
+		push @{$self->{_spacetrack_this_table}}, (
+		    $self->{_spacetrack_this_row} = []
+		);
 		return;
 	    },
 	    td => sub {
-		my ($self, $cell) = (shift, []);
-		push @{$self->{_spacetrack_this_row}}, $cell;
-		$self->{_spacetrack_this_cell} = $cell;
+		my ( $self ) = @_;
+		defined $self->{_spacetrack_this_row}
+		    or $self->_spacetrack_open_tag( 'tr' );
+		push @{$self->{_spacetrack_this_row}}, (
+		    $self->{_spacetrack_this_cell} = []
+		);
 		return;
 	    },
 	},
 	end_action => {
 	    table => sub {
-		$_[0]{_spacetrack_this_table} = [];
-		$_[0]{_spacetrack_this_row} = [];
-		$_[0]{_spacetrack_this_cell} = [];
+		$_[0]{_spacetrack_this_table} =
+		    $_[0]{_spacetrack_this_row} =
+		    $_[0]{_spacetrack_this_cell} = undef;
 		return;
 	    },
 	    tr => sub {
-		$_[0]{_spacetrack_this_row} = [];
-		$_[0]{_spacetrack_this_cell} = [];
+		$_[0]{_spacetrack_this_row} =
+		    $_[0]{_spacetrack_this_cell} = undef;
 		return;
 	    },
 	    td => sub {
-		$_[0]{_spacetrack_this_cell} = [];
+		$_[0]{_spacetrack_this_cell} = undef;
 		return;
 	    },
 	},
 	text_action => sub {
-	    push @{$_[0]{_spacetrack_this_cell}}, $_[1];
+	    defined $_[0]{_spacetrack_this_cell}
+		and push @{$_[0]{_spacetrack_this_cell}}, $_[1];
 	    return;
 	},
 	post_process => sub {
@@ -110,17 +118,8 @@ sub parse_string {
     return $target{$type}{post_process}->($self);
 }
 
-####	sub parse_file {
-####	my $self = shift;
-####	my $type = shift;
-####	$self->_spacetrack_reset ($type);
-####	$self->SUPER::parse_file (@_);
-####	$target{$type}{post_process}->($self);
-####	}
-
 sub _spacetrack_html_start {
     my $self = shift;
-    ###print "<@_>\n";
     my $tag = shift;
     $self->{_spacetrack_start_action} and
 	$self->{_spacetrack_start_action}{$tag}->($self);
@@ -130,7 +129,6 @@ sub _spacetrack_html_start {
 sub _spacetrack_html_end {
     my $self = shift;
     my $tag = shift;
-    ###print "</$tag>\n";
     $self->{_spacetrack_end_action} and
 	$self->{_spacetrack_end_action}{$tag}->($self);
     return;
@@ -141,14 +139,19 @@ sub _spacetrack_html_text {
     my $text = shift;
     $text =~ s/\s+$//sm;
     $text =~ s/^\s+//sm;
-    ###print qq{"$text"\n};
     $text ne '' and $self->{_spacetrack_text_action}->($self, $text);
     return;
 }
 
+sub _spacetrack_open_tag {
+    my ( $self, $tag ) = @_;
+    $self->{_spacetrack_start_action}
+	and $self->{_spacetrack_start_action}{$tag}->($self);
+    return;
+}
+
 sub _spacetrack_reset {
-    my $self = shift;
-    my $type = shift;
+    my ( $self, $type ) = @_;
     $target{$type} or croak "Parse type '$type' not implemented.";
     $self->{_spacetrack_start_action} = $target{$type}{start_action};
     $self->{_spacetrack_end_action} = $target{$type}{end_action};
