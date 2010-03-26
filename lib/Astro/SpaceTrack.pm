@@ -239,33 +239,6 @@ set these up.
 
 =cut
 
-my @inifil;
-
-=begin comment
-
-At some point I thought that an initialization file would be a good
-idea. But it seems unlikely to me that anyone will want commands
-other than 'set' commands issued every time an object is instantiated,
-and the 'set' commands are handled by the environment variables. So
-I changed my mind.
-
-my $inifil = $^O eq 'MSWin32' || $^O eq 'VMS' || $^O eq 'MacOS' ?
-    'SpaceTrack.ini' : '.SpaceTrack';
-
-$inifil = $^O eq 'VMS' ? "SYS\$LOGIN:$inifil" :
-    $^O eq 'MacOS' ? $inifil :
-    $ENV{HOME} ? "$ENV{HOME}/$inifil" :
-    $ENV{LOGDIR} ? "$ENV{LOGDIR}/$inifil" : undef or warn <<eod;
-Warning - Can't find home directory. Initialization file will not be
-        executed.
-eod
-
-@inifil = __PACKAGE__->_source ($inifil) if $inifil && -e $inifil;
-
-=end comment
-
-=cut
-
 sub new {
     my ($class, @args) = @_;
     $class = ref $class if ref $class;
@@ -297,12 +270,6 @@ sub new {
     bless $self, $class;
 
     $self->{agent}->env_proxy;
-
-    if (@inifil) {
-	$self->{filter} = 1;
-	$self->shell (@inifil, 'exit');
-	$self->{filter} = 0;
-    }
 
     $ENV{SPACETRACK_OPT} and
 	$self->set (grep {defined $_} split '\s+', $ENV{SPACETRACK_OPT});
@@ -433,6 +400,55 @@ merchantability or fitness for a particular purpose.
 eod
     }
 
+}
+
+=for html <a name="box_score"></a>
+
+=item $resp = $st->box_score ();
+
+This method returns the SATCAT Satellite Box Score information from the
+Space Track web site. If it succeeds, the content will be the actual box
+score data, including headings and totals, with the fields
+tab-delimited.
+
+This method requires a Space Track username and password. It implicitly
+calls the login () method if the session cookie is missing or expired.
+If login () fails, you will get the HTTP::Response from login ().
+
+If this method succeeds, the response will contain headers
+
+ Pragma: spacetrack-type = box_score
+ Pragma: spacetrack-source = spacetrack
+
+There are no options or arguments.
+
+=cut
+
+sub box_score {
+    my ( $self ) = @_;
+
+    my $p = Astro::SpaceTrack::Parser->new ();
+
+    my $resp = $self->_post ( 'perl/boxscore.pl' );
+    return $resp unless $resp->is_success && !$self->{debug_url};
+
+    my $content = $resp->content;
+    $content =~ s/ &nbsp; / /smxg;
+    my @this_page = @{$p->parse_string (table => $content)};
+    ref $this_page[0] eq 'ARRAY'
+	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	BAD_SPACETRACK_RESPONSE, undef, $content);
+    my @data = @{$this_page[0]};
+    $content = '';
+    foreach my $datum ( @data ) {
+	$content .= join( "\t", @{ $datum } ) . "\n";
+    }
+    $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'box_score',
+	'spacetrack-source' => 'spacetrack',
+    );
+    return wantarray ? ($resp, \@data) : $resp;
 }
 
 
@@ -809,6 +825,8 @@ sub help {
     } else {
 	my $resp = HTTP::Response->new (RC_OK, undef, undef, <<eod);
 The following commands are defined:
+  box_score
+    Retrieve the SATCAT box score. A Space Track login is needed.
   celestrak name
     Retrieves the named catalog of IDs from Celestrak. If the
     direct attribute is false (the default), the corresponding
@@ -2779,7 +2797,6 @@ sub _post {
 #	of the object to search for, and the option hash. If the
 #	referenced code needs the name parsed further, it must do so
 #	itself, returning undef if the parse fails.
-
 
 sub _search_generic {
     my ($self, $poster, @args) = @_;
