@@ -18,7 +18,7 @@ BEGIN {
     };
 }
 
-plan( tests => 75 );
+plan( tests => 86 );
 
 my $st;
 {
@@ -32,7 +32,7 @@ my $st;
 
 SKIP: {
 
-    skip_site( 'www.space-track.org', 41 );
+    skip_site( 'www.space-track.org', 50 );
 
     my @names = $st->attribute_names();
     my %present = map {$_ => 1} @names;
@@ -49,7 +49,7 @@ SKIP: {
 
     SKIP: {
 
-	skip_site( 'www.space-track.org', 37 );
+	skip_site( 'www.space-track.org', 46 );
 
 	ok( ! defined $st->content_type(), 'Content type should be undef' )
 	    or diag( 'content_type is ', $st->content_type() );
@@ -126,6 +126,22 @@ SKIP: {
 	is( $st->content_source(), 'spacetrack',
 	    "Content source is 'spacetrack'" );
 
+	is_success( $st, search_decay => '2010-1-10',
+	    'Search for bodies decayed January 10 2010' );
+
+	is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
+	is_success( $st, search_decay => -notle => '2010-1-10',
+	    'Search for bodies decayed Jan 10 2010, but only retrieve search results' );
+
+	is( $st->content_type(), 'search', "Content type is 'search'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
 	TODO: {
 
 	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
@@ -166,6 +182,14 @@ SKIP: {
 
 	}
 
+	is_success( $st, 'box_score', 'Retrieve satellite box score' );
+
+	is( $st->content_type(), 'box_score',
+	    "Content type is 'box_score'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
     }
 
 }
@@ -201,7 +225,7 @@ $st->set( direct => 1 );
 
 SKIP: {
 
-    skip_site( 'celestrak.com', 8 );
+    skip_site( 'celestrak.com', 9 );
 
     my $rslt = eval { $st->celestrak( 'stations' ) }
 	or diag( "\$st->celestrak( 'stations' ) failed: $@" );
@@ -223,6 +247,9 @@ SKIP: {
     is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
 
     is( $st->content_source(), 'celestrak', "Content source is 'celestrak'" );
+
+    is_not_success( $st, celestrak => 'fubar',
+	'Direct-fetch non-existent Celestrak catalog' );
 
 }
 
@@ -301,6 +328,8 @@ is_success( $st, 'help', 'Get internal help' );
 is( $st->content_type(), 'help', "Content type is 'help'" );
 
 ok( ! defined $st->content_source(), "Content source is undef" );
+
+is_success( $st, 'names', 'celestrak', 'Retrieve Celestrak catalog names' );
 
 $st->set( banner => undef, filter => 1 );
 $st->shell( '', '# comment', 'set banner 1', 'exit' );
