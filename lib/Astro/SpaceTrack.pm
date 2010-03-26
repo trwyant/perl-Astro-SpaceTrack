@@ -2855,6 +2855,9 @@ sub _search_generic {
 	    'spacetrack-source' => 'spacetrack',
 	);
     }
+    foreach my $row ( @table ) {
+	@{ $row } = map { ( defined $_ && $_ ne '' ) ? $_ : undef } @{ $row };
+    }
     return wantarray ? ($resp, \@table) : $resp;
 }
 
