@@ -2631,12 +2631,40 @@ sub _no_such_catalog {
     );
 }
 
+#	_parse_args parses options off an argument list. The first
+#	argument must be a list reference of options to be parsed.
+#	This list is pairs of values, the first being the Getopt::Long
+#	specification for the option, and the second being a description
+#	of the option suitable for help text. Subsequent arguments are
+#	the arguments list to be parsed. It returns a reference to a
+#	hash containing the options, followed by any remaining
+#	non-option arguments. If the first argument after the list
+#	reference is a hash reference, it simply returns.
+
+sub _parse_args {
+    my ( $lgl_opts, @args ) = @_;
+    ref $args[0] eq 'HASH' and return @args;
+    my %lgl = @{ $lgl_opts };
+    my $opt = {};
+    local @ARGV = @args;
+    GetOptions ($opt, keys %lgl) or croak <<"EOD";
+Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
+	$q =~ s/!//;
+	"\n  -$q $lgl{$_}"} sort keys %lgl]}
+with dates being either Perl times, or numeric year-month-day, with any
+non-numeric character valid as punctuation.
+EOD
+    return ( $opt, @ARGV );
+}
+
 #	_parse_retrieve_args parses the retrieve() options off its
-#	arguments, prefixes a reference to the resultant options
-#	hash to the remaining arguments, and returns the resultant
-#	list. If the first argument is a hash reference, it simply
-#	returns its argument list, under the assumption that it
-#	has already been called.
+#	arguments, prefixes a reference to the resultant options hash to
+#	the remaining arguments, and returns the resultant list. If the
+#	first argument is a list reference, it is taken as extra
+#	options, and removed from the argument list. If the next
+#	argument after the list reference (if any) is a hash reference,
+#	it simply returns its argument list, under the assumption that
+#	it has already been called.
 
 my @legal_retrieve_args = (
     descending => '(direction of sort)',
@@ -2645,32 +2673,25 @@ my @legal_retrieve_args = (
     'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
     'start_epoch=s' => 'date',
 );
+
 sub _parse_retrieve_args {
     my @args = @_;
-    unless (ref ($args[0]) eq 'HASH') {
-	my %lgl = (@legal_retrieve_args,
-	    ref $args[0] eq 'ARRAY' ? @{shift @args} : ());
-	my $opt = {};
-	local @ARGV = @args;
+    my $extra_args = ref $args[0] eq 'ARRAY' ? shift @args : undef;
+    ref $args[0] eq 'HASH' and return @args;
 
-	GetOptions ($opt, keys %lgl) or croak <<eod;
-Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
-	$q =~ s/!//;
-	"\n  -$q $lgl{$_}"} sort keys %lgl]}
-with dates being either Perl times, or numeric year-month-day, with any
-non-numeric character valid as punctuation.
-eod
+    my $opt;
+    ( $opt, @args ) = _parse_args(
+	( $extra_args ? [ @legal_retrieve_args, @{ $extra_args } ] :
+	    \@legal_retrieve_args ), @args );
 
-	$opt->{sort} ||= 'catnum';
+    $opt->{sort} ||= 'catnum';
 
-	($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<eod;
+    ($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<eod;
 Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
         (the default) or 'epoch'.
 eod
 
-	@args = ($opt, @ARGV);
-    }
-    return @args;
+    return ( $opt, @args );
 }
 
 #	$opt = _parse_retrieve_dates ($opt);
