@@ -18,7 +18,7 @@ BEGIN {
     };
 }
 
-plan( tests => 86 );
+plan( tests => 92 );
 
 my $st;
 {
@@ -32,7 +32,7 @@ my $st;
 
 SKIP: {
 
-    skip_site( 'www.space-track.org', 50 );
+    skip_site( 'www.space-track.org', 56 );
 
     my @names = $st->attribute_names();
     my %present = map {$_ => 1} @names;
@@ -49,7 +49,7 @@ SKIP: {
 
     SKIP: {
 
-	skip_site( 'www.space-track.org', 46 );
+	skip_site( 'www.space-track.org', 52 );
 
 	ok( ! defined $st->content_type(), 'Content type should be undef' )
 	    or diag( 'content_type is ', $st->content_type() );
@@ -120,6 +120,21 @@ SKIP: {
 
 	is_success( $st, search_id => -notle => '98067A',
 	    "Search for ID '98067A', but only retrieve search results" );
+
+	is( $st->content_type(), 'search', "Content type is 'search'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
+	is_success( $st, search_oid => 25544, "Search for OID 25544" );
+
+	is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
+
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
+
+	is_success( $st, search_oid => -notle => 25544,
+	    "Search for OID 25544, but only retrieve search results" );
 
 	is( $st->content_type(), 'search', "Content type is 'search'" );
 

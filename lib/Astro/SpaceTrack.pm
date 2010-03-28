@@ -1761,6 +1761,133 @@ sub search_name {
 }
 
 
+=for html <a name="search_oid"></a>
+
+=item $resp = $st->search_oid (name ...)
+
+This method searches the Space Track database for the given Space Track
+IDs (also known as OIDs, hence the method name).
+
+B<Note> that in effect this is just a stupid, inefficient version of
+L<retrieve()|/retrieve>, which does not understand ranges. Unless you
+assert C<-notle>, or call it in list contenxt to get the search data,
+you should simply call L<retrieve()|/retrieve> instead.
+
+In addition to the options available for L</retrieve>, the following
+option may be specified:
+
+ tle
+   specifies that you want TLE data retrieved for all
+   bodies that satisfy the search criteria. This is
+   true by default, but may be negated by specifying
+   -notle ( or { tle => 0 } ). If negated, the content
+   of the response object is the results of the search,
+   one line per body found, with the fields tab-
+   delimited.
+
+If you specify C<-notle>, all other options are ignored, except for
+C<-descending>.
+
+A Space Track username and password are required to use this method.
+
+This method implicitly calls the login () method if the session cookie
+is missing or expired. If login () fails, you will get the
+HTTP::Response from login ().
+
+What you get on success depends on the value specified for the -tle
+option.
+
+Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the relevant
+element sets. It will also have the following headers set:
+
+ Pragma: spacetrack-type = orbit
+ Pragma: spacetrack-source = spacetrack
+
+If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
+method returns an HTTP::Response object whose content is the results of
+the relevant search, one line per object found. Within a line the fields
+are tab-delimited, and occur in the same order as the underlying web
+page. The first line of the content is the header lines from the
+underlying web page. It will also have the following headers set:
+
+ Pragma: spacetrack-type = search
+ Pragma: spacetrack-source = spacetrack
+
+If you call this method in list context, the first element of the
+returned object is the aforementioned HTTP::Response object, and the
+second is a reference to an array containing the search results. The
+first element is a reference to an array containing the header lines
+from the web page. Subsequent elements are references to arrays
+containing the actual search results.
+
+=cut
+
+sub search_oid {
+    my ($self, @args) = @_;
+    ref $args[0] eq 'HASH'
+	or @args = _parse_args(
+	[
+	    descending => '(direction of sort)',
+	    'tle!' => '(return TLE data from search (defaults true))'
+	],
+	@args );
+    my $opt = shift @args;
+    exists $opt->{tle} or $opt->{tle} = 1;
+
+    @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+
+    my $resp = $self->_post ('perl/satcat_id_query.pl',
+	_submitted => 1,
+	_sessionid => '',
+	ids => join( ' ', @args ),
+	desc => ( $opt->{descending} ? 'yes' : '' ),
+	_submit => 'Submit',
+    );
+    $resp->is_success() and !$self->{debug_url}
+	or return $resp;
+    my $content = $resp->content;
+    $content =~ m/ ERROR: \s+ ID \s+ name \s+ query \s+ failed /smx
+	and return HTTP::Response->new (RC_NOT_FOUND, NO_RECORDS);
+    $content =~ s/ &nbsp; / /smxg;
+
+    my $p = Astro::SpaceTrack::Parser->new ();
+    my @this_page = @{$p->parse_string (table => $content)};
+    ref $this_page[0] eq 'ARRAY'
+	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	BAD_SPACETRACK_RESPONSE, undef, $content);
+
+    my @data = @{$this_page[0]};
+    $content = '';
+    my %id;
+    foreach my $datum ( @data ) {
+	splice @{ $datum }, -2;
+	$datum->[0] =~ m/ \D /smx
+	    or $id{$datum->[0]}++;
+    }
+
+    if ( $opt->{tle} ) {
+	$resp = $self->retrieve( $opt, sort keys %id );
+    } else {
+	$content = '';
+	foreach my $datum ( @data ) {
+	    $content .= join( "\t", @{ $datum } ) . "\n";
+	}
+	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'search',
+	    'spacetrack-source' => 'spacetrack',
+	);
+    }
+    wantarray or return $resp;
+
+    foreach my $row ( @data ) {
+	@{ $row } = map { ( defined $_ && $_ ne '' ) ? $_ : undef } @{ $row };
+    }
+    return ( $resp, \@data );
+}
+
+
 =for html <a name="set"></a>
 
 =item $st->set ( ... )
