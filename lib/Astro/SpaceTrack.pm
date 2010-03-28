@@ -1770,7 +1770,7 @@ IDs (also known as OIDs, hence the method name).
 
 B<Note> that in effect this is just a stupid, inefficient version of
 L<retrieve()|/retrieve>, which does not understand ranges. Unless you
-assert C<-notle>, or call it in list contenxt to get the search data,
+assert C<-notle>, or call it in list context to get the search data,
 you should simply call L<retrieve()|/retrieve> instead.
 
 In addition to the options available for L</retrieve>, the following
@@ -1844,7 +1844,7 @@ sub search_oid {
 	desc => ( $opt->{descending} ? 'yes' : '' ),
 	_submit => 'Submit',
     );
-    $resp->is_success() and !$self->{debug_url}
+    $resp->is_success() and not $self->{debug_url}
 	or return $resp;
     my $content = $resp->content;
     $content =~ m/ ERROR: \s+ ID \s+ name \s+ query \s+ failed /smx
