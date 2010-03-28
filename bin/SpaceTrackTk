@@ -15,7 +15,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Tk;
 
-our $VERSION = '0.045_01';
+our $VERSION = '0.046';
 
 my @pad = qw{-padx 5 -pady 5};
 

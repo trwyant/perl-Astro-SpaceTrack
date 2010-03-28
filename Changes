@@ -1,3 +1,9 @@
+0.046		28-Mar-2010	T. R. Wyant
+    Add methods search_decay(), search_oid(), and box_score().
+    Replace '' with undef in the array returned by the search_* methods
+	in list context. The HTTP::Response returned by these methods
+	is unchanged.
+
 0.045_01	22-Mar-2010	T. R. Wyant
 
     Add -notle option to the search_* methods. This causes them to
