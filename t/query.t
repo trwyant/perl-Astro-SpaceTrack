@@ -157,23 +157,13 @@ SKIP: {
 	is( $st->content_source(), 'spacetrack',
 	    "Content source is 'spacetrack'" );
 
-	TODO: {
+	is_success( $st, search_date => '2006-07-04',
+	    "Search for date '2006-07-04'" );
 
-	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
+	is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
 
-	    # The actual date search succeeds, returning 29251. But this
-	    # is STS 121, landed 2006-07-17. Until the database is
-	    # rebuilt the retrieval of the latest TLE fails, so the
-	    # whole thing returns a 404.
-	    is_success( $st, search_date => '2006-07-04',
-		"Search for date '2006-07-04'" );
-
-	    is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
-
-	    is( $st->content_source(), 'spacetrack',
-		"Content source is 'spacetrack'" );
-
-	}
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
 
 	is_success( $st, search_date => -notle => '2006-07-04',
 	    "Search for date '2006-07-04', but only retrieve search results" );
@@ -183,19 +173,13 @@ SKIP: {
 	is( $st->content_source(), 'spacetrack',
 	    "Content source is 'spacetrack'" );
 
-	TODO: {
+	is_success( $st, retrieve => -start_epoch => '2006/04/01', 25544,
+	    'Retrieve historical ISS orbital elements' );
 
-	    local $TODO = 'Data before 2010/01/01 lost. Being restored.';
+	is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
 
-	    is_success( $st, retrieve => -start_epoch => '2006/04/01', 25544,
-		'Retrieve historical ISS orbital elements' );
-
-	    is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
-
-	    is( $st->content_source(), 'spacetrack',
-		"Content source is 'spacetrack'" );
-
-	}
+	is( $st->content_source(), 'spacetrack',
+	    "Content source is 'spacetrack'" );
 
 	is_success( $st, 'box_score', 'Retrieve satellite box score' );
 
