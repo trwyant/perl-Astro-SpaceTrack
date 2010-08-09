@@ -123,7 +123,6 @@ use constant NO_CAT_ID => 'No catalog IDs specified.';
 use constant NO_OBJ_NAME => 'No object name specified.';
 use constant NO_RECORDS => 'No records found.';
 
-use constant DOMAIN => 'www.space-track.org';
 use constant SESSION_PATH => '/';
 use constant SESSION_KEY => 'spacetrack_session';
 
@@ -203,6 +202,7 @@ my %mutator = (	# Mutators for the various attributes.
     cookie_expires => \&_mutate_attrib,
     debug_url => \&_mutate_attrib,	# Force the URL. Undocumented and unsupported.
     direct => \&_mutate_attrib,
+    domain_space_track => \&_mutate_authen,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
     fallback => \&_mutate_attrib,
     filter => \&_mutate_attrib,
@@ -249,6 +249,7 @@ sub new {
 	cookie_expires => 0,
 	debug_url => undef,	# Not turned on
 	direct => 0,	# Do not direct-fetch from redistributors
+	domain_space_track => 'www.space-track.org',
 	dump_headers => 0,	# No dumping.
 	fallback => 0,	# Do not fall back if primary source offline
 	filter => 0,	# Filter mode.
@@ -376,12 +377,12 @@ benefit of the shell method.
 		'v' . $Config::Config{version};
 	    }
 	};
-	return HTTP::Response->new (RC_OK, undef, undef, <<eod);
+	return HTTP::Response->new (RC_OK, undef, undef, <<"EOD");
 
 @{[__PACKAGE__]} version $VERSION
 Perl $perl_version under $^O
 
-You must register with http://@{[DOMAIN]}/ and get a
+You must register with http://$self->{domain_space_track}/ and get a
 username and password before you can make use of this package,
 and you must abide by that site's restrictions, which include
 not making the data available to a third party without prior
@@ -397,7 +398,7 @@ This program is distributed in the hope that it will be useful, but
 without any warranty; without even the implied warranty of
 merchantability or fitness for a particular purpose.
 @{[$self->{addendum} || '']}
-eod
+EOD
     }
 
 }
@@ -1208,7 +1209,7 @@ eod
     #	Do not use the _post method to retrieve the session cookie,
     #	unless you like bottomless recursions.
     my $resp = $self->{agent}->post (
-	"http://@{[DOMAIN]}/perl/login.pl", [
+	"http://$self->{domain_space_track}/perl/login.pl", [
 	    username => $self->{username},
 	    password => $self->{password},
 	    _submitted => 1,
@@ -1996,16 +1997,14 @@ eod
 	if (@args) {
 	    $buffer = shift @args;
 	} else {
-	    unless ($read) {
-		$interactive ? eval {
+	    $read ||= $interactive ? ( eval {
 		    require Term::ReadLine;
 		    $rdln ||= Term::ReadLine->new (
 			'SpaceTrack orbital element access');
 		    $out = $rdln->OUT || \*STDOUT;
-		    $read = sub {$rdln->readline ($prompt)};
-		} || ($read = sub {print $out $prompt; <STDIN>}):
-		eval {$read = sub {<STDIN>}};
-	    }
+		    sub { $rdln->readline ($prompt) };
+		} || sub { print { $out } $prompt; return <STDIN> } ) :
+		sub { return<STDIN> };
 	    $buffer = $read->();
 	}
 	last unless defined $buffer;
@@ -2027,8 +2026,8 @@ eod
 	$verb eq 'source' and do {
 	    eval {
 		splice @args, 0, 0, $self->_source (shift @cmdarg);
-	    };
-	    $@ and warn $@;
+		1;
+	    } or warn ( $@ || 'An unknown error occurred' );
 	    next;
 	};
 	($verb eq 'new' || $verb =~ m/^_/ || $verb eq 'shell' ||
@@ -2394,7 +2393,7 @@ sub _check_cookie {
     $expir = 0;
     $self->{agent}->cookie_jar->scan (sub {
 	$self->{dump_headers} > 1 and _dump_cookie ("_check_cookie:\n", @_);
-	($cookie, $expir) = @_[2, 8] if $_[4] eq DOMAIN &&
+	($cookie, $expir) = @_[2, 8] if $_[4] eq $self->{domain_space_track} &&
 	    $_[3] eq SESSION_PATH && $_[1] eq SESSION_KEY;
 	});
     $self->{dump_headers} and warn $expir ? <<eod : <<eod;
@@ -2549,7 +2548,7 @@ sub _get {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "http://@{[DOMAIN]}/$path";
+	my $url = "http://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request($url, @args) ||
 	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
@@ -2691,10 +2690,11 @@ sub _mutate_cookie {
     if ($_[0]->{agent} && $_[0]->{agent}->cookie_jar) {
 	if (defined $_[2]) {
 	    $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
-		SESSION_PATH, DOMAIN, undef, 1, undef, undef, 1, {});
+		SESSION_PATH, $_[0]{domain_space_track},
+		undef, 1, undef, undef, 1, {});
 	} else {
 	    $_[0]->{agent}->cookie_jar->clear(
-		DOMAIN, SESSION_PATH, SESSION_KEY);
+		$_[0]{domain_space_track}, SESSION_PATH, SESSION_KEY);
 	}
     }
     goto &_mutate_attrib;
@@ -2919,7 +2919,7 @@ sub _post {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "http://@{[DOMAIN]}/$path";
+	my $url = "http://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request( $url, @args) ||
 	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
@@ -3071,6 +3071,15 @@ directly from the redistributer if possible. At the moment the only
 methods affected by this are celestrak() and spaceflight().
 
 The default is false (i.e. 0).
+
+=item domain_space_track (string)
+
+This attribute specifies the domain name of the Space Track web site.
+The user will not normally need to modify this, but if the web site
+changes names for some reason, this attribute may provide a way to get
+queries going again.
+
+The default is 'www.space-track.org'.
 
 =item fallback (boolean)
 

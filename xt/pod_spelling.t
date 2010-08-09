@@ -4,12 +4,14 @@ use strict;
 use warnings;
 
 BEGIN {
-    eval {require Test::Spelling};
-    $@ and do {
+    eval {
+	require Test::Spelling;
+	Test::Spelling->import();
+	1;
+    } or do {
 	print "1..0 # skip Test::Spelling not available.\n";
 	exit;
     };
-    Test::Spelling->import();
 }
 
 our $VERSION = '0.010';

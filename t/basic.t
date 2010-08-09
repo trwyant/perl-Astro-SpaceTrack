@@ -39,6 +39,7 @@ is_deeply( scalar Astro::SpaceTrack->attribute_names(), [ qw{
     cookie_expires
     debug_url
     direct
+    domain_space_track
     dump_headers
     fallback
     filter
