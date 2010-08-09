@@ -14,8 +14,6 @@ BEGIN {
     };
 }
 
-our $VERSION = '0.010';
-
 add_stopwords (<DATA>);
 
 all_pod_files_spelling_ok ();
