@@ -12,7 +12,7 @@ sub ACTION_authortest {
     my ( $self, @args ) = @_;
 
     $self->depends_on( 'build' );
-    $self->test_files( qw{ t xt } );
+    $self->test_files( qw{ t xt/author } );
     $self->depends_on( 'test' );
 
     return;
@@ -50,12 +50,12 @@ This module provides the following action:
 =item authortest
 
 This action runs not only those tests which appear in the F<t>
-directory, but those that appear in the F<xt> directory. The F<xt> tests
-are provided for information only, since some of them (notably
-F<xt/critic.t> and F<xt/pod_spelling.t>) are very sensitive to the
-configuration under which they run.
+directory, but those that appear in the F<xt/author> directory. The
+F<xt/author> tests are provided for information only, since some of them
+(notably F<xt/author/critic.t> and F<xt/author/pod_spelling.t>) are very
+sensitive to the configuration under which they run.
 
-Some of the F<xt> tests require modules that are not named as
+Some of the F<xt/author> tests require modules that are not named as
 requirements. These should disable themselves if the required modules
 are not present.
 
