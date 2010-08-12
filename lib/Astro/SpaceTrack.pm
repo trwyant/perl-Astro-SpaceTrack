@@ -307,6 +307,9 @@ return, the response object will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = amsat
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 This method is a web page scraper. any change in the location of the
 web page will break this method.
 
@@ -465,7 +468,7 @@ list reference to list references  (i.e. a list of lists). Each
 of the list references contains the catalog ID of a satellite or
 other orbiting body and the common name of the body.
 
-If the 'direct' attribute is true, or if the 'fallback' attribute is
+If the C<direct> attribute is true, or if the C<fallback> attribute is
 true and the data are not available from Space Track, the elements will
 be fetched directly from Celestrak, and no login is needed. Otherwise,
 this method implicitly calls the login () method if the session cookie
@@ -474,8 +477,8 @@ fetched from Celestrak. If login () fails, you will get the
 HTTP::Response from login ().
 
 A list of valid names and brief descriptions can be obtained by calling
-$st->names ('celestrak'). If you have set the 'verbose' attribute true
-(e.g. $st->set (verbose => 1)), the content of the error response will
+C<< $st->names ('celestrak') >>. If you have set the C<verbose> attribute true
+(e.g. C<< $st->set (verbose => 1) >>), the content of the error response will
 include this list. Note, however, that this list does not determine what
 can be retrieved; if Dr.  Kelso adds a data set, it can be retrieved
 even if it is not on the list, and if he removes one, being on the list
@@ -488,10 +491,11 @@ is 'stations', since the URL for this is
 L<http://celestrak.com/NORAD/elements/stations.txt>.
 
 The Celestrak web site makes a few items available for direct-fetching
-only (C<$st->set(direct => 1)>, see below.) These are typically debris
-from collisions or explosions. I have not corresponded with Dr. Kelso on
-this, but I think it reasonable to believe that asking Space Track for a
-couple thousand sets of data at once would not be a good thing.
+only (C<< $st->set(direct => 1) >>, see below.) These are typically
+debris from collisions or explosions. I have not corresponded with Dr.
+Kelso on this, but I think it reasonable to believe that asking Space
+Track for a couple thousand sets of data at once would not be a good
+thing.
 
 As of this release, the following data sets may be direct-fetched only:
 
@@ -540,11 +544,14 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = 
 
-The spacetrack-source will be 'spacetrack' if the TLE data actually came
-from Space Track, or 'celestrak' if the TLE data actually came from
-Celestrak. The former will be the case if the 'direct' attribute is
-false and either the 'fallback' attribute was false or the Space Track
-web site was accessible. Otherwise, the latter will be the case.
+The spacetrack-source will be C<'spacetrack'> if the TLE data actually
+came from Space Track, or C<'celestrak'> if the TLE data actually came
+from Celestrak. The former will be the case if the C<direct> attribute
+is false and either the C<fallback> attribute was false or the Space
+Track web site was accessible. Otherwise, the latter will be the case.
+
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
 
 You can specify the L</retrieve> options on this method as well, but
 they will have no effect if the 'direct' attribute is true.
@@ -648,19 +655,25 @@ This method takes the given HTTP::Response object and returns the data
 source specified by the 'Pragma: spacetrack-source =' header. What
 values you can expect depend on the content_type (see below) as follows:
 
-If the content_type method returns 'iridium-status', you can expect
-content_source values of 'kelso', 'mccants', or 'sladen', corresponding
-to the main source of the data.
+If the C<content_type()> method returns C<'box_score'>, you can expect
+a content-source value of C<'spacetrack'>.
 
-If the content_type method returns 'orbit', you can expect
-content-source values of 'amsat', 'celestrak', 'spaceflight', or
-'spacetrack', corresponding to the actual source of the TLE data. Note
-that the celestrak() method may return a content_type of
-'spacetrack', if the 'direct' attribute was false,
+If the content_type method returns C<'iridium-status'>, you can expect
+content_source values of C<'kelso'>, C<'mccants'>, or C<'sladen'>,
+corresponding to the main source of the data.
 
-For any other values of content-type, the expected values are undefined.
-In fact, you will probably literally get undef, but the author does not
-commit even to this.
+If the C<content_type()> method returns C<'orbit'>, you can expect
+content-source values of C<'amsat'>, C<'celestrak'>, C<'spaceflight'>,
+or C<'spacetrack'>, corresponding to the actual source of the TLE data.
+Note that the C<celestrak()> method may return a content_type of
+C<'spacetrack'> if the C<direct> attribute is false.
+
+If the C<content_type()> method returns C<'search'>, you can expect a
+content-source value of C<'spacetrack'>.
+
+For any other values of content-type (e.g. C<'get'>, C<'help'>), the
+expected values are undefined.  In fact, you will probably literally get
+undef, but the author does not commit even to this.
 
 If the response object is not provided, it returns the data source
 from the last method call that returned an HTTP::Response object.
@@ -685,9 +698,12 @@ This method takes the given HTTP::Response object and returns the
 data type specified by the 'Pragma: spacetrack-type =' header. The
 following values are supported:
 
+ 'box_score': The content is the Space Track satellite
+         box score.
  'get': The content is a parameter value.
  'help': The content is help text.
  'orbit': The content is NORAD data sets.
+ 'search': The content is Space Track search results.
  undef: No spacetrack-type pragma was specified. The
         content is something else (typically 'OK').
 
@@ -736,6 +752,9 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 You can specify the L</retrieve> options on this method as well.
 
 =cut
@@ -771,6 +790,8 @@ to winkle it out of the response object. We croak on a bad attribute name.
 If this method succeeds, the response will contain header
 
  Pragma: spacetrack-type = get
+
+This can be accessed by C<< $st->content_type( $resp ) >>.
 
 See L</Attributes> for the names and functions of the attributes.
 
@@ -810,6 +831,8 @@ If this method succeeds B<and> the webcmd attribute is not set, the
 response will contain header
 
  Pragma: spacetrack-type = help
+
+This can be accessed by C<< $st->content_type( $resp ) >>.
 
 Otherwise (i.e. in any case where the response does B<not> contain
 actual help text) this header will be absent.
@@ -927,6 +950,9 @@ If this method succeeds, the response will contain headers
 
 The spacetrack-source will be 'kelso', 'mccants', or 'sladen', depending
 on the format requested.
+
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
 
 The source of the data and, to a certain extent, the format of the
 results is determined by the optional $format argument, which defaults
@@ -1286,6 +1312,9 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 Number ranges are represented as 'start-end', where both 'start' and
 'end' are catalog numbers. If 'start' > 'end', the numbers will be
 taken in the reverse order. Non-numeric ranges are ignored.
@@ -1442,13 +1471,14 @@ specify it as 0) as well to get all launches for the given year.
 A Space Track username and password are required to use this method.
 
 You can specify options for the search as either command-type options
-(e.g. search (-status => 'onorbit', ...)) or as a leading hash reference
-(e.g. search ({status => onorbit}, ...)). If you specify the hash
-reference, option names must be specified in full, without the leading
-'-', and the argument list will not be parsed for command-type options.
-Options that take multiple values (i.e. 'exclude') must have their
-values specified as a hash reference, even if you only specify one value
-- or none at all.
+(e.g. C<< $st->search_date (-status => 'onorbit', ...) >>) or as a
+leading hash reference (e.g.
+C<< $st->search_date ({status => onorbit}, ...) >>). If you specify the
+hash reference, option names must be specified in full, without the
+leading '-', and the argument list will not be parsed for command-type
+options.  Options that take multiple values (i.e. 'exclude') must have
+their values specified as a hash reference, even if you only specify one
+value - or none at all.
 
 If you specify command-type options, they may be abbreviated, as long as
 the abbreviation is unique. Errors in either sort of specification
@@ -1492,9 +1522,9 @@ Examples:
     '2005-12-25');
  search_date ( '-notle', '2005-12-25' );
 
-This method implicitly calls the login () method if the session cookie
-is missing or expired. If login () fails, you will get the
-HTTP::Response from login ().
+This method implicitly calls the C<login()> method if the session cookie
+is missing or expired. If C<login()> fails, you will get the
+HTTP::Response from C<login()>.
 
 What you get on success depends on the value specified for the -tle
 option.
@@ -1505,6 +1535,9 @@ element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
+
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
 
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
 method returns an HTTP::Response object whose content is the results of
@@ -1575,6 +1608,9 @@ element sets. It will also have the following headers set:
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
 method returns an HTTP::Response object whose content is the results of
 the relevant search, one line per object found. Within a line the fields
@@ -1631,7 +1667,7 @@ This method searches the Space Track database for objects having the
 given international IDs. The international ID is the last two digits of
 the launch year (in the range 1957 through 2056), the three-digit
 sequence number of the launch within the year (with leading zeroes as
-needed), and the piece (A through ZZ, with A typically being the
+needed), and the piece (A through ZZZ, with A typically being the
 payload). You can omit the piece and get all pieces of that launch, or
 omit both the piece and the launch number and get all launches for the
 year. There is no mechanism to restrict the search to a given on-orbit
@@ -1645,7 +1681,7 @@ This method implicitly calls the login () method if the session cookie
 is missing or expired. If login () fails, you will get the
 HTTP::Response from login ().
 
-What you get on success depends on the value specified for the -tle
+What you get on success depends on the value specified for the C<-tle>
 option.
 
 Unless you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
@@ -1654,6 +1690,9 @@ element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
+
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
 
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
 method returns an HTTP::Response object whose content is the results of
@@ -1723,6 +1762,9 @@ element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
+
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
 
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
 method returns an HTTP::Response object whose content is the results of
@@ -1804,6 +1846,9 @@ element sets. It will also have the following headers set:
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
+
+If the C<content_type()> method returns C<'box_score'>, you can expect
+a content-source value of C<'spacetrack'>.
 
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
 method returns an HTTP::Response object whose content is the results of
@@ -2136,6 +2181,9 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spaceflight
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 This method is a web page scraper. any change in the location of the
 web pages, or any substantial change in their format, will break this
 method.
@@ -2267,8 +2315,11 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = spacetrack
 
+These can be accessed by C<< $st->content_type( $resp ) >> and
+C<< $st->content_source( $resp ) >> respectively.
+
 Note that when requesting spacetrack data sets by catalog number the
-setting of the 'with_name' attribute is ignored.
+setting of the C<with_name> attribute is ignored.
 
 Assuming success, the content of the response is the literal element
 set requested. Yes, it comes down gzipped, but we unzip it for you.
@@ -2276,20 +2327,20 @@ See the synopsis for sample code to retrieve and print the 'special'
 catalog in three-line format.
 
 A list of valid names and brief descriptions can be obtained by calling
-$st->names ('spacetrack'). If you have set the 'verbose' attribute true
-(e.g. $st->set (verbose => 1)), the content of the error response will
-include this list. Note, however, that this list does not determine what
-can be retrieved; if Space Track adds a data set, it can still be
-retrieved by number, even if it does not appear in the list by either
-number or name. Similarly, if they remove a data set, being on the list
-will not help. If they decide to renumber the data sets, retrieval by
-name will become useless until I get the code updated. The numbers
-correspond to the 'id=' portion of the URL for the dataset on the Space
-Track web site
+C<< $st->names ('spacetrack') >>. If you have set the C<verbose>
+attribute true (e.g. C<< $st->set (verbose => 1) >>), the content of the
+error response will include this list. Note, however, that this list
+does not determine what can be retrieved; if Space Track adds a data
+set, it can still be retrieved by number, even if it does not appear in
+the list by either number or name. Similarly, if they remove a data set,
+being on the list will not help. If they decide to renumber the data
+sets, retrieval by name will become useless until I get the code
+updated. The numbers correspond to the 'id=' portion of the URL for the
+dataset on the Space Track web site
 
-This method implicitly calls the login () method if the session cookie
-is missing or expired. If login () fails, you will get the
-HTTP::Response from login ().
+This method implicitly calls the C<login()> method if the session cookie
+is missing or expired. If C<login()> fails, you will get the
+HTTP::Response from C<login()>.
 
 =cut
 

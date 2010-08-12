@@ -49,7 +49,7 @@ STDOUT
 SpaceTrack
 SpaceTrackTk
 Wyant
-ZZ
+ZZZ
 attrib
 celestrak
 checkbox
