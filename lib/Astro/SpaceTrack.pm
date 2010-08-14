@@ -444,7 +444,13 @@ sub box_score {
 	BAD_SPACETRACK_RESPONSE, undef, $content);
     my @data = @{$this_page[0]};
     $content = '';
+    my $line = 0;
     foreach my $datum ( @data ) {
+	if ( $line++ == 1 ) {
+	    foreach ( @{ $datum } ) {
+		s/ \s* [(] key [)] \s* \z //smxi;
+	    }
+	}
 	$content .= join( "\t", @{ $datum } ) . "\n";
     }
     $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
