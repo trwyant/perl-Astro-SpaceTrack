@@ -3034,11 +3034,19 @@ sub _search_generic {
 		splice @{ $row }, $splice;
 	    }
 	}
-	if (@table) {shift @data} else {push @table, shift @data};
+	if ( @table ) {
+	    shift @data;
+	} else {
+	    push @table, shift @data;
+	    foreach ( @{ $table[-1] } ) {
+		s/ \s* [(] key [)] \s* \z //smxi;
+	    }
+	}
 	foreach my $row (@data) {
 	    push @table, $row unless $id{$row->[0]}++;
 	}
     }
+    delete $id{''};	# In case we came up empty.
 
     my $resp;
     if ( $opt->{tle} ) {
