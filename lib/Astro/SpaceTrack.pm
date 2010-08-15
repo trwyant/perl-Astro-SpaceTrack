@@ -385,11 +385,12 @@ benefit of the shell method.
 @{[__PACKAGE__]} version $VERSION
 Perl $perl_version under $^O
 
-You must register with http://$self->{domain_space_track}/ and get a
-username and password before you can make use of this package,
-and you must abide by that site's restrictions, which include
-not making the data available to a third party without prior
-permission.
+This package acquires satellite orbital elements and other data from a
+variety of web sites. It is your responsibility to abide by the terms of
+use of the individual web sites. In particular, to acquire data from
+Space Track (http://$self->{domain_space_track}/) you must register and
+get a username and password, and you may not make the data available to
+a third party without prior permission from Space Track.
 
 Copyright 2005-2010 T. R. Wyant (wyant at cpan dot org).
 
