@@ -1499,6 +1499,12 @@ options may be specified:
    If you specify both as command-style options,
    you may either specify the option more than once,
    or specify the values comma-separated.
+ rcs
+   specifies that the radar cross-section returned by
+   the search is to be appended to the name, in the form
+   --rcs radar_cross_section. If the with_name attribute
+   is false, the radar cross-section will be inserted as
+   the name.
  status
    specifies the desired status of the returned body
    (or bodies). Must be 'onorbit', 'decayed', or 'all'.
@@ -1819,12 +1825,18 @@ IDs (also known as OIDs, hence the method name).
 
 B<Note> that in effect this is just a stupid, inefficient version of
 L<retrieve()|/retrieve>, which does not understand ranges. Unless you
-assert C<-notle>, or call it in list context to get the search data,
-you should simply call L<retrieve()|/retrieve> instead.
+assert C<-notle> or C<-rcs>, or call it in list context to get the
+search data, you should simply call L<retrieve()|/retrieve> instead.
 
 In addition to the options available for L</retrieve>, the following
 option may be specified:
 
+ rcs
+   specifies that the radar cross-section returned by
+   the search is to be appended to the name, in the form
+   --rcs radar_cross_section. If the with_name attribute
+   is false, the radar cross-section will be inserted as
+   the name.
  tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
@@ -1881,6 +1893,7 @@ sub search_oid {
 	or @args = _parse_args(
 	[
 	    descending => '(direction of sort)',
+	    'rcs!' => '(append --rcs radar_cross_section to name)',
 	    'tle!' => '(return TLE data from search (defaults true))'
 	],
 	@args );
@@ -2469,7 +2482,7 @@ eod
 
 {	# Begin local symbol block
 
-    my $lookfor = $^O eq 'MacOS' ? qr{\012|\015+}ms : qr{\r\n}ms;
+    my $lookfor = $^O eq 'MacOS' ? qr{ \012|\015+ }smx : qr{ \r \n }smx;
 
     sub _convert_content {
 	my ($self, @args) = @_;
@@ -2481,10 +2494,10 @@ eod
 	    # catch this before we get this far, but the buffer check is
 	    # left in in case something else leaks through.
 	    defined $buffer or $buffer = '';
-	    $buffer =~ s|$lookfor|\n|g;
-	    1 while ($buffer =~ s|^\n||ms);
-	    $buffer =~ s|\s+$||ms;
-	    $buffer .= "\n";
+	    $buffer =~ s/$lookfor/\n/smxgo;
+	    1 while ($buffer =~ s/ \A \n+ //ms);
+	    $buffer =~ s/ \s+ \n /\n/smxg;
+	    $buffer =~ m/ \n \z /smx or $buffer .= "\n";
 	    $resp->content ($buffer);
 	    $resp->header (
 		'content-length' => length ($buffer),
@@ -2933,6 +2946,7 @@ eod
 #	has already been called.
 
 my @legal_search_args = (
+    'rcs!' => '(append --rcs radar_cross_section to name)',
     'tle!' => '(return TLE data from search (defaults true))',
     'status=s' => q{('onorbit', 'decayed', or 'all')},
     'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
@@ -3049,14 +3063,35 @@ sub _search_generic {
 	    }
 	}
 	foreach my $row (@data) {
-	    push @table, $row unless $id{$row->[0]}++;
+	    $id{$row->[0]} and next;
+	    $id{$row->[0]} = $row;
+	    push @table, $row;
 	}
     }
     delete $id{''};	# In case we came up empty.
 
     my $resp;
     if ( $opt->{tle} ) {
+	my $with_name = $self->get( 'with_name' )->content();
 	$resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
+	if ( $opt->{rcs} ) {
+	    my $content = $resp->content();
+	    my $replace = $with_name ? sub {
+		my ( $newline, $oid ) = @_;
+		return ( $id{$oid} && $id{$oid}[-1] ) ?
+		    sprintf( " --rcs %s\n1%6d", $id{$oid}[-1], $oid ) :
+		    sprintf( "\n1%6d", $oid );
+	    } : sub {
+		my ( $newline, $oid ) = @_;
+		return ( $id{$oid} && $id{$oid}[-1] ) ?
+		    sprintf( "%s--rcs %s\n1%6d", $newline,
+			$id{$oid}[-1], $oid ) :
+		    sprintf( "%s1%6d", $newline, $oid );
+	    };
+	    $content =~ s{ ( \A | \n ) 1 \s* ( \d+ ) }
+		{ $replace->( $1 || '', $2 ) }smxge;
+	    $resp->content( $content );
+	}
     } else {
 	my $content;
 	foreach my $datum ( @table ) {
