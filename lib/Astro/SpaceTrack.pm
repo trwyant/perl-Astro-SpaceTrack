@@ -1504,7 +1504,8 @@ options may be specified:
    the search is to be appended to the name, in the form
    --rcs radar_cross_section. If the with_name attribute
    is false, the radar cross-section will be inserted as
-   the name.
+   the name. Historical rcs data appear NOT to be
+   available.
  status
    specifies the desired status of the returned body
    (or bodies). Must be 'onorbit', 'decayed', or 'all'.
@@ -1836,7 +1837,8 @@ option may be specified:
    the search is to be appended to the name, in the form
    --rcs radar_cross_section. If the with_name attribute
    is false, the radar cross-section will be inserted as
-   the name.
+   the name. Historical rcs data appear NOT to be
+   available.
  tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
@@ -1890,66 +1892,26 @@ containing the actual search results.
 sub search_oid {
     my ($self, @args) = @_;
     ref $args[0] eq 'HASH'
-	or @args = _parse_args(
+	or @args = _parse_retrieve_args(
 	[
-	    descending => '(direction of sort)',
 	    'rcs!' => '(append --rcs radar_cross_section to name)',
 	    'tle!' => '(return TLE data from search (defaults true))'
 	],
 	@args );
     my $opt = shift @args;
     exists $opt->{tle} or $opt->{tle} = 1;
+    my $ids = join ' ', @args;
+    return $self->_search_generic (sub {
+	my ($self, $ids, $opt) = @_;
+	$self->_post ('perl/satcat_id_query.pl',
+	    _submitted => 1,
+	    _sessionid => '',
+	    ids => $ids,
+	    desc => ( $opt->{descending} ? 'yes' : '' ),
+	    _submit => 'Submit',
+	    );
+	}, $opt, $ids );
 
-    @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
-
-    my $resp = $self->_post ('perl/satcat_id_query.pl',
-	_submitted => 1,
-	_sessionid => '',
-	ids => join( ' ', @args ),
-	desc => ( $opt->{descending} ? 'yes' : '' ),
-	_submit => 'Submit',
-    );
-    $resp->is_success() and not $self->{debug_url}
-	or return $resp;
-    my $content = $resp->content;
-    $content =~ m/ ERROR: \s+ ID \s+ name \s+ query \s+ failed /smx
-	and return HTTP::Response->new (RC_NOT_FOUND, NO_RECORDS);
-    $content =~ s/ &nbsp; / /smxg;
-
-    my $p = Astro::SpaceTrack::Parser->new ();
-    my @this_page = @{$p->parse_string (table => $content)};
-    ref $this_page[0] eq 'ARRAY'
-	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
-	BAD_SPACETRACK_RESPONSE, undef, $content);
-
-    my @data = @{$this_page[0]};
-    $content = '';
-    my %id;
-    foreach my $datum ( @data ) {
-	splice @{ $datum }, -2;
-	$datum->[0] =~ m/ \D /smx
-	    or $id{$datum->[0]}++;
-    }
-
-    if ( $opt->{tle} ) {
-	$resp = $self->retrieve( $opt, sort keys %id );
-    } else {
-	$content = '';
-	foreach my $datum ( @data ) {
-	    $content .= join( "\t", @{ $datum } ) . "\n";
-	}
-	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'search',
-	    'spacetrack-source' => 'spacetrack',
-	);
-    }
-    wantarray or return $resp;
-
-    foreach my $row ( @data ) {
-	@{ $row } = map { ( defined $_ && $_ ne '' ) ? $_ : undef } @{ $row };
-    }
-    return ( $resp, \@data );
 }
 
 
