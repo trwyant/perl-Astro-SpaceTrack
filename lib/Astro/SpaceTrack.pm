@@ -805,21 +805,36 @@ See L</Attributes> for the names and functions of the attributes.
 =cut
 
 sub get {
-    my $self = shift;
+    my ( $self, $name ) = @_;
     delete $self->{_pragmata};
-    my $name = shift;
-    croak "No attribute name specified. Legal attributes are ",
-	    join (', ', sort keys %mutator), ".\n"
-	unless defined $name;
-    croak "Attribute $name may not be gotten. Legal attributes are ",
-	    join (', ', sort keys %mutator), ".\n"
-	unless $mutator{$name};
-    my $resp = HTTP::Response->new (RC_OK, undef, undef, $self->{$name});
-    $self->_add_pragmata($resp,
+    my $value = $self->getv( $name );
+    my $resp = HTTP::Response->new( RC_OK, undef, undef, $value );
+    $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'get',
     );
     $self->_dump_headers( $resp );
-    return wantarray ? ($resp, $self->{$name}) : $resp;
+    return wantarray ? ($resp, $value ) : $resp;
+}
+
+
+=for html <a name="getv"></a>
+
+=item $value = $st->getv (attrib)
+
+This method returns the value of the given attribute, which is what
+C<get()> should have done.
+
+See L</Attributes> for the names and functions of the attributes.
+
+=cut
+
+sub getv {
+    my ( $self, $name ) = @_;
+    defined $name
+	or croak 'No attribute name specified',
+    $mutator{$name}
+	or croak "No such attribute as '$name'";
+    return $self->{$name};
 }
 
 
