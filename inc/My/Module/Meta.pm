@@ -26,12 +26,23 @@ sub requires {
     my ( $self, @extra ) = @_;
 
     return {
-	'Compress::Zlib' => 0,
-	'HTML::Parser' => 0,
-	'HTTP::Response' => 0,
-	'HTTP::Status' => 0,
-	'LWP::UserAgent' => 0,
-	'Params::Util' => 0.12,
+        'Carp'			=> 0,
+        'Compress::Zlib'	=> 0,
+        'Data::Dumper'		=> 0,
+        'Exporter'		=> 0,
+        'Getopt::Long'		=> 0,
+        'HTML::Parser'		=> 0,
+        'HTTP::Response'	=> 0,
+        'HTTP::Status'		=> 0,
+        'IO::File'		=> 0,
+        'LWP::UserAgent'	=> 0,
+        'POSIX'			=> 0,
+        'Params::Util'		=> 0.120,
+        'Text::ParseWords'	=> 0,
+        'Time::Local'		=> 0,
+        'constant'		=> 0,
+        'strict'		=> 0,
+        'warnings'		=> 0,
 	@extra,
     };
 }
