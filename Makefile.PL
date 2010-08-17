@@ -3,25 +3,28 @@ use 5.006;
 use strict;
 use warnings;
 
+use lib qw{ inc };
+use My::Module::Meta;
+
 use Config;
 use ExtUtils::MakeMaker qw{WriteMakefile prompt};
 use FileHandle;
 use Getopt::Std;
 
 my %opt;
-getopts ('ny', \%opt) or die <<eod;
+getopts ('ny', \%opt) or die <<'EOD';
 The only legal options are
   -n = answer all questions 'no'.
   -y = answer all questions 'yes'.
 You may not assert both of these at once - it's too confusing.
-eod
+EOD
 
 my @exe_files;
 my @clean_files;
 
 my @possible_exes = ('SpaceTrack');
-my $tk = eval {require Tk} and push @possible_exes, 'SpaceTrackTk';
-print $tk ? <<eod : <<eod;
+my $tk = eval { require Tk; 1 } and push @possible_exes, 'SpaceTrackTk';
+print $tk ? <<'EOD' : <<'EOD';
 
 The following scripts can be installed:
 
@@ -29,7 +32,7 @@ The following scripts can be installed:
   SpaceTrackTk is a windowed interface to Astro::SpaceTrack, using
     Perl/Tk.
 
-eod
+EOD
 
 The following script can be installed:
 
@@ -39,7 +42,7 @@ SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
 but will not be installed because you do not have the Tk package
 installed. If you want this, install Tk and then rerun Makefile.PL.
 
-eod
+EOD
 
 if ($opt{n}) {
     print "Because you have asserted -n, the executables will not be installed.\n\n";
@@ -49,14 +52,14 @@ if ($opt{n}) {
     @exe_files = @possible_exes;
     }
   else {
-    print <<eod;
+    print <<'EOD';
 To supress the following prompts, run Makefile.PL with the -y option to
 install the scripts, or with the -n option not to install the scripts.
 Setting environment variable PERL_MM_USE_DEFAULT true, or running non-
 interactively without data on STDIN will also cause the scripts not to
 be installed.
 
-eod
+EOD
 
     foreach (@possible_exes) {
 	push @exe_files, $_
@@ -93,19 +96,14 @@ eod
 	}
     }
 
+my $meta = My::Module::Meta->new();
+
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
 
 my %attr = (
     NAME => 'Astro::SpaceTrack',
     VERSION_FROM => 'lib/Astro/SpaceTrack.pm',
-    PREREQ_PM => {
-	'Compress::Zlib' => 0,
-	'HTML::Parser' => 0,
-	'HTTP::Response' => 0,
-	'HTTP::Status' => 0,
-	'LWP::UserAgent' => 0,
-	'Params::Util' => 0.12,
-    },
+    PREREQ_PM => $meta->requires(),
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     EXE_FILES => \@exe_files,
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
@@ -120,12 +118,12 @@ if ( $mmv >= 6.4501 ) {
     $attr{META_ADD} = {
 	no_index => {
 	    directory => [ qw{ inc t xt } ],
-	    build_requires => {
-		'Test::More' => 0.40,
-	    }
 	},
     };
     $attr{META_MERGE} = {
+	build_requires => {
+	    'Test::More' => 0.40,
+	},
 	resources => {
 	    bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
 	    license => 'http://dev.perl.org/licenses/',
@@ -135,5 +133,6 @@ if ( $mmv >= 6.4501 ) {
     $attr{PREREQ_PM}{'Test::More'} = 0.40;
 }
 
+$mmv >= 6.4701 and $attr{MIN_PERL_VERSION} = $meta->requires_perl();
 
 WriteMakefile (%attr);

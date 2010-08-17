@@ -12,6 +12,7 @@ eg/sh_data
 eg/sh_script
 eg/spaceflight
 inc/My/Module/Build.pm
+inc/My/Module/Meta.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/Parser.pm
 LICENSES/Artistic

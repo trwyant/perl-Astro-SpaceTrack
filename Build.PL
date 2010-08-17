@@ -6,9 +6,12 @@ use warnings;
 use lib qw{ inc };
 
 use My::Module::Build;
+use My::Module::Meta;
 use Config;
 use FileHandle;
 use Module::Build;
+
+my $meta = My::Module::Meta->new();
 
 (my $mbv = Module::Build->VERSION) =~ s/_//g;
 
@@ -19,15 +22,9 @@ my %attr = (
     get_options => {y => {}, n => {}},
     dynamic_config => 1,
     license => 'perl',
-    requires => {
-	perl	=> 5.006,
-	'Compress::Zlib' => 0,
-	'HTML::Parser' => 0,
-	'HTTP::Response' => 0,
-	'HTTP::Status' => 0,
-	'LWP::UserAgent' => 0,
-	'Params::Util' => 0.12,
-    },
+    requires => $meta->requires(
+	perl	=> $meta->requires_perl(),
+    ),
     build_requires => {
 	'Test::More' => 0.40,
     },
@@ -43,8 +40,11 @@ $mbv >= 0.28 and $attr{meta_merge} = {
     },
 };
 
+# Don't require Module::Build if we're making a distribution, since the
+# the user may simply prefer ExtUtils::MakeMaker.
+
 $mbv >= 0.34
-    and $attr{auto_configure_requires} = 0;	# Don't require Module::Build
+    and $attr{auto_configure_requires} = !$meta->distribution();
 
 #	Generate a builder object.
 
@@ -58,8 +58,8 @@ my @exe_files;
 my @clean_files;
 
 my @possible_exes = ('SpaceTrack');
-my $tk = eval {require Tk} and push @possible_exes, 'SpaceTrackTk';
-print $tk ? <<eod : <<eod;
+my $tk = eval { require Tk; 1 } and push @possible_exes, 'SpaceTrackTk';
+print $tk ? <<'EOD' : <<'EOD';
 
 The following scripts can be installed:
 
@@ -67,7 +67,7 @@ The following scripts can be installed:
   SpaceTrackTk is a windowed interface to Astro::SpaceTrack, using
     Perl/Tk.
 
-eod
+EOD
 
 The following script can be installed:
 
@@ -77,7 +77,7 @@ SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
 but will not be installed because you do not have the Tk package
 installed. If you want this, install Tk and then rerun Build.PL.
 
-eod
+EOD
 
 if ($opt{n}) {
     print "Because you have asserted -n, the executables will not be installed.\n\n";
@@ -138,4 +138,3 @@ $bldr->script_files (\@exe_files);
 #	Generate the build script, at long last.
 
 $bldr->create_build_script ();
-
