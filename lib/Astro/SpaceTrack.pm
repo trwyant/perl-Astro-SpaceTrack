@@ -107,8 +107,8 @@ use HTTP::Response;	# Not in the base, but comes with LWP.
 use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
 use LWP::UserAgent;	# Not in the base.
-use Params::Util 0.12 qw{_HANDLE _INSTANCE};
 use POSIX qw{strftime};
+use Scalar::Util 1.07 qw{ blessed openhandle };
 use Text::ParseWords;
 use Time::Local;
 
@@ -2011,7 +2011,7 @@ my ($read, $print, $out, $rdln);
 
 sub shell {
     my @args = @_;
-    my $self = _INSTANCE($args[0], __PACKAGE__) ? shift @args :
+    my $self = _instance( $args[0], __PACKAGE__ ) ? shift @args :
 	Astro::SpaceTrack->new (addendum => <<eod);
 
 'help' gets you a list of valid commands.
@@ -2021,7 +2021,7 @@ eod
 
     $out = \*STDOUT;
     $print = sub {
-	my $hndl = _HANDLE($_[0]) ? shift : $out;
+	my $hndl = openhandle($_[0]) ? shift : $out;
 	print $hndl @_;
 	return;
     };
@@ -2127,7 +2127,7 @@ cannot be read.
 
 # We really just delegate to _source, which unpacks.
 sub source {
-    my $self = _INSTANCE($_[0], __PACKAGE__) ? shift :
+    my $self = _instance( $_[0], __PACKAGE__ ) ? shift :
 	Astro::SpaceTrack->new ();
     $self->shell ($self->_source (@_), 'exit');
     return;
@@ -2706,6 +2706,16 @@ sub _handle_observing_list {
 	$self->_dump_headers( $resp );
     }
     return wantarray ? ($resp, \@data) : $resp;
+}
+
+#	_instance takes a variable and a class, and returns true if the
+#	variable is blessed into the class. It returns false for
+#	variables that are not references.
+sub _instance {
+    my ( $object, $class ) = @_;
+    ref $object or return;
+    blessed( $object ) or return;
+    return $object->isa( $class );
 }
 
 #	_mutate_attrib takes the name of an attribute and the new value
