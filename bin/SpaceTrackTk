@@ -57,7 +57,7 @@ sub grid_args {
 	push @rslt, "-$key", $val;
     }
     exists $hash->{column}
-	and $hash->{column} += $merged{columnspan} || 1;
+	and $hash->{column} += ( $merged{columnspan} || 1 );
     return @rslt;
 }
 
@@ -1241,6 +1241,8 @@ sub retrieve {
 	    $tx->insert( '0.0', $content );
 
 	}
+
+	return;
     }
 }
 
