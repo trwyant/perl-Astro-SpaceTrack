@@ -61,24 +61,12 @@ of the command-line commands was 'exit'. Beginning with 0.014, commands
 can also be piped in, or redirected in from a file.
 
 The one and only option is -filter, which sets the 'filter' attribute
-of the Astro::SpaceTrack object. This prevents informational output
+of the C<Astro::SpaceTrack> object. This prevents informational output
 (such as the banner and 'OK' messages) to stdout. The idea is that
 with -filter asserted, you can pipe the output to another program,
 and only have orbital elements written to the pipe.
 
-Please see L<Astro::SpaceTrack> for the details.
-
-=head1 MODIFICATIONS
-
- (no version) T. R. Wyant
-   initial release.
- 0.013 25-Nov-2005 T. R. Wyant
-   Added version.
-   Added POD.
- 0.014 28-Jan-2006 T. R. Wyant
-   Added and documented -filter.
- 0.015 20-Feb-2006 T. R. Wyant
-   Removed redundant front matter.
+Please see L<Astro::SpaceTrack|Astro::SpaceTrack> for the details.
 
 =head1 ACKNOWLEDGMENTS
 

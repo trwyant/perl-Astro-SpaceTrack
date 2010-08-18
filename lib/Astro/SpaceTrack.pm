@@ -3188,8 +3188,8 @@ The default is false (i.e. 0).
 =item iridium_status_format (string)
 
 This attribute specifies the format of the data returned by the
-L<iridium_status> method. Valid values are 'kelso' and 'mccants'.
-See that method for more information.
+L<iridium_status()|/iridium_status> method. Valid values are 'kelso' and
+'mccants'.  See that method for more information.
 
 The default is 'mccants' for historical reasons, but 'kelso' is probably
 preferred.
