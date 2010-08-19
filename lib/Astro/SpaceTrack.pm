@@ -1100,14 +1100,14 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my $fmt = shift || $self->{iridium_status_format};
 	delete $self->{_pragmata};
 	my %rslt;
-	my $kelso_url = $self->get ('url_iridium_status_kelso')->content;
+	my $kelso_url = $self->getv( 'url_iridium_status_kelso' );
 	my $resp = $self->{agent}->get ($kelso_url);
 	$resp->is_success or return $resp;
 	foreach my $buffer (split '\n', $resp->content) {
-	    $buffer =~ s/\s+$//;
+	    $buffer =~ s/ \s+ \z //smx;
 	    my $id = substr ($buffer, 0, 5) + 0;
 	    my $name = substr ($buffer, 5);
-	    $name =~ s/\s+(\[[^\]]+])\s*$//;
+	    $name =~ s/ \s+ ( \[ [^\]]+ ] ) \s* \z //smx;
 	    my $status = $1 || '';
 	    my $portable_status = $status_portable{kelso}{$status};
 	    my $comment;
@@ -1116,7 +1116,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 		}
 	      else {
 		$status = $status_map{kelso}{$fmt}{$status} || '';
-		$status = 'dum' unless $name =~ m/^IRIDIUM/i;
+		$status = 'dum' unless $name =~ m/ \A IRIDIUM /smxi;
 		$comment = 'Celestrak';
 		}
 	    $name = ucfirst lc $name;
@@ -1124,14 +1124,18 @@ The BODY_STATUS constants are exportable using the :status tag.
 		$portable_status];
 	}
 	if ($fmt eq 'mccants') {
-	    my $mccants_url = $self->get ('url_iridium_status_mccants')->content;
+	    my $mccants_url = $self->getv( 'url_iridium_status_mccants' );
 	    $resp = $self->{agent}->get ($mccants_url);
 	    $resp->is_success or return $resp;
 	    foreach my $buffer (split '\n', $resp->content) {
 		$buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
 		my ($id, $name, $status, $comment) =
-		    map {(my $s = $_) =~ s/\s+$//; $s =~ s/^\s+//; $s || ''}
-		    $buffer =~ m/(.{8})(.{0,15})(.{0,9})(.*)/;
+		    map {
+			(my $s = $_) =~ s/ \s+ \z//smx;
+			$s =~ s/ \A \s+ //smx;
+			$s || ''
+		    }
+		    $buffer =~ m/ (.{8}) (.{0,15}) (.{0,9}) (.*) /smx;
 		my $portable_status =
 		    exists $status_portable{mccants}{$status} ?
 			$status_portable{mccants}{$status} :
@@ -1143,13 +1147,13 @@ The BODY_STATUS constants are exportable using the :status tag.
 # 24836   Iridium 914    tum      Failed; was called Iridium 14
 	    }
 	} elsif ($fmt eq 'sladen') {
-	    my $sladen_url = $self->get('url_iridium_status_sladen')->content;
+	    my $sladen_url = $self->getv( 'url_iridium_status_sladen' );
 	    $resp = $self->{agent}->get($sladen_url);
 	    $resp->is_success or return $resp;
 	    my %oid;
 	    my %dummy;
 	    foreach my $id (keys %rslt) {
-		$rslt{$id}[1] =~ m/dummy/i and do {
+		$rslt{$id}[1] =~ m/ dummy /smxi and do {
 		    $dummy{$id} = $rslt{$id};
 		    $dummy{$id}[3] = 'Dummy';
 		    next;
@@ -1159,24 +1163,25 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    }
 	    %rslt = %dummy;
 	    my $fail;
-	    my $re = qr{(\d+)};
+	    my $re = qr{ (\d+) }smx;
 	    local $_ = $resp->content;
-####	    s{<em>.*?</em>}{}igms;	# Strip emphasis notes
-	    s/<.*?>//gms;	# Strip markup
+####	    s{ <em> .*? </em> }{}smxgi;	# Strip emphasis notes
+	    s/ < .*? > //smxg;	# Strip markup
 	    # Parenthesized numbers are assumed to represent tumbling
 	    # satellites in the in-service or spare grids.
 	    my %exception;
-	    s/\((\d+)\)/$exception{$1} = BODY_STATUS_IS_TUMBLING; $1/gems;
-	    s/\(.*?\)//g;	# Strip parenthetical comments
+	    s< [(] (\d+) [)] ><
+		$exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
+	    s/ [(] .*? [)] //smxg;	# Strip parenthetical comments
 	    foreach (split '\n', $_) {
-		if (m/&lt;-+\s+failed\s+-+&gt;/i) {
+		if (m/ &lt; -+ \s+ failed \s+ -+ &gt; /smxi) {
 		    $fail++;
 		    $re = qr{(\d+)(\w?)};
-		} elsif (s/^\s*(plane\s+\d+)\s*:\s*//i) {
+		} elsif ( s/ \A \s* ( plane \s+ \d+ ) \s* : \s* //smxi ) {
 		    my $plane = $1;
-##		    s/^\D+//;	# Strip leading non-digits
-		    s/\b[[:alpha:]].*//;	# Strip trailing comments
-		    s/\s+$//;			# Strip trailing whitespace
+##		    s/ \A \D+ //smx;	# Strip leading non-digits
+		    s/ \b [[:alpha:]] .* //smx;	# Strip trailing comments
+		    s/ \s+ \z //smx;		# Strip trailing whitespace
 		    my $inx = 0;	# First 11 functional are in service
 		    while (m/$re/g) {
 			my $num = +$1;
@@ -1208,7 +1213,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 				$plane, $status];
 			}
 		    }
-		} elsif (m/Notes:/) {
+		} elsif ( m/ Notes: /smx ) {
 		    last;
 		}
 	    }
@@ -1250,9 +1255,9 @@ sub login {
     ($self->{username} && $self->{password}) or
 	return HTTP::Response->new (
 	    RC_PRECONDITION_FAILED, NO_CREDENTIALS);
-    $self->{dump_headers} and warn <<eod;
+    $self->{dump_headers} and warn <<"EOD";
 Logging in as $self->{username}.
-eod
+EOD
 
     #	Do not use the _post method to retrieve the session cookie,
     #	unless you like bottomless recursions.
@@ -1417,7 +1422,7 @@ sub retrieve {
     push @params, sort => $opt->{sort};
     push @params, descending => $opt->{descending} ? 'yes' : '';
 
-    @args = grep {m/^\d+(?:-\d+)?$/} @args;
+    @args = grep { m/ \A \d+ (?: - \d+)? \z /smx } @args;
 
     @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
     my $content = '';
@@ -1432,10 +1437,10 @@ sub retrieve {
 	    defined $hi and do {
 		($lo, $hi) = ($hi, $lo) if $lo > $hi;
 		$hi - $lo >= $self->{max_range} and do {
-		    carp <<eod;
+		    carp <<"EOD";
 Warning - Range $lo-$hi ignored because it is greater than the
 	  currently-set maximum of $self->{max_range}.
-eod
+EOD
 		    next;
 		};
 		$ids += $hi - $lo;
@@ -1458,15 +1463,15 @@ eod
 	);
 	return $resp unless $resp->is_success;
 	$_ = $resp->content;
-	next if m/No records found/i;
-	if (m/ERROR:/) {
+	next if m/ No \s records \s found /smxi;
+	if ( m/ ERROR: /smx ) {
 	    return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
 		"Failed to retrieve IDs @batch.\n",
 		undef, $content);
 	}
-	s|</pre>.*||ms;
-	s|.*<pre>||ms;
-	s|^\n||ms;
+	s{ </pre> .* }{}smx;
+	s{ .* <pre> }{}smx;
+	s{ \A \n }{}smx;
 	$content .= $_;
     }
     $content or return HTTP::Response->new (RC_NOT_FOUND, NO_RECORDS);
@@ -1593,7 +1598,7 @@ sub search_date {
     return $self->_search_generic (sub {
 	my ($self, $name, $opt) = @_;
 	my ($year, $month, $day) =
-	    $name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
+	    $name =~ m/ \A (\d+) (?:\D+ (\d+) (?: \D+ (\d+) )? )? /smx
 		or return;
 	$year += $year < 57 ? 2000 : $year < 100 ? 1900 : 0;
 	$month ||= 0;
@@ -1668,7 +1673,8 @@ sub search_decay {
 	    poster => sub {
 		my ($self, $name, $opt) = @_;
 		my ($year, $month, $day) =
-		    $name =~ m/^(\d+)(?:\D+(\d+)(?:\D+(\d+))?)?/
+		    $name =~ m{ \A (\d+) (?: \D+ (\d+) (?: \D+ (\d+) )?
+			)? }smx
 			or return;
 		$year += $year < 57 ? 2000 : $year < 100 ? 1900 : 0;
 		$month ||= 0;
@@ -1748,7 +1754,8 @@ sub search_id {
     return $self->_search_generic (sub {
 	my ($self, $name, $opt) = @_;
 	my ($year, $number, $piece) =
-	    $name =~ m/^(\d\d)(\d{3})?([[:alpha:]])?$/ or return;
+	    $name =~ m/ \A (\d\d) (\d{3})? ( [[:alpha:]] )? \z /smx
+		or return;
 	$year += $year < 57 ? 2000 : 1900;
 	my $resp = $self->_post ('perl/launch_query.pl',
 	    date_spec => 'number',
@@ -2012,10 +2019,10 @@ my ($read, $print, $out, $rdln);
 sub shell {
     my @args = @_;
     my $self = _instance( $args[0], __PACKAGE__ ) ? shift @args :
-	Astro::SpaceTrack->new (addendum => <<eod);
+	Astro::SpaceTrack->new (addendum => <<'EOD');
 
 'help' gets you a list of valid commands.
-eod
+EOD
 
     my $prompt = 'SpaceTrack> ';
 
@@ -2051,17 +2058,16 @@ eod
 	}
 	last unless defined $buffer;
 
-	chomp $buffer;
-	$buffer =~ s/^\s+//;
-	$buffer =~ s/\s+$//;
+	$buffer =~ s/ \A \s+ //smx;
+	$buffer =~ s/ \s+ \z //smx;
 	next unless $buffer;
-	next if $buffer =~ m/^#/;
+	next if $buffer =~ m/ \A [#] /smx;
 	my @cmdarg = parse_line ('\s+', 0, $buffer);
 	my $redir = '';
-	@cmdarg = map {m/^>/ ? do {$redir = $_; ()} :
-	    $redir =~ m/^>+$/ ? do {$redir .= $_; ()} :
+	@cmdarg = map {m/ \A > /smx ? do {$redir = $_; ()} :
+	    $redir =~ m/ \A >+ \z /smx ? do {$redir .= $_; ()} :
 	    $_} @cmdarg;
-	$redir =~ s/^(>+)~/$1$ENV{HOME}/;
+	$redir =~ s/ \A (>+) ~ /$1$ENV{HOME}/smx;
 	my $verb = lc shift @cmdarg;
 	last if $verb eq 'exit' || $verb eq 'bye';
 	$verb eq 'show' and $verb = 'get';
@@ -2072,19 +2078,19 @@ eod
 	    } or warn ( $@ || 'An unknown error occurred' );
 	    next;
 	};
-	($verb eq 'new' || $verb =~ m/^_/ || $verb eq 'shell' ||
+	($verb eq 'new' || $verb =~ m/ \A _ /smx || $verb eq 'shell' ||
 	    !$self->can ($verb)) and do {
-	    warn <<eod;
+	    warn <<"EOD";
 Verb '$verb' undefined. Use 'help' to get help.
-eod
+EOD
 	    next;
 	};
 	my @fh;
 	$redir and do {
-	    @fh = (IO::File->new ($redir)) or do {warn <<eod; next};
+	    @fh = (IO::File->new ($redir)) or do {warn <<"EOD"; next};
 Error - Failed to open $redir
 	$^E
-eod
+EOD
 	};
 	my $rslt;
 	if ($verb eq 'get' && @cmdarg == 0) {
@@ -2221,11 +2227,11 @@ sub spaceflight {
 	my $resp = $self->{agent}->get ($url);
 	return $resp unless $resp->is_success;
 	my (@data, $acquire, $effective);
-	foreach (split '\n', $resp->content) {
+	foreach (split qr{ \n }smx, $resp->content) {
 	    chomp;
-	    m{Vector\s+Time\s+\(GMT\):\s+
-		(\d+/\d+/\d+:\d+:\d+\.\d+)}x and do {
-		$effective = "--effective $1";
+	    m{ Vector \s+ Time \s+ [(] GMT [)] : \s+
+		( \d+ / \d+ / \d+ : \d+ : \d+ [.] \d+ )}smx and do {
+		$effective = join ' ', '--effective', $1;
 		next;
 	    };
 	    m/TWO LINE MEAN ELEMENT SET/ and do {
@@ -2234,14 +2240,15 @@ sub spaceflight {
 		next;
 	    };
 	    next unless $acquire;
-	    s/^\s+//;
+	    s/ \A \s+ //smx;
 	    $_ and do {push @data, $_; next};
 	    @data and do {
 		$acquire = undef;
-		(@data == 2 || @data == 3) or next;
-		shift @data
-		    if @data == 3 && !$self->{direct} &&
-			!$self->{with_name};
+		@data == 2 or @data == 3 or next;
+		@data == 3
+		    and not $self->{direct}
+		    and not $self->{with_name}
+		    and shift @data;
 		if ($effective && $opt->{effective}) {
 		    if (@data == 2) {
 			unshift @data, $effective;
@@ -2251,9 +2258,9 @@ sub spaceflight {
 		}
 		$effective = undef;
 		my $ix = @data - 2;
-		my $id = substr ($data[$ix], 2, 5) + 0;
-		my $yr = substr ($data[$ix], 18, 2);
-		my $da = substr ($data[$ix], 20, 12);
+		my $id = 0 + substr $data[$ix], 2, 5;
+		my $yr = substr $data[$ix], 18, 2;
+		my $da = substr $data[$ix], 20, 12;
 		$yr += 100 if $yr < 57;
 		my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
 		unless (!$opt->{all} && ($opt->{start_epoch} ?
@@ -2270,8 +2277,8 @@ sub spaceflight {
     }
 
     unless ($opt->{all} || $opt->{start_epoch}) {
-	my $left = $opt->{last5} ? 5 : 1;
-	foreach (values %tle) {splice @$_, $left}
+	my $keep = $opt->{last5} ? 5 : 1;
+	foreach (values %tle) {splice @{ $_ }, $keep}
     }
     $content .= join '',
 	map {$_->[2]}
@@ -2345,7 +2352,7 @@ sub spacetrack {
     my $self = shift;
     delete $self->{_pragmata};
     my $catnum = shift;
-    $catnum =~ m/\D/ and do {
+    $catnum =~ m/ \D /smx and do {
 	my $info = $catalogs{spacetrack}{$catnum} or
 	    return $self->_no_such_catalog (spacetrack => $catnum);
 	$catnum = $info->{number};
@@ -2375,8 +2382,8 @@ Requested file  doesn't exist");history.go(-1);
 
     ($resp->is_success() && !$self->{debug_url}) and do {
 	my $content = $resp->content ();
-	if ($content =~ m/<html>/) {
-	    if ($content =~ m/Requested file doesn't exist/i) {
+	if ($content =~ m/ <html> /smx) {
+	    if ($content =~ m/ Requested \s file \s doesn't \s exist/smxi) {
 		$resp = HTTP::Response->new (RC_NOT_FOUND,
 		    "The file for catalog $catnum is missing.\n",
 		    undef, $content);
@@ -2444,12 +2451,12 @@ sub _check_cookie {
 	($cookie, $expir) = @_[2, 8] if $_[4] eq $self->{domain_space_track} &&
 	    $_[3] eq SESSION_PATH && $_[1] eq SESSION_KEY;
 	});
-    $self->{dump_headers} and warn $expir ? <<eod : <<eod;
+    $self->{dump_headers} and warn $expir ? <<"EOD" : <<'EOD';	## no critic (RequireCarping)
 Session cookie: $cookie
 Cookie expiration: @{[strftime '%d-%b-%Y %H:%M:%S', localtime $expir]} ($expir)
-eod
+EOD
 Session cookie not found
-eod
+EOD
     $self->{session_cookie} = $cookie;
     $self->{cookie_expires} = $expir;
     return $expir || 0;
@@ -2473,7 +2480,7 @@ eod
 	    # left in in case something else leaks through.
 	    defined $buffer or $buffer = '';
 	    $buffer =~ s/$lookfor/\n/smxgo;
-	    1 while ($buffer =~ s/ \A \n+ //ms);
+	    1 while ($buffer =~ s/ \A \n+ //smx);
 	    $buffer =~ s/ \s+ \n /\n/smxg;
 	    $buffer =~ m/ \n \z /smx or $buffer .= "\n";
 	    $resp->content ($buffer);
@@ -2515,9 +2522,9 @@ use Data::Dumper;
     sub _dump_cookie {
 	my ($prefix, @args) = @_;
 	local $Data::Dumper::Terse = 1;
-	$prefix and warn $prefix;
+	$prefix and warn $prefix;	## no critic (RequireCarping)
 	for (my $inx = 0; $inx < @names; $inx++) {
-	    warn "    $names[$inx] => ", Dumper ($args[$inx]);
+	    warn "    $names[$inx] => ", Dumper ($args[$inx]);	## no critic (RequireCarping)
 	}
 	return;
     }
@@ -2590,7 +2597,7 @@ sub _get {
 	    $cgi .= "&$name=$val";
 	}
     }
-    $cgi and substr ($cgi, 0, 1) = '?';
+    $cgi and substr( $cgi, 0, 1, '?' );
     {	# Single-iteration loop
 	$self->{debug_url} or $self->{cookie_expires} > time () or do {
 	    my $resp = $self->login ();
@@ -2600,9 +2607,12 @@ sub _get {
 	my $resp = $self->_dump_request($url, @args) ||
 	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
-	return $resp unless $resp->is_success && !$self->{debug_url};
+##	return $resp unless $resp->is_success && !$self->{debug_url};
+	$resp->is_success()
+	    and not $self->{debug_url}
+	    or return $resp;
 	local $_ = $resp->content;
-	m/login\.pl/i and do {
+	m/ login [.] pl /smxi and do {
 	    $self->{cookie_expires} = 0;
 	    redo;
 	};
@@ -2688,10 +2698,10 @@ sub _handle_observing_list {
     @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
     my $opt = shift;
 
-    foreach (map {split '\n', $_} @args) {
-	s/\s+$//;
-	my ($id) = m/^([\s\d]{5})/ or next;
-	$id =~ m/^\s*\d+$/ or next;
+    foreach (map {split qr{ \n }smx, $_} @args) {
+	s/ \s+ \z //smx;
+	my ( $id ) = m/ \A ( [\s\d]{5} ) /smx or next;
+	$id =~ m/ \A \s* \d+ \z /smx or next;
 	push @catnum, $id;
 	push @data, [$id, substr $_, 5];
     }
@@ -2772,9 +2782,9 @@ sub _mutate_iridium_status_format {
 # This subroutine just does some argument checking and then co-routines
 # off to _mutate_attrib.
 sub _mutate_number {
-    $_[2] =~ m/\D/ and croak <<eod;
+    $_[2] =~ m/ \D /smx and croak <<"EOD";
 Attribute $_[1] must be set to a numeric value.
-eod
+EOD
     goto &_mutate_attrib;
 }
 
@@ -2789,13 +2799,13 @@ my %no_such_name = (
     spacetrack => 'Space Track',
 );
 my %no_such_trail = (
-    spacetrack => <<eod,
+    spacetrack => <<'EOD',
 The Space Track data sets are actually numbered. The given number
 corresponds to the data set without names; if you are requesting data
 sets by number and want names, add 1 to the given number. When
 requesting Space Track data sets by number the 'with_name' attribute is
 ignored.
-eod
+EOD
 );
 sub _no_such_catalog {
     my $self = shift;
@@ -2871,10 +2881,10 @@ sub _parse_retrieve_args {
 
     $opt->{sort} ||= 'catnum';
 
-    ($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<eod;
+    ($opt->{sort} eq 'catnum' || $opt->{sort} eq 'epoch') or die <<"EOD";
 Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
         (the default) or 'epoch'.
-eod
+EOD
 
     return ( $opt, @args );
 }
@@ -2898,13 +2908,13 @@ sub _parse_retrieve_dates {
     my $found;
     foreach my $key (qw{end_epoch start_epoch}) {
 	next unless $opt->{$key};
-	$opt->{$key} !~ m/\D/ or
-	    $opt->{$key} =~ m/^(\d+)\D+(\d+)\D+(\d+)$/ and
-		$opt->{$key} = eval {timegm (0, 0, 0, +$3, $2-1, +$1)} or
-	    croak <<eod;
+	$opt->{$key} !~ m/ \D /smx or
+	    $opt->{$key} =~ m/ \A (\d+) \D+ (\d+) \D+ (\d+) \z /smx
+		and $opt->{$key} = eval {timegm (0, 0, 0, +$3, $2-1, +$1)}
+		or croak <<"EOD";
 Error - Illegal date '$opt->{$key}'. Valid dates are a number
 	(interpreted as a Perl date) or numeric year-month-day.
-eod
+EOD
 	$found++;
     }
 
@@ -2913,9 +2923,9 @@ eod
 	    $opt->{start_epoch} ||= $opt->{end_epoch} - 86400;
 	    $opt->{end_epoch} ||= $opt->{start_epoch} + 86400;
 	}
-	$opt->{start_epoch} <= $opt->{end_epoch} or croak <<eod;
+	$opt->{start_epoch} <= $opt->{end_epoch} or croak <<'EOD';
 Error - End epoch must not be before start epoch.
-eod
+EOD
 	unless ($ctl->{perldate}) {
 	    foreach my $key (qw{start_epoch end_epoch}) {
 		$opt->{$key} = [gmtime ($opt->{$key})];
@@ -2950,17 +2960,17 @@ sub _parse_search_args {
 
 	my $opt = $args[0];
 	$opt->{status} ||= 'all';
-	$legal_search_status{$opt->{status}} or croak <<eod;
+	$legal_search_status{$opt->{status}} or croak <<"EOD";
 Error - Illegal status '$opt->{status}'. You must specify one of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
-eod
+EOD
 	$opt->{exclude} ||= [];
 	$opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
 	foreach (@{$opt->{exclude}}) {
-	    $legal_search_exclude{$_} or croak <<eod;
+	    $legal_search_exclude{$_} or croak <<"EOD";
 Error - Illegal exclusion '$_'. You must specify one or more of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
-eod
+EOD
 	}
     }
 
@@ -2982,9 +2992,12 @@ sub _post {
 	my $resp = $self->_dump_request( $url, @args) ||
 	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
-	return $resp unless $resp->is_success && !$self->{debug_url};
+##	return $resp unless $resp->is_success && !$self->{debug_url};
+	$resp->is_success()
+	    and not $self->{debug_url}
+	    or return $resp;
 	local $_ = $resp->content;
-	m/login\.pl/i and do {
+	m/ login [.] pl /smxi and do {
 	    $self->{cookie_expires} = 0;
 	    redo;
 	};
@@ -3028,7 +3041,10 @@ sub _search_generic {
     my %id;
     foreach my $name (@args) {
 	defined (my $resp = $poster->($self, $name, $opt)) or next;
-	return $resp unless $resp->is_success && !$self->{debug_url};
+##	return $resp unless $resp->is_success && !$self->{debug_url};
+	$resp->is_success()
+	    and not $self->{debug_url}
+	    or return $resp;
 	my $content = $resp->content;
 	next if $content =~ m/No results found/i;
 	$content =~ s/ &nbsp; / /smxg;
@@ -3060,7 +3076,7 @@ sub _search_generic {
 
     my $resp;
     if ( $opt->{tle} ) {
-	my $with_name = $self->get( 'with_name' )->content();
+	my $with_name = $self->getv( 'with_name' );
 	$resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
 	if ( $opt->{rcs} ) {
 	    my $content = $resp->content();
@@ -3103,16 +3119,16 @@ sub _search_generic {
 
 sub _source {
     my $self = shift;
-    wantarray or die <<eod;
+    wantarray or die <<'EOD';
 Error - _source () called in scalar or no context. This is a bug.
-eod
-    my $fn = shift or die <<eod;
+EOD
+    my $fn = shift or die <<'EOD';
 Error - No source file name specified.
-eod
-    my $fh = IO::File->new ($fn, '<') or die <<eod;
+EOD
+    my $fh = IO::File->new ($fn, '<') or die <<"EOD";
 Error - Failed to open source file '$fn'.
         $!
-eod
+EOD
     return <$fh>;
 }
 

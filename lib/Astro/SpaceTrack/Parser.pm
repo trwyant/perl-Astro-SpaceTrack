@@ -137,8 +137,8 @@ sub _spacetrack_html_end {
 sub _spacetrack_html_text {
     my $self = shift;
     my $text = shift;
-    $text =~ s/\s+$//sm;
-    $text =~ s/^\s+//sm;
+    $text =~ s/ \s+ \z //smx;
+    $text =~ s/ \A \s+ //smx;
     $text ne '' and $self->{_spacetrack_text_action}->($self, $text);
     return;
 }
