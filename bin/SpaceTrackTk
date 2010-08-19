@@ -489,9 +489,11 @@ sub retrieve_panel {
 # Track retrieval arguments.
 sub retrieve_args {
     my ( $data ) = @_;
+    my $val = $data->{retrieve}{value};
+    $val =~ s/ ( \d ) [^-\d]* - [^-\d]* ( \d ) /$1-$2/smxg;
     return (
 	retrieve_options_args( retrieve => $data ),
-	split qr{ \D+ }smx, $data->{retrieve}{value}
+	split qr{ [^\d-]+ }smx, $val
     );
 }
 
@@ -816,9 +818,7 @@ sub search_options_widgets {
     ref $opt eq 'HASH' or $opt = {};
     defined $opt->{status} or $opt->{status} = 1;
 
-    if ( $opt->{status} ) {
-
-	$data->{option}{status} = 1;
+    if ( $data->{option}{status} = $opt->{status} ) {
 
 	$widget->{$source}{search_status_label} ||=
 	    $widget->{data_frame}->Label( -text => 'Desired status:' );
@@ -1153,7 +1153,18 @@ sub retrieve {
 #   use YAML;
 #   warn "Debug - \$data is ", Dump( $data ), ' ';
     my ( $error, $rslt );
-    if ( my $rslt = eval { $st->$source( @args ) } ) {
+    if ( my $rslt = eval {
+	    local $SIG{__WARN__} = sub {
+		( my $msg = $_[0] ) =~
+		    s/ \S+ \s+ \S* SpaceTrackTk .* //smx;
+		$msg =~ s/ \s+ / /smxg;
+		$widget->{main_window}->messageBox( -icon => 'warning',
+		    -type => 'OK', -title => 'Data fetch warning',
+		    -message => $msg,
+		);
+	    };
+	    $st->$source( @args );
+	} ) {
 	$rslt->is_success()
 	    and return ( $rslt->content(), $source, @args );
 	$error = $rslt->status_line();
