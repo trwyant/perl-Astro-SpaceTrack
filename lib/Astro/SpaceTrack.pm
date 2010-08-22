@@ -108,7 +108,7 @@ use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
 	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
 use LWP::UserAgent;	# Not in the base.
 use POSIX qw{strftime};
-use Scalar::Util 1.07 qw{ blessed openhandle };
+use Scalar::Util 1.07 qw{ blessed };
 use Text::ParseWords;
 use Time::Local;
 
@@ -326,7 +326,7 @@ sub amsat {
 	my $resp = $self->{agent}->get ($url);
 	return $resp unless $resp->is_success;
 	$self->_dump_headers( $resp );
-	my ($tle, @data, $epoch);
+	my @data;
 	foreach (split '\n', $resp->content) {
 	    push @data, "$_\n";
 	    @data == 3 or next;
@@ -377,7 +377,7 @@ benefit of the shell method.
 	$perl_version ||= do {
 	    $] >= 5.01 ? $^V : do {
 		require Config;
-		'v' . $Config::Config{version};
+		'v' . $Config::Config{version};	## no critic (ProhibitPackageVars)
 	    }
 	};
 	return HTTP::Response->new (RC_OK, undef, undef, <<"EOD");
@@ -435,7 +435,9 @@ sub box_score {
     my $p = Astro::SpaceTrack::Parser->new ();
 
     my $resp = $self->_post ( 'perl/boxscore.pl' );
-    return $resp unless $resp->is_success && !$self->{debug_url};
+    $resp->is_success()
+	and not $self->{debug_url}
+	or return $resp;
 
     my $content = $resp->content;
     $content =~ s/ &nbsp; / /smxg;
@@ -601,9 +603,7 @@ sub _celestrak_direct {
     }
     $self->_convert_content ($resp);
     if ($name eq 'iridium') {
-	$resp->content (join "\n",
-	    map {(my $s = $_) =~ s/\s+\[.\]\s*$//; $s}
-	    split '\n', $resp->content);
+	_celestrak_repack_iridium( $resp );
     }
     $self->_add_pragmata($resp,
 	'spacetrack-type' => 'orbit',
@@ -611,6 +611,17 @@ sub _celestrak_direct {
     );
     $self->_dump_headers( $resp );
     return $resp;
+}
+
+sub _celestrak_repack_iridium {
+    my ( $resp ) = @_;
+    my @content;
+    foreach ( split qr{ \n }smx, $resp->content() ) {
+	s/ \s+ [[] . []] \s* \z //smx;
+	push @content, $_;
+    }
+    $resp->content( join "\n", @content );
+    return;
 }
 
 {	# Local symbol block.
@@ -626,7 +637,7 @@ sub _celestrak_direct {
 	    return $resp;
 	}
 	if (my $loc = $resp->header('Content-Location')) {
-	    if ($loc =~ m/redirect\.htm\?(\d{3});/) {
+	    if ($loc =~ m/ redirect [.] htm [?] ( \d{3} ) ; /smx) {
 		my $msg = "redirected $1";
 		@args and $msg = "@args; $msg";
 		$1 == RC_NOT_FOUND
@@ -642,10 +653,8 @@ sub _celestrak_direct {
 	    return $self->_no_such_catalog(
 		celestrak => $name, $msg);
 	};
-	foreach (split ',', $type) {
-	    s/^\s+//;
-	    s/;.*//;
-	    s/\s+$//;
+	foreach ( _trim( split ',', $type ) ) {
+	    s/ ; .* //smx;
 	    $valid_type{$_} and return;
 	}
 	my $msg = "Content-Type: $type";
@@ -694,7 +703,7 @@ sub content_source {
     my ($self, $resp) = @_;
     defined $resp or return $self->{_pragmata}{'spacetrack-source'};
     foreach ($resp->header ('Pragma')) {
-	m/spacetrack-source = (.+)/i and return $1;
+	m/ spacetrack-source \s+ = \s+ (.+) /smxi and return $1;
     }
     return;
 }
@@ -726,7 +735,7 @@ sub content_type {
     my ($self, $resp) = @_;
     defined $resp or return $self->{_pragmata}{'spacetrack-type'};
     foreach ($resp->header ('Pragma')) {
-	m/spacetrack-type = (.+)/i and return $1;
+	m/ spacetrack-type \s+ = \s+ (.+) /smxi and return $1;
     }
     return;
 }
@@ -869,7 +878,7 @@ sub help {
 	    "http://search.cpan.org/~wyant/Astro-SpaceTrack-$VERSION/");
 	return HTTP::Response->new (RC_OK, undef, undef, 'OK');
     } else {
-	my $resp = HTTP::Response->new (RC_OK, undef, undef, <<eod);
+	my $resp = HTTP::Response->new (RC_OK, undef, undef, <<'EOD');
 The following commands are defined:
   box_score
     Retrieve the SATCAT box score. A Space Track login is needed.
@@ -943,7 +952,7 @@ The following commands are defined:
     Space Track.
 The shell supports a pseudo-redirection of standard output,
 using the usual Unix shell syntax (i.e. '>output_file').
-eod
+EOD
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'help',
 	);
@@ -1100,123 +1109,14 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my $fmt = shift || $self->{iridium_status_format};
 	delete $self->{_pragmata};
 	my %rslt;
-	my $kelso_url = $self->getv( 'url_iridium_status_kelso' );
-	my $resp = $self->{agent}->get ($kelso_url);
-	$resp->is_success or return $resp;
-	foreach my $buffer (split '\n', $resp->content) {
-	    $buffer =~ s/ \s+ \z //smx;
-	    my $id = substr ($buffer, 0, 5) + 0;
-	    my $name = substr ($buffer, 5);
-	    $name =~ s/ \s+ ( \[ [^\]]+ ] ) \s* \z //smx;
-	    my $status = $1 || '';
-	    my $portable_status = $status_portable{kelso}{$status};
-	    my $comment;
-	    if ($fmt eq 'kelso' || $fmt eq 'sladen') {
-		$comment = $kelso_comment{$status} || '';
-		}
-	      else {
-		$status = $status_map{kelso}{$fmt}{$status} || '';
-		$status = 'dum' unless $name =~ m/ \A IRIDIUM /smxi;
-		$comment = 'Celestrak';
-		}
-	    $name = ucfirst lc $name;
-	    $rslt{$id} = [$id, $name, $status, $comment,
-		$portable_status];
-	}
+	my $resp = $self->_iridium_status_kelso( $fmt, \%rslt );
+	$resp->is_success() or return $resp;
 	if ($fmt eq 'mccants') {
-	    my $mccants_url = $self->getv( 'url_iridium_status_mccants' );
-	    $resp = $self->{agent}->get ($mccants_url);
-	    $resp->is_success or return $resp;
-	    foreach my $buffer (split '\n', $resp->content) {
-		$buffer =~ m/^\s*(\d+)\s+Iridium\s+\S+/ or next;
-		my ($id, $name, $status, $comment) =
-		    map {
-			(my $s = $_) =~ s/ \s+ \z//smx;
-			$s =~ s/ \A \s+ //smx;
-			$s || ''
-		    }
-		    $buffer =~ m/ (.{8}) (.{0,15}) (.{0,9}) (.*) /smx;
-		my $portable_status =
-		    exists $status_portable{mccants}{$status} ?
-			$status_portable{mccants}{$status} :
-			BODY_STATUS_IS_TUMBLING;
-		$rslt{$id} = [$id, $name, $status, $comment,
-		    $portable_status];
-#0         1         2         3         4         5         6         7
-#01234567890123456789012345678901234567890123456789012345678901234567890
-# 24836   Iridium 914    tum      Failed; was called Iridium 14
-	    }
+	    ( $resp = $self->_iridium_status_mccants( $fmt, \%rslt ) )
+		->is_success() or return $resp;
 	} elsif ($fmt eq 'sladen') {
-	    my $sladen_url = $self->getv( 'url_iridium_status_sladen' );
-	    $resp = $self->{agent}->get($sladen_url);
-	    $resp->is_success or return $resp;
-	    my %oid;
-	    my %dummy;
-	    foreach my $id (keys %rslt) {
-		$rslt{$id}[1] =~ m/ dummy /smxi and do {
-		    $dummy{$id} = $rslt{$id};
-		    $dummy{$id}[3] = 'Dummy';
-		    next;
-		};
-		$rslt{$id}[1] =~ m/(\d+)/ or next;
-		$oid{+$1} = $id;
-	    }
-	    %rslt = %dummy;
-	    my $fail;
-	    my $re = qr{ (\d+) }smx;
-	    local $_ = $resp->content;
-####	    s{ <em> .*? </em> }{}smxgi;	# Strip emphasis notes
-	    s/ < .*? > //smxg;	# Strip markup
-	    # Parenthesized numbers are assumed to represent tumbling
-	    # satellites in the in-service or spare grids.
-	    my %exception;
-	    s< [(] (\d+) [)] ><
-		$exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
-	    s/ [(] .*? [)] //smxg;	# Strip parenthetical comments
-	    foreach (split '\n', $_) {
-		if (m/ &lt; -+ \s+ failed \s+ -+ &gt; /smxi) {
-		    $fail++;
-		    $re = qr{(\d+)(\w?)};
-		} elsif ( s/ \A \s* ( plane \s+ \d+ ) \s* : \s* //smxi ) {
-		    my $plane = $1;
-##		    s/ \A \D+ //smx;	# Strip leading non-digits
-		    s/ \b [[:alpha:]] .* //smx;	# Strip trailing comments
-		    s/ \s+ \z //smx;		# Strip trailing whitespace
-		    my $inx = 0;	# First 11 functional are in service
-		    while (m/$re/g) {
-			my $num = +$1;
-			my $detail = $2;
-			my $id = $oid{$num} or do {
-#			    This is normal for decayed satellites.
-#			    warn "No oid for Iridium $num\n";
-			    next;
-			};
-			my $name = "Iridium $num";
-			if ($fail) {
-			    if ($detail eq 'd') {
-			    } elsif ($detail eq 't') {
-				$rslt{$id} = [$id, $name, "[-]", $plane,
-				    BODY_STATUS_IS_TUMBLING];
-			    } else {
-				$rslt{$id} = [$id, $name, "[-]",
-				    $plane . ' - Failed on station?',
-				    BODY_STATUS_IS_TUMBLING];
-			    }
-			} else {
-			    my $status = $inx++ > 10 ?
-				BODY_STATUS_IS_SPARE :
-				BODY_STATUS_IS_OPERATIONAL;
-			    exists $exception{$num}
-				and $status = $exception{$num};
-			    $rslt{$id} = [$id, $name,
-				$status_portable{kelso_inverse}{$status},
-				$plane, $status];
-			}
-		    }
-		} elsif ( m/ Notes: /smx ) {
-		    last;
-		}
-	    }
+	    ( $resp = $self->_iridium_status_sladen( $fmt, \%rslt ) )
+		->is_success() or return $resp;
 	}
 	$resp->content (join '', map {
 		sprintf "%6d   %-15s%-8s %s\n", @{$rslt{$_}}}
@@ -1228,6 +1128,158 @@ The BODY_STATUS constants are exportable using the :status tag.
 	$self->_dump_headers( $resp );
 	return wantarray ? ($resp, [values %rslt]) : $resp;
     }
+
+    # Get Iridium data from Celestrak.
+    sub _iridium_status_kelso {
+	my ( $self, $fmt, $rslt ) = @_;
+	my $resp = $self->{agent}->get(
+	    $self->getv( 'url_iridium_status_kelso' )
+	);
+	$resp->is_success or return $resp;
+	foreach my $buffer (split '\n', $resp->content) {
+	    $buffer =~ s/ \s+ \z //smx;
+	    my $id = substr ($buffer, 0, 5) + 0;
+	    my $name = substr ($buffer, 5);
+	    my $status = '';
+	    $name =~ s/ \s+ ( [[] .+? []] ) \s* \z //smx
+		and $status = $1;
+	    my $portable_status = $status_portable{kelso}{$status};
+	    my $comment;
+	    if ($fmt eq 'kelso' || $fmt eq 'sladen') {
+		$comment = $kelso_comment{$status} || '';
+		}
+	      else {
+		$status = $status_map{kelso}{$fmt}{$status} || '';
+		$status = 'dum' unless $name =~ m/ \A IRIDIUM /smxi;
+		$comment = 'Celestrak';
+		}
+	    $name = ucfirst lc $name;
+	    $rslt->{$id} = [ $id, $name, $status, $comment,
+		$portable_status ];
+	}
+	return $resp;
+    }
+
+    # Get Iridium status from Mike McCants
+    sub _iridium_status_mccants {
+	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
+	my $resp = $self->{agent}->get(
+	    $self->getv( 'url_iridium_status_mccants' )
+	);
+	$resp->is_success or return $resp;
+	foreach my $buffer (split '\n', $resp->content) {
+	    $buffer =~ m/ \A \s* (\d+) \s+ Iridium \s+ \S+ /smxi
+		or next;
+	    my ($id, $name, $status, $comment) = _trim(
+		$buffer =~ m/ (.{8}) (.{0,15}) (.{0,9}) (.*) /smx
+	    );
+	    my $portable_status =
+		exists $status_portable{mccants}{$status} ?
+		    $status_portable{mccants}{$status} :
+		    BODY_STATUS_IS_TUMBLING;
+	    $rslt->{$id} = [ $id, $name, $status, $comment,
+		$portable_status ];
+#0         1         2         3         4         5         6         7
+#01234567890123456789012345678901234567890123456789012345678901234567890
+# 24836   Iridium 914    tum      Failed; was called Iridium 14
+	}
+	return $resp;
+    }
+
+    my %sladen_interpret_detail = (
+	'' => sub {
+	    my ( $rslt, $id, $name, $plane ) = @_;
+	    $rslt->{$id} = [ $id, $name, '[-]',
+		"$plane - Failed on station?",
+		BODY_STATUS_IS_TUMBLING ];
+	    return;
+	},
+	d => sub {
+	    return;
+	},
+	t => sub {
+	    my ( $rslt, $id, $name, $plane ) = @_;
+	    $rslt->{$id} = [ $id, $name, '[-]', $plane,
+		BODY_STATUS_IS_TUMBLING ];
+	},
+    );
+
+    # Get Iridium status from Rod Sladen.
+    sub _iridium_status_sladen {
+	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
+
+	my $resp = $self->{agent}->get(
+	    $self->getv( 'url_iridium_status_sladen' )
+	);
+	$resp->is_success or return $resp;
+	my %oid;
+	my %dummy;
+	foreach my $id (keys %{ $rslt } ) {
+	    $rslt->{$id}[1] =~ m/ dummy /smxi and do {
+		$dummy{$id} = $rslt->{$id};
+		$dummy{$id}[3] = 'Dummy';
+		next;
+	    };
+	    $rslt->{$id}[1] =~ m/ (\d+) /smx or next;
+	    $oid{+$1} = $id;
+	}
+	%{ $rslt } = %dummy;
+
+	my $fail;
+	my $re = qr{ (\d+) }smx;
+	local $_ = $resp->content;
+####	s{ <em> .*? </em> }{}smxgi;	# Strip emphasis notes
+	s/ < .*? > //smxg;	# Strip markup
+	# Parenthesized numbers are assumed to represent tumbling
+	# satellites in the in-service or spare grids.
+	my %exception;
+	{	## no critic (ProhibitUnusedCapture)
+	    s< [(] (\d+) [)] >
+		< $exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
+	}
+	s/ [(] .*? [)] //smxg;	# Strip parenthetical comments
+	foreach (split '\n', $_) {
+	    if (m/ &lt; -+ \s+ failed \s+ -+ &gt; /smxi) {
+		$fail++;
+		$re = qr{ (\d+) (\w?) }smx;
+	    } elsif ( s/ \A \s* ( plane \s+ \d+ ) \s* : \s* //smxi ) {
+		my $plane = $1;
+##		s/ \A \D+ //smx;	# Strip leading non-digits
+		s/ \b [[:alpha:]] .* //smx;	# Strip trailing comments
+		s/ \s+ \z //smx;		# Strip trailing whitespace
+		my $inx = 0;	# First 11 functional are in service
+		while (m/ $re /smxg) {
+		    my $num = +$1;
+		    my $detail = $2;
+		    my $id = $oid{$num} or do {
+#			This is normal for decayed satellites.
+#			warn "No oid for Iridium $num\n";
+			next;
+		    };
+		    my $name = "Iridium $num";
+		    if ($fail) {
+			my $interp = $sladen_interpret_detail{$detail}
+			    || $sladen_interpret_detail{''};
+			$interp->( $rslt, $id, $name, $plane );
+		    } else {
+			my $status = $inx++ > 10 ?
+			    BODY_STATUS_IS_SPARE :
+			    BODY_STATUS_IS_OPERATIONAL;
+			exists $exception{$num}
+			    and $status = $exception{$num};
+			$rslt->{$id} = [ $id, $name,
+			    $status_portable{kelso_inverse}{$status},
+			    $plane, $status ];
+		    }
+		}
+	    } elsif ( m/ Notes: /smx ) {
+		last;
+	    }
+	}
+
+	return $resp;
+    }
+
 }	# End of local symbol block.
 
 
@@ -1275,9 +1327,9 @@ EOD
     $self->_check_cookie () > time ()
 	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
 
-    $self->{dump_headers} and warn <<eod;
+    $self->{dump_headers} and warn <<'EOD';
 Login successful.
-eod
+EOD
     return HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 }
 
@@ -1426,7 +1478,7 @@ sub retrieve {
 
     @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
     my $content = '';
-    local $_;
+    local $_ = undef;
     my $resp;
     while (@args) {
 	my @batch;
@@ -1434,8 +1486,10 @@ sub retrieve {
 	while (@args && $ids < RETRIEVAL_SIZE) {
 	    $ids++;
 	    my ($lo, $hi) = split '-', shift @args;
+	    $lo > 0 or defined $hi or next;
 	    defined $hi and do {
 		($lo, $hi) = ($hi, $lo) if $lo > $hi;
+		$lo or $lo = 1;	# 0 is illegal
 		$hi - $lo >= $self->{max_range} and do {
 		    carp <<"EOD";
 Warning - Range $lo-$hi ignored because it is greater than the
@@ -1924,17 +1978,19 @@ sub search_oid {
     my $opt = shift @args;
     exists $opt->{tle} or $opt->{tle} = 1;
     my $ids = join ' ', @args;
-    return $self->_search_generic (sub {
-	my ($self, $ids, $opt) = @_;
-	$self->_post ('perl/satcat_id_query.pl',
-	    _submitted => 1,
-	    _sessionid => '',
-	    ids => $ids,
-	    desc => ( $opt->{descending} ? 'yes' : '' ),
-	    _submit => 'Submit',
-	    );
-	}, $opt, $ids );
+    return $self->_search_generic ( \&_search_oid_generic, $opt, $ids );
+}
 
+sub _search_oid_generic {
+    my ( $self, $ids, $opt ) = @_;
+    return $self->_post (
+	'perl/satcat_id_query.pl',
+	_submitted => 1,
+	_sessionid => '',
+	ids => $ids,
+	desc => ( $opt->{descending} ? 'yes' : '' ),
+	_submit => 'Submit',
+    );
 }
 
 
@@ -1955,12 +2011,13 @@ See L</Attributes> for the names and functions of the attributes.
 
 =cut
 
-sub set {
+sub set {	## no critic (ProhibitAmbiguousNames)
     my ($self, @args) = @_;
     delete $self->{_pragmata};
-    croak "@{[__PACKAGE__]}->set (@{[join ', ', map {qq{'$_'}} @args
-	    ]}) requires an even number of arguments"
-	if @args % 2;
+    @args % 2
+	and croak __PACKAGE__, '->set( ',
+	join( ', ', map { "'$_'" } @args ),
+	') requires an even number of arguments';
     while (@args) {
 	my $name = shift @args;
 	croak "Attribute $name may not be set. Legal attributes are ",
@@ -2014,7 +2071,7 @@ Unlike most of the other methods, this one returns nothing.
 
 =cut
 
-my ($read, $print, $out, $rdln);
+my $rdln;
 
 sub shell {
     my @args = @_;
@@ -2026,12 +2083,8 @@ EOD
 
     my $prompt = 'SpaceTrack> ';
 
-    $out = \*STDOUT;
-    $print = sub {
-	my $hndl = openhandle($_[0]) ? shift : $out;
-	print $hndl @_;
-	return;
-    };
+    my $stdout = \*STDOUT;
+    my $read;
 
     unshift @args, 'banner' if $self->{banner} && !$self->{filter};
     # Perl::Critic wants IO::Interactive::is_interactive() here. But
@@ -2050,9 +2103,9 @@ EOD
 		    require Term::ReadLine;
 		    $rdln ||= Term::ReadLine->new (
 			'SpaceTrack orbital element access');
-		    $out = $rdln->OUT || \*STDOUT;
+		    $stdout = $rdln->OUT || \*STDOUT;
 		    sub { $rdln->readline ($prompt) };
-		} || sub { print { $out } $prompt; return <STDIN> } ) :
+		} || sub { print { $stdout } $prompt; return <STDIN> } ) :
 		sub { return<STDIN> };
 	    $buffer = $read->();
 	}
@@ -2075,7 +2128,7 @@ EOD
 	    eval {
 		splice @args, 0, 0, $self->_source (shift @cmdarg);
 		1;
-	    } or warn ( $@ || 'An unknown error occurred' );
+	    } or warn ( $@ || 'An unknown error occurred' );	## no critic (RequireCarping)
 	    next;
 	};
 	($verb eq 'new' || $verb =~ m/ \A _ /smx || $verb eq 'shell' ||
@@ -2085,38 +2138,52 @@ Verb '$verb' undefined. Use 'help' to get help.
 EOD
 	    next;
 	};
-	my @fh;
-	$redir and do {
-	    @fh = (IO::File->new ($redir)) or do {warn <<"EOD"; next};
+	my $out;
+	if ( $redir ) {
+	    $out = IO::File->new( $redir ) or do {
+		warn <<"EOD";
 Error - Failed to open $redir
 	$^E
 EOD
-	};
+		next;
+	    };
+	} else {
+	    $out = $stdout;
+	}
 	my $rslt;
 	if ($verb eq 'get' && @cmdarg == 0) {
 	    $rslt = [];
 	    foreach my $name ($self->attribute_names ()) {
-		my $val = $self->get ($name)->content ();
+		my $val = $self->getv( $name );
 		push @$rslt, defined $val ? "$name $val" : $name;
 	    }
 	} else {
-	    $rslt = eval {$self->$verb (@cmdarg)};
+	    eval {
+		$rslt = $self->$verb (@cmdarg);
+		1;
+	    } or do {
+		warn $@;	## no critic (RequireCarping)
+		next;
+	    };
 	}
-	$@ and do {warn $@; next; };
 	if (ref $rslt eq 'ARRAY') {
-	    foreach (@$rslt) {print "$_\n"}
+	    foreach (@$rslt) {print { $out } "$_\n"}
 	} elsif ($rslt->is_success) {
+	    $self->content_type()
+		or not $self->{filter}
+		or next;
 	    my $content = $rslt->content;
 	    chomp $content;
-	    $print->(@fh, "$content\n")
-		if !$self->{filter} || $self->content_type ();
+	    print { $out } "$content\n";
 	} else {
 	    my $status = $rslt->status_line;
 	    chomp $status;
 	    warn $status, "\n";
 	}
     }
-    $print->("\n") if $interactive && !$self->{filter};
+    $interactive
+	and not $self->{filter}
+	and print { $stdout } "\n";
     return;
 }
 
@@ -2257,15 +2324,18 @@ sub spaceflight {
 		    }
 		}
 		$effective = undef;
-		my $ix = @data - 2;
-		my $id = 0 + substr $data[$ix], 2, 5;
-		my $yr = substr $data[$ix], 18, 2;
-		my $da = substr $data[$ix], 20, 12;
+		my $id = 0 + substr $data[-2], 2, 5;
+		my $yr = substr $data[-2], 18, 2;
+		my $da = substr $data[-2], 20, 12;
 		$yr += 100 if $yr < 57;
 		my $ep = timegm (0, 0, 0, 1, 0, $yr) + ($da - 1) * 86400;
-		unless (!$opt->{all} && ($opt->{start_epoch} ?
-			($ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch}) :
-			$ep > $now)) {
+		if ( $opt->{all} ||
+		    $opt->{start_epoch} && $ep >= $opt->{start_epoch} &&
+			$ep < $opt->{end_epoch} ||
+		    $ep <= $now ) {
+##		unless (!$opt->{all} && ($opt->{start_epoch} ?
+##			($ep > $opt->{end_epoch} || $ep <= $opt->{start_epoch}) :
+##			$ep > $now)) {
 		    $tle{$id} ||= [];
 		    my @keys = $opt->{descending} ? (-$id, -$ep) : ($id, $ep);
 		    @keys = reverse @keys if $opt->{sort} eq 'epoch';
@@ -2651,11 +2721,16 @@ sub _get {
 	$dumper = $package->can('Dump');
 	return $dumper;
     }
-
-#	_get_yaml_loader retrieves a YAML loader. If one can be found,
+ 
+#	__get_yaml_loader retrieves a YAML loader. If one can be found,
 #	a code reference to it is returned. Otherwise we simply return.
+#
+#	NOTE WELL: This subroutine is for the benefit of
+#	t/spacetrack_request.t, and is called by that code. The leading
+#	double underscore is to flag it to Perl::Critic as package
+#	private rather than module private.
 
-    sub _get_yaml_loader {
+    sub __get_yaml_loader {
 	$loader and return $loader;
 	($package ||= _get_yaml_package()) or return;
 	$loader = $package->can('Load');
@@ -3021,60 +3096,19 @@ sub _post {
 sub _search_generic {
     my ($self, $poster, @args) = @_;
     delete $self->{_pragmata};
-    my $splice = -2;
-    if ( ref $poster eq 'HASH' ) {
-	exists $poster->{splice} and $splice = $poster->{splice};
-	exists $poster->{poster}
-	    or confess 'Programming error - no {poster} key in options hash';
-	$poster = $poster->{poster};
-    }
 
-    @args = _parse_retrieve_args (@args) unless ref $args[0] eq 'HASH';
+    ref $args[0] eq 'HASH'
+	or @args = _parse_retrieve_args (@args);
     my $opt = shift @args;
 
-    exists $opt->{tle} or $opt->{tle} = 1;
-
     @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
-    my $p = Astro::SpaceTrack::Parser->new ();
 
-    my @table;
     my %id;
-    foreach my $name (@args) {
-	defined (my $resp = $poster->($self, $name, $opt)) or next;
-##	return $resp unless $resp->is_success && !$self->{debug_url};
-	$resp->is_success()
-	    and not $self->{debug_url}
-	    or return $resp;
-	my $content = $resp->content;
-	next if $content =~ m/No results found/i;
-	$content =~ s/ &nbsp; / /smxg;
-	my @this_page = @{$p->parse_string (table => $content)};
-	ref $this_page[0] eq 'ARRAY'
-	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
-	    BAD_SPACETRACK_RESPONSE, undef, $content);
-	my @data = @{$this_page[0]};
-	if ( $splice ) {
-	    foreach my $row (@data) {
-		splice @{ $row }, $splice;
-	    }
-	}
-	if ( @table ) {
-	    shift @data;
-	} else {
-	    push @table, shift @data;
-	    foreach ( @{ $table[-1] } ) {
-		s/ \s* [(] key [)] \s* \z //smxi;
-	    }
-	}
-	foreach my $row (@data) {
-	    $id{$row->[0]} and next;
-	    $id{$row->[0]} = $row;
-	    push @table, $row;
-	}
-    }
-    delete $id{''};	# In case we came up empty.
-
     my $resp;
+    $resp = $self->_search_generic_tabulate( \%id, $poster, $opt, @args )
+	and return $resp;
+
+    exists $opt->{tle} or $opt->{tle} = 1;
     if ( $opt->{tle} ) {
 	my $with_name = $self->getv( 'with_name' );
 	$resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
@@ -3098,8 +3132,8 @@ sub _search_generic {
 	}
     } else {
 	my $content;
-	foreach my $datum ( @table ) {
-	    $content .= join( "\t", @{ $datum } ) . "\n";
+	foreach my $oid ( sort { $a <=> $b } keys %id ) {
+	    $content .= join( "\t", @{ $id{$oid} } ) . "\n";
 	}
 	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
 	$self->_add_pragmata($resp,
@@ -3107,10 +3141,63 @@ sub _search_generic {
 	    'spacetrack-source' => 'spacetrack',
 	);
     }
-    foreach my $row ( @table ) {
-	@{ $row } = map { ( defined $_ && $_ ne '' ) ? $_ : undef } @{ $row };
+    wantarray or return $resp;
+    my @table;
+    foreach my $oid ( sort { $a <=> $b } keys %id ) {
+	push @table, [
+	    map { ( defined $_ && $_ ne '' ) ? $_ : undef }
+	    @{ $id{$oid} } ];
     }
-    return wantarray ? ($resp, \@table) : $resp;
+    return ($resp, \@table);
+}
+
+sub _search_generic_tabulate {
+    my ( $self, $id, $poster, $opt, @args ) = @_;
+
+    my $splice = -2;
+    if ( ref $poster eq 'HASH' ) {
+	exists $poster->{splice} and $splice = $poster->{splice};
+	exists $poster->{poster}
+	    or confess 'Programming error - no {poster} key in options hash';
+	$poster = $poster->{poster};
+    }
+    my $p = Astro::SpaceTrack::Parser->new ();
+
+    foreach my $name ( @args ) {
+	defined (my $resp = $poster->($self, $name, $opt)) or next;
+##	return $resp unless $resp->is_success && !$self->{debug_url};
+	$resp->is_success()
+	    and not $self->{debug_url}
+	    or return $resp;
+	my $content = $resp->content;
+	next if $content =~ m/ No \s results \s found /smxi;
+	$content =~ s/ &nbsp; / /smxg;
+	my @this_page = @{$p->parse_string (table => $content)};
+	ref $this_page[0] eq 'ARRAY'
+	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	    BAD_SPACETRACK_RESPONSE, undef, $content);
+	my @data = @{$this_page[0]};
+	if ( $splice ) {
+	    foreach my $row (@data) {
+		splice @{ $row }, $splice;
+	    }
+	}
+	if ( $id->{0} ) {
+	    shift @data;
+	} else {
+	    foreach ( @{ $data[0] } ) {
+		s/ \s* [(] key [)] \s* \z //smxi;
+	    }
+	    $id->{0} = shift @data;
+	}
+	foreach my $row (@data) {
+	    my $oid = $row->[0] or next;
+	    $id->{$oid} and next;
+	    $id->{$oid} = $row;
+	}
+    }
+
+    return;
 }
 
 
@@ -3130,6 +3217,19 @@ Error - Failed to open source file '$fn'.
         $!
 EOD
     return <$fh>;
+}
+
+#	_trim replaces undefined arguments with '', trims all arguments
+#	front and back, and returns the modified arguments.
+
+sub _trim {
+    my @args = @_;
+    foreach ( @args ) {
+	defined $_ or $_ = '';
+	s/ \A \s+ //smx;
+	s/ \s+ \z //smx;
+    }
+    return @args;
 }
 
 1;

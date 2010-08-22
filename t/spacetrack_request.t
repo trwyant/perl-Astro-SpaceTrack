@@ -11,7 +11,7 @@ use Astro::SpaceTrack;
 
 BEGIN {
 
-    $loader = Astro::SpaceTrack->_get_yaml_loader() or do {
+    $loader = Astro::SpaceTrack->__get_yaml_loader() or do {
 	print "1..0 # skip YAML required to check Space Track requests.\n";
 	exit;
     };
