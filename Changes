@@ -1,3 +1,21 @@
+0.047		17-Sep-2010	T. R. Wyant
+    Add Astro::SpaceTrack method getv() to do what get() should have
+	done -- return the attribute value without wrapping it in an
+	HTTP::Response object.
+    Add the -rcs option to the Astro::SpaceTrack search_*() methods, to
+	request that the radar cross-section data be hacked into the
+	name line of the TLE, in the same way that the effective date is
+	for Human Space Flight TLEs.
+    Complete rewrite of SpaceTrackTk, to incorporate all (or at least
+	the great majority) of the modern bells and whistles.
+    Update banner text to try to make clear that only Space Track
+	requires registration before use.
+    Update documentation to show all content_types.
+    Drop requirement for Params::Util.
+    Require Perl 5.6.2, since that is the earliest version I have  a
+	prayer of actually supporting.
+    Move author tests from xt/ to xt/author.
+
 0.046		28-Mar-2010	T. R. Wyant
     Add methods search_decay(), search_oid(), and box_score().
     Replace '' with undef in the array returned by the search_* methods
@@ -5,7 +23,6 @@
 	is unchanged.
 
 0.045_01	22-Mar-2010	T. R. Wyant
-
     Add -notle option to the search_* methods. This causes them to
         return the results of the search, rather than going on to
 	retrieve the TLEs. The results are one entry per line with
