@@ -31,4 +31,5 @@ xt/author/perlcriticrc
 xt/author/pod.t
 xt/author/pod_coverage.t
 xt/author/pod_spelling.t
+xt/author/query_skip_sites.t
 xt/author/spacetrack_datasets.t

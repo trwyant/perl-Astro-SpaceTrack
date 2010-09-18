@@ -32,7 +32,7 @@ my $st;
 
 SKIP: {
 
-    skip_site( 'www.space-track.org', 56 );
+    skip_site( 'www.space-track.org', 71 );
 
     my @names = $st->attribute_names();
     my %present = map {$_ => 1} @names;
@@ -49,7 +49,7 @@ SKIP: {
 
     SKIP: {
 
-	skip_site( 'www.space-track.org', 52 );
+	skip_site( 'www.space-track.org', 67 );
 
 	ok( ! defined $st->content_type(), 'Content type should be undef' )
 	    or diag( 'content_type is ', $st->content_type() );
@@ -458,6 +458,15 @@ sub prompt {
 	    diag( $skip );
 	    return ( $skip_site{$site} = $skip );
 	};
+
+	{
+	    no warnings qw{ once };
+	    $Astro::SpaceTrack::Test::SKIP_SITES
+		and return ( $skip_site{$site} =
+		"$site skipped: $Astro::SpaceTrack::Test::SKIP_SITES"
+	    );
+	}
+
 	$ua ||= LWP::UserAgent->new();
 	my $rslt = $ua->get( $url );
 	$rslt->is_success()
