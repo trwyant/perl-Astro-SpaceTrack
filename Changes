@@ -1,3 +1,8 @@
+0.049		26-Sep-2010	T. R. Wyant
+    Properly default the 'sort' retrieve option when options are
+	specified as a hash reference rather than as command-style
+	options.
+
 0.048		18-Sep-2010	T. R. Wyant
     Correct skip counts in t/query.t. Add xt/author/query_skip_sites.t
         to try to ensure they don't get out of whack again.
