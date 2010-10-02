@@ -2288,11 +2288,13 @@ sub spaceflight {
     }
 
     my $content = '';
+    my $html = '';
     my $now = time ();
     my %tle;
     foreach my $url (@list) {
 	my $resp = $self->{agent}->get ($url);
 	return $resp unless $resp->is_success;
+	$html .= $resp->content();
 	my (@data, $acquire, $effective);
 	foreach (split qr{ \n }smx, $resp->content) {
 	    chomp;
@@ -2355,8 +2357,9 @@ sub spaceflight {
 	sort {$a->[0] <=> $b->[0] || $a->[1] <=> $b->[1]}
 	map {@$_} values %tle;
 
-    $content or
-	return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_RECORDS);
+    $content
+	or return HTTP::Response->new( RC_PRECONDITION_FAILED,
+	    NO_RECORDS, undef, $html );
 
     my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
     $self->_add_pragmata($resp,

@@ -297,7 +297,14 @@ SKIP: {
 
     skip_site( 'spaceflight.nasa.gov', 3 );
 
-    is_success( $st, spaceflight => '-all', 'Human Space Flight data' );
+    is_success( $st, spaceflight => '-all', 'iss', 'Human Space Flight data' )
+	or do {
+	my $rslt = most_recent_http_response();
+	if ( $rslt->code() == 412 ) {
+	    diag( $rslt->content() );
+	}
+	skip( 'Query failed', 2 );
+    };
 
     is( $st->content_type(), 'orbit', "Content type is 'orbit'" );
 
@@ -375,10 +382,16 @@ $st->set( banner => undef, filter => 1 );
 $st->shell( '', '# comment', 'set banner 1', 'exit' );
 ok( $st->get('banner'), 'Reset an attribute using the shell' );
 
+my $rslt;
+
+sub most_recent_http_response {
+    return $rslt;
+}
+
 sub is_not_success {	## no critic (RequireArgUnpacking)
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
-    my $rslt = eval { $obj->$method( @args ) };
+    $rslt = eval { $obj->$method( @args ) };
     $rslt or do {
 	@_ = ( "$name threw exception: $@" );
 	goto \&fail;
@@ -390,9 +403,10 @@ sub is_not_success {	## no critic (RequireArgUnpacking)
 sub is_success {	## no critic (RequireArgUnpacking)
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
-    my $rslt = eval { $obj->$method( @args ) };
-    $rslt or do {
+    $rslt = eval { $obj->$method( @args ) }
+	or do {
 	@_ = ( "$name threw exception: $@" );
+	chomp $_[0];
 	goto \&fail;
     };
     $rslt->is_success() or $name .= ": " . $rslt->status_line();
