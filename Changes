@@ -1,3 +1,8 @@
+0.049_01	02-Oct-2010	T. R. Wyant
+    _Really_ properly default the 'sort' retrieve option. Honest.
+    More voluminous diagnostics in t/query.t for spacetrack() CPAN
+        testers failures in 0.049.
+
 0.049		26-Sep-2010	T. R. Wyant
     Properly default the 'sort' retrieve option when options are
 	specified as a hash reference rather than as command-style
