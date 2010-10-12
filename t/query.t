@@ -299,10 +299,10 @@ SKIP: {
 
     is_success( $st, spaceflight => '-all', 'iss', 'Human Space Flight data' )
 	or do {
-	my $rslt = most_recent_http_response();
-	if ( $rslt->code() == 412 ) {
-	    diag( $rslt->content() );
-	}
+#	my $rslt = most_recent_http_response();
+#	if ( $rslt->code() == 412 ) {
+#	    diag( $rslt->content() );
+#	}
 	skip( 'Query failed', 2 );
     };
 
