@@ -1,3 +1,6 @@
+0.050		12-Oct-2010	T. R. Wyant
+    Remove the diagnostics inserted in 0.049_01.
+
 0.049_01	02-Oct-2010	T. R. Wyant
     _Really_ properly default the 'sort' retrieve option. Honest.
     More voluminous diagnostics in t/query.t for spacetrack() CPAN
