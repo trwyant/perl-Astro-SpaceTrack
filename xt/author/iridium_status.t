@@ -18,6 +18,8 @@ my %known_inconsistent = (
 ###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 ###    27372 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
+    24906 => { kelso => 1 },	# Kelso: operational; others: tumbling
+    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -36,6 +38,9 @@ my %known_inconsistent = (
 #               18-Feb-2009 - Kelso noted tumbling.
 #               09-Mar-2009 - Sladen & Kelso note Iridium 91 in service.
 #               22-May-2009 - Mike McCants notes Iridium 91 in service.
+# 03-Nov-2010 - Apparant failure of Iridium 23 (24906); replaced by Iridium 11
+#               (25578).
+#               13-Nov-2010 - McCants & Sladen noted
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -118,7 +123,7 @@ foreach (["Mike McCants' Iridium status",
  24903   Iridium 26              Celestrak
  24904   Iridium 25              Celestrak
  24905   Iridium 46              Celestrak
- 24906   Iridium 23              Celestrak
+ 24906   Iridium 23     unc      Failed in November 2010
  24907   Iridium 22              Celestrak
  24925   Dummy mass 1   dum      Celestrak
  24926   Dummy mass 2   dum      Celestrak
@@ -181,7 +186,7 @@ foreach (["Mike McCants' Iridium status",
  25530   Iridium 84              Celestrak
  25531   Iridium 83              Celestrak
  25577   Iridium 20              was called Iridium 11
- 25578   Iridium 11     ?        Spare   was called Iridium 20
+ 25578   Iridium 11              was called Iridium 20
  25777   Iridium 14     ?        Spare   was called Iridium 14A
  25778   Iridium 21              Replaced Iridium 74   was called Iridium 21A
  27372   Iridium 91              Replaced Iridium 33 about Mar. 2, 2009   was called Iridium 90
@@ -308,7 +313,7 @@ eod
  24903   Iridium 26     [+]      Plane 2
  24904   Iridium 25     [+]      Plane 2
  24905   Iridium 46     [+]      Plane 2
- 24906   Iridium 23     [+]      Plane 2
+ 24906   Iridium 23     [-]      Plane 2 - Failed on station?
  24907   Iridium 22     [+]      Plane 2
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
@@ -371,7 +376,7 @@ eod
  25530   Iridium 84     [+]      Plane 5
  25531   Iridium 83     [+]      Plane 5
  25577   Iridium 20     [+]      Plane 2
- 25578   Iridium 11     [S]      Plane 2
+ 25578   Iridium 11     [+]      Plane 2
  25777   Iridium 14     [S]      Plane 1
  25778   Iridium 21     [+]      Plane 1
  27372   Iridium 91     [+]      Plane 3

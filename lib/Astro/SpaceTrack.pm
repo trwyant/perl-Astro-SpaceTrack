@@ -1007,13 +1007,18 @@ fill in the functioning satellites so that a complete list is generated.
 The comment will be whatever text is provided by Mike McCants' web page,
 or 'Celestrak' if the satellite data came from that source.
 
-As of 20-Feb-2006 Mike's web page documented the possible statuses as
+As of 03-Dec-2010 Mike's web page documented the possible statuses as
 follows:
 
- blank - object is operational
- 'tum' - tumbling
- '?' - not at operational altitude
- 'man' - maneuvering, at least slightly.
+ blank   Object is operational
+ tum     tumbling - no flares, but flashes seen on favorable
+         transits.
+ unc     uncontrolled
+ ?       controlled, but not at operational altitude -
+         flares may be unreliable.
+ man     maneuvering, at least slightly. Flares may be
+	 unreliable and the object may be early or late
+         against prediction.
 
 In addition, the data from Celestrak may contain the following
 status:
