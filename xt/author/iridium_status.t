@@ -18,8 +18,8 @@ my %known_inconsistent = (
 ###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 ###    27372 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
-    24906 => { kelso => 1 },	# Kelso: operational; others: tumbling
-    25578 => { kelso => 1 },	# Kelso: operational; others: spare
+    24906 => { kelso => 1 },	# Kelso: spare; others: tumbling
+###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -40,7 +40,8 @@ my %known_inconsistent = (
 #               22-May-2009 - Mike McCants notes Iridium 91 in service.
 # 03-Nov-2010 - Apparant failure of Iridium 23 (24906); replaced by Iridium 11
 #               (25578).
-#               13-Nov-2010 - McCants & Sladen noted
+#               13-Nov-2010 - McCants & Sladen noted.
+#               15-Dec-2010 - Kelso noted, but listed 24906 as spare.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -218,7 +219,7 @@ eod
  24903   Iridium 26     [+]      
  24904   Iridium 25     [+]      
  24905   Iridium 46     [+]      
- 24906   Iridium 23     [+]      
+ 24906   Iridium 23     [S]      Spare
  24907   Iridium 22     [+]      
  24925   Dummy mass 1   [-]      Tumbling
  24926   Dummy mass 2   [-]      Tumbling
@@ -281,7 +282,7 @@ eod
  25530   Iridium 84     [+]      
  25531   Iridium 83     [+]      
  25577   Iridium 20     [+]      
- 25578   Iridium 11     [S]      Spare
+ 25578   Iridium 11     [+]      
  25777   Iridium 14     [S]      Spare
  25778   Iridium 21     [+]      
  27372   Iridium 91     [+]      
