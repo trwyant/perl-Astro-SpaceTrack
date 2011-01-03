@@ -392,7 +392,7 @@ Space Track (http://$self->{domain_space_track}/) you must register and
 get a username and password, and you may not make the data available to
 a third party without prior permission from Space Track.
 
-Copyright 2005-2010 T. R. Wyant (wyant at cpan dot org).
+Copyright 2005-2011 by T. R. Wyant (wyant at cpan dot org).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
@@ -3471,7 +3471,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005-2010 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
+Copyright 2005-2011 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 LICENSE
 
