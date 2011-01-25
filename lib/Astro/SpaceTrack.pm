@@ -319,7 +319,6 @@ sub amsat {
     my $self = shift;
     delete $self->{_pragmata};
     my $content = '';
-    my $now = time ();
     foreach my $url (
 	'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
     ) {
@@ -594,7 +593,8 @@ sub _celestrak_direct {
     delete $self->{_pragmata};
 
     @args = _parse_retrieve_args( @args );
-    my $opt = shift @args;
+##  my $opt = shift @args;
+    shift @args;	# $opt not used
     my $name = shift @args;
     my $resp = $self->{agent}->get (
 	"http://celestrak.com/NORAD/elements/$name.txt");
@@ -1671,8 +1671,9 @@ sub search_date {
 	    _sessionid => '',
 	    _submit => 'submit',
 	    _submitted => 1,
-	    );
-	}, @args );
+	);
+	return $resp;
+    }, @args );
 }
 
 
@@ -1747,6 +1748,7 @@ sub search_decay {
 		    _submit => 'Submit',
 		    _submitted => 1,
 		);
+		return $resp;
 	    },
 	}, @args);
 }
@@ -1825,8 +1827,9 @@ sub search_id {
 	    _sessionid => '',
 	    _submit => 'submit',
 	    _submitted => 1,
-	    );
-	}, @args);
+	);
+	return $resp;
+    }, @args);
 }
 
 

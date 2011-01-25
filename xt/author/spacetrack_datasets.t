@@ -90,7 +90,8 @@ foreach my $key (sort keys %expect) {
 	    warn "\n# Ignored - $key (@{[($got{$number} ||
 		    $expect{$key})->{name}]})\n";
 	    $expect{$key}{note} and warn "#     $expect{$key}{note}\n";
-	    if (my $item = delete $got{$number}) {
+###	    if (my $item = delete $got{$number}) {
+	    if (delete $got{$number}) {
 		warn "#     present\n";
 	    } else {
 		warn "#     not present\n";

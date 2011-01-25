@@ -160,7 +160,6 @@ sub main_window {
     # Set up the data frame.
     my $df = $widget{data_frame} = $widget{main_window}->Frame->pack(
 	-side => 'top', @pad );
-    my $dg = grid_new();
 
     # Create the data source label and widget, but don't put them in the
     # data frame yet.
@@ -1152,7 +1151,7 @@ sub retrieve {
 #   warn "Debug - \$st->$source( ", join( ', ', map { "'$_'" } @args ), ' )';
 #   use YAML;
 #   warn "Debug - \$data is ", Dump( $data ), ' ';
-    my ( $error, $rslt );
+    my ( $error );
     if ( my $rslt = eval {
 	    local $SIG{__WARN__} = sub {
 		( my $msg = $_[0] ) =~
@@ -1224,8 +1223,6 @@ sub retrieve {
 		-justify => 'left',
 		-wraplength => '20m',
 	    );
-
-	    my $special = 
 
 	    my $loc = 0;
 	    while ( $content =~ m/ ( \t | \r \n? | \n ) /smxg ) {
