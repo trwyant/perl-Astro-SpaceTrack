@@ -840,7 +840,7 @@ See L</Attributes> for the names and functions of the attributes.
 sub getv {
     my ( $self, $name ) = @_;
     defined $name
-	or croak 'No attribute name specified',
+	or croak 'No attribute name specified';
     $mutator{$name}
 	or croak "No such attribute as '$name'";
     return $self->{$name};
