@@ -209,6 +209,7 @@ my %mutator = (	# Mutators for the various attributes.
     iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
     password => \&_mutate_authen,
+    scheme_space_track => \&_mutate_attrib,
     session_cookie => \&_mutate_cookie,
     url_iridium_status_kelso => \&_mutate_attrib,
     url_iridium_status_mccants => \&_mutate_attrib,
@@ -256,6 +257,7 @@ sub new {
 	iridium_status_format => 'mccants',	# For historical reasons.
 	max_range => 500,	# Sanity limit on range size.
 	password => undef,	# Login password.
+	scheme_space_track => 'https',
 	session_cookie => undef,
 	url_iridium_status_kelso =>
 	    'http://celestrak.com/SpaceTrack/query/iridium.txt',
@@ -387,7 +389,7 @@ Perl $perl_version under $^O
 This package acquires satellite orbital elements and other data from a
 variety of web sites. It is your responsibility to abide by the terms of
 use of the individual web sites. In particular, to acquire data from
-Space Track (http://$self->{domain_space_track}/) you must register and
+Space Track ($self->{scheme_space_track}://$self->{domain_space_track}/) you must register and
 get a username and password, and you may not make the data available to
 a third party without prior permission from Space Track.
 
@@ -1319,7 +1321,7 @@ EOD
     #	Do not use the _post method to retrieve the session cookie,
     #	unless you like bottomless recursions.
     my $resp = $self->{agent}->post (
-	"http://$self->{domain_space_track}/perl/login.pl", [
+	"$self->{scheme_space_track}://$self->{domain_space_track}/perl/login.pl", [
 	    username => $self->{username},
 	    password => $self->{password},
 	    _submitted => 1,
@@ -2681,7 +2683,7 @@ sub _get {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "http://$self->{domain_space_track}/$path";
+	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request($url, @args) ||
 	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
@@ -3080,7 +3082,7 @@ sub _post {
 	    my $resp = $self->login ();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "http://$self->{domain_space_track}/$path";
+	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request( $url, @args) ||
 	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
@@ -3339,6 +3341,15 @@ The default is 500.
 This attribute specifies the Space-Track password.
 
 The default is an empty string.
+
+=item scheme_space_track (string)
+
+This attribute specifies the URL scheme used to access the Space Track
+web site. The user will not normally need to modify this, but if the web
+site changes schemes for some reason, this attribute may provide a way
+to get queries going again.
+
+The default is C<'https'>.
 
 =item session_cookie (text)
 

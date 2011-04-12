@@ -34,7 +34,7 @@ is_resp(qw{retrieve 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -50,7 +50,7 @@ is_resp(qw{retrieve -sort catnum 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -66,7 +66,7 @@ is_resp(qw{retrieve -sort epoch 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -82,7 +82,7 @@ is_resp(qw{retrieve -descending 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -98,7 +98,7 @@ is_resp(qw{retrieve -last5 25544}, {
 	    timeframe => 'last5',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -120,7 +120,7 @@ is_resp(qw{retrieve -start_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -142,7 +142,7 @@ is_resp(qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -164,7 +164,7 @@ is_resp(qw{retrieve -end_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -186,7 +186,7 @@ is_resp(qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -204,7 +204,7 @@ is_resp(qw{retrieve 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/id_query.pl',
+	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 );
 
@@ -221,7 +221,7 @@ is_resp(qw{search_date 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -238,7 +238,7 @@ is_resp(qw{search_date -status all 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -255,7 +255,7 @@ is_resp(qw{search_date -status onorbit 2009-04-01}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -272,7 +272,7 @@ is_resp(qw{search_date -status decayed 2009-04-01}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -289,7 +289,7 @@ is_resp(qw{search_date -exclude debris 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -306,7 +306,7 @@ is_resp(qw{search_date -exclude rocket 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -325,7 +325,7 @@ is_resp(qw{search_date -exclude rocket 2009-04-01}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'http://www.space-track.org/perl/launch_query.pl',
+	    url => 'https://www.space-track.org/perl/launch_query.pl',
 	},
     );
 }
@@ -343,7 +343,7 @@ is_resp(qw{search_date -exclude debris -exclude rocket 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -360,7 +360,7 @@ is_resp(qw{search_id 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -377,7 +377,7 @@ is_resp(qw{search_id 98}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -394,7 +394,7 @@ is_resp(qw{search_id 98067A}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -411,7 +411,7 @@ is_resp(qw{search_id -status all 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -428,7 +428,7 @@ is_resp(qw{search_id -status onorbit 98067}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -445,7 +445,7 @@ is_resp(qw{search_id -status decayed 98067}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -462,7 +462,7 @@ is_resp(qw{search_id -exclude debris 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -479,7 +479,7 @@ is_resp(qw{search_id -exclude rocket 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -498,7 +498,7 @@ is_resp(qw{search_id -exclude rocket 98067}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'http://www.space-track.org/perl/launch_query.pl',
+	    url => 'https://www.space-track.org/perl/launch_query.pl',
 	},
     );
 }
@@ -516,7 +516,7 @@ is_resp(qw{search_id -exclude debris -exclude rocket 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/launch_query.pl',
+	url => 'https://www.space-track.org/perl/launch_query.pl',
     },
 );
 
@@ -532,7 +532,7 @@ is_resp(qw{search_name ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -548,7 +548,7 @@ is_resp(qw{search_name -status all ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -564,7 +564,7 @@ is_resp(qw{search_name -status onorbit ISS}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -580,7 +580,7 @@ is_resp(qw{search_name -status decayed ISS}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -596,7 +596,7 @@ is_resp(qw{search_name -exclude debris ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -612,7 +612,7 @@ is_resp(qw{search_name -exclude rocket ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -630,7 +630,7 @@ is_resp(qw{search_name -exclude rocket ISS}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'http://www.space-track.org/perl/name_query.pl',
+	    url => 'https://www.space-track.org/perl/name_query.pl',
 	},
     );
 }
@@ -647,7 +647,7 @@ is_resp(qw{search_name -exclude debris -exclude rocket ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'http://www.space-track.org/perl/name_query.pl',
+	url => 'https://www.space-track.org/perl/name_query.pl',
     },
 );
 
@@ -656,7 +656,7 @@ is_resp(qw{spacetrack iridium}, {
 	    ID => 10,
 	},
 	method => 'get',
-	url => 'http://www.space-track.org/perl/dl.pl',
+	url => 'https://www.space-track.org/perl/dl.pl',
     },
 );
 
@@ -667,7 +667,7 @@ is_resp(qw{spacetrack iridium}, {
 	    ID => 9,
 	},
 	method => 'get',
-	url => 'http://www.space-track.org/perl/dl.pl',
+	url => 'https://www.space-track.org/perl/dl.pl',
     },
 );
 
@@ -676,7 +676,7 @@ is_resp(qw{spacetrack 10}, {
 	    ID => 10,
 	},
 	method => 'get',
-	url => 'http://www.space-track.org/perl/dl.pl',
+	url => 'https://www.space-track.org/perl/dl.pl',
     },
 );
 

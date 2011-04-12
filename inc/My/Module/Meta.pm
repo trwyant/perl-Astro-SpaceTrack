@@ -36,6 +36,7 @@ sub requires {
 	'HTTP::Status'		=> 0,
 	'IO::File'		=> 0,
 	'LWP::UserAgent'	=> 0,
+	'LWP::Protocol::https'	=> 0,	# Space track needs as of 11-Apr-2011
 	'POSIX'			=> 0,
 	'Scalar::Util'		=> 1.07,	# for openhandle.
 	'Text::ParseWords'	=> 0,

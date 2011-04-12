@@ -46,6 +46,7 @@ is_deeply( scalar Astro::SpaceTrack->attribute_names(), [ qw{
     iridium_status_format
     max_range
     password
+    scheme_space_track
     session_cookie
     url_iridium_status_kelso
     url_iridium_status_mccants
