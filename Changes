@@ -2,7 +2,8 @@
     Add attribute scheme_space_track_attribute, defaulting to 'https'.
 	Also added LWP::Protocol::https as a dependency. Both in
 	response to USSTRATCOM going to a secure server some time in the
-	last 24 hours.
+	last 24 hours. Thanks to Thomas Wehr for diagnosing this, and
+	reporting both problem and solution.
 
 0.051		10-Feb-2011	T. R. Wyant
     Correct check for non-existent attribute in Astro::SpaceTrack getv()
