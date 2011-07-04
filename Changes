@@ -1,3 +1,6 @@
+0.053		04-Jul-2011	T. R. Wyant
+    Correct the URL for Mike McCants' Iridium status web page.
+
 0.052		12-Apr-2011	T. R. Wyant
     Add attribute scheme_space_track_attribute, defaulting to 'https'.
 	Also added LWP::Protocol::https as a dependency. Both in

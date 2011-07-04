@@ -90,7 +90,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.052';
+our $VERSION = '0.053';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -262,7 +262,7 @@ sub new {
 	url_iridium_status_kelso =>
 	    'http://celestrak.com/SpaceTrack/query/iridium.txt',
 	url_iridium_status_mccants =>
-	    'http://www.io.com/~mmccants/tles/iridium.html',
+	    'http://www.prismnet.com/~mmccants/tles/iridium.html',
 	url_iridium_status_sladen =>
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
@@ -3374,7 +3374,7 @@ page. You should normally not change this, but it is provided so you
 will not be dead in the water if Mr. McCants needs to change his
 ISP or re-arrange his web site.
 
-The default is 'http://www.io.com/~mmccants/tles/iridium.html'
+The default is 'http://www.prismnet.com/~mmccants/tles/iridium.html'.
 
 =item url_iridium_status_sladen (text)
 
