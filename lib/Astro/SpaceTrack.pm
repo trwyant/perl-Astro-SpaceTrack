@@ -40,6 +40,26 @@ L<http://www.space-track.org/perl/user_agreement.pl>.
 You should consult the above link for the full text of the user
 agreement before using this software.
 
+=head1 DEPRECATION NOTICE
+
+It is with a sense of regret that I announce the deprecation of the
+C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
+argument, because of the end of the Space Shuttle program on July 21
+2011.
+
+With this release of the software, the C<spaceflight()> C<'SHUTTLE'>
+argument will unconditionally cause nothing to be retrieved.
+
+With the first release on or after January 21 2012, the first use of
+either the C<celestrak()> C<'sts'> catalog or the C<spaceflight()>
+C<'SHUTTLE'> argument will generate a deprecation warning.
+
+Six months or more later, all uses of C<celestrak()> C<'sts'> or
+C<spaceflight()> C<'SHUTTLE'> will generate a deprecation warning.
+
+Six further months later, the deprecated functionality will be removed.
+This means you will get a C<404> error when you try to use it.
+
 =head1 DESCRIPTION
 
 This package accesses the Space-Track web site,
@@ -128,7 +148,7 @@ use constant SESSION_KEY => 'spacetrack_session';
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
-	sts => {name => 'Current Space Shuttle Mission (if any)'},
+	sts => {name => 'Current Space Shuttle Mission (deprecated)'},
 	'tle-new' => {name => "Last 30 Days' Launches"},
 	stations => {name => 'International Space Station'},
 	visual => {name => '100 (or so) brightest'},
@@ -175,8 +195,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	iss => {name => 'International Space Station',
 	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
 	},
-	shuttle => {name => 'Current shuttle mission',
-	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
+	shuttle => {name => 'Current shuttle mission (deprecated)',
+##	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
 	},
     },
     spacetrack => {
@@ -543,11 +563,10 @@ that had been cataloged as of March 9 2009.
 
 =back
 
-The data set for the current US Space Shuttle Mission (if any) will be
-available as data set 'sts'. If there is no current mission, you will
-get a 404 error with text "Missing Celestrak catalog 'sts'." Since the
-data ultimately come from NORAD, the shuttle will have to be up and
-actually tracked by NORAD before this is available.
+Before the end of the Space Shuttle program, data on the current mission
+(if any) was available as data set C<'sts'>. This catalog is now
+deprecated, and will be removed in a future release. See the
+L</DEPRECATION NOTICE> for details.
 
 If this method succeeds, the response will contain headers
 
@@ -576,6 +595,8 @@ sub celestrak {
     my $opt = shift @args;
 
     my $name = shift @args;
+    $self->_deprecation_notice( celestrak => $name );
+
     $self->{direct}
 	and return $self->_celestrak_direct ($opt, $name);
     my $resp = $self->{agent}->get (
@@ -947,8 +968,7 @@ The following commands are defined:
     Executes the contents of the given file as shell commands.
   spaceflight
     Retrieves orbital elements from http://spaceflight.nasa.gov/.
-    No login needed, but you get at most the ISS and the current
-    shuttle mission.
+    No login needed, but you only get the ISS.
   spacetrack name
     Retrieves the named catalog of orbital elements from
     Space Track.
@@ -2220,14 +2240,14 @@ sub source {
 =item $resp = $st->spaceflight ()
 
 This method downloads current orbital elements from NASA's human
-spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 2006
-you get the International Space Station, and the current Space Shuttle
-mission, if any.
+spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 21 2011
+you only get the International Space Station.
 
 You can specify either or both of the arguments 'ISS' and 'SHUTTLE'
-(case-insensitive) to retrieve the data for the international space
-station or the space shuttle respectively. If neither of these is
-specified, both are retrieved.
+(case-insensitive) to retrieve the data for the International Space
+Station or the Space Shuttle respectively. Since the end of the Space
+Shuttle program, the C<'SHUTTLE'> argument retrieves nothing, and is
+deprecated. See the L</DEPRECATION NOTICE> for details.
 
 In addition you can specify options, either as command-style options
 (e.g. C<-all>) or by passing them in a hash as the first argument (e.g.
@@ -2285,13 +2305,17 @@ sub spaceflight {
     my @list;
     if (@args) {
 	foreach (@args) {
+	    $self->_deprecation_notice( spaceflight => $_ );
 	    my $info = $catalogs{spaceflight}{lc $_} or
 		return $self->_no_such_catalog (spaceflight => $_);
-	    push @list, $info->{url};
+	    exists $info->{url}
+		and push @list, $info->{url};
 	}
     } else {
 	my $hash = $catalogs{spaceflight};
-	@list = map {$hash->{$_}{url}} sort keys %$hash;
+	@list = map { $hash->{$_}{url} }
+	    grep { exists $hash->{$_}{url} }
+	    sort keys %$hash;
     }
 
     my $content = '';
@@ -2571,6 +2595,41 @@ EOD
 	return;
     }
 }	# End local symbol block.
+
+#	$self->_deprecation_notice( $method, $argument );
+#
+#	This method centralizes deprecation.  Deprecation is driven of
+#	the %deprecate hash. Values are:
+#	    false - no warning
+#	    1 - warn on first use
+#	    2 - warn on each use
+#	    3 - die on each use.
+
+{
+
+    my %deprecate = (
+	celestrak => {
+	    sts	=> 0,
+	},
+	spaceflight => {
+	    shuttle	=> 0,
+	},
+    );
+
+    sub _deprecation_notice {
+	my ( $self, $method, $argument ) = @_;
+	$deprecate{$method} or return;
+	$deprecate{$method}{$argument} or return;
+	$deprecate{$method}{$argument} >= 3
+	    and croak "$argument $method is retracted";
+	warnings::enabled( 'deprecated' )
+	    and carp "$argument $method is deprecated";
+	$deprecate{$method}{$argument} == 1
+	    and $deprecate{$method}{$argument} = 0;
+	return;
+    }
+
+}
 
 #	_dump_cookie is intended to be called from inside the
 #	HTTP::Cookie->scan method. The first argument is prefix text
