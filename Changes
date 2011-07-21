@@ -1,3 +1,9 @@
+0.054		21-Jul-2011	T. R. Wyant
+    With the end of the U.S. Space Shuttle program, deprecate the
+        celestrak() 'sts' catalog and the spaceflight() 'SHUTTLE'
+	argument. The latter now does nothing, so we will not get 404
+	errors when the web page goes away.
+
 0.053		04-Jul-2011	T. R. Wyant
     Correct the URL for Mike McCants' Iridium status web page.
 
