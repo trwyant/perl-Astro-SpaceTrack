@@ -25,8 +25,11 @@ antisatellite
 Celestrak
 China's
 com
+dataset
+executables
 exportable
 fallback
+filename
 Fengyun
 IDs
 ISP
@@ -34,8 +37,10 @@ ISS
 Kelso
 Kelso's
 kelso
+login
 McCants
 mccants
+merchantability
 NORAD
 OID
 OIDs
