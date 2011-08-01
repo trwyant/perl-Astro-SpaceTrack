@@ -961,12 +961,12 @@ sub spaceflight_panel {
 		-relief => 'flat',
 		-variable => \$data->{spaceflight}{iss},
 	    ),
-	    sts_label => $widget->{data_frame}->Label(
-		-text => 'Retrieve Space Shuttle data:' ),
-	    sts_value => $widget->{data_frame}->Checkbutton(
-		-relief => 'flat',
-		-variable => \$data->{spaceflight}{shuttle},
-	    ),
+##	    sts_label => $widget->{data_frame}->Label(
+##		-text => 'Retrieve Space Shuttle data:' ),
+##	    sts_value => $widget->{data_frame}->Checkbutton(
+##		-relief => 'flat',
+##		-variable => \$data->{spaceflight}{shuttle},
+##	    ),
 	};
     }
 
@@ -976,11 +976,11 @@ sub spaceflight_panel {
     $widget->{spaceflight}{iss_value}
 	->grid( grid_args( $dg, sticky => 'w' ) )->raise();
 
-    grid_next_row( $dg );
-    $widget->{spaceflight}{sts_label}
-	->grid( grid_args( $dg, sticky => 'e' ) );
-    $widget->{spaceflight}{sts_value}
-	->grid( grid_args( $dg, sticky => 'w' ) )->raise();
+##  grid_next_row( $dg );
+##  $widget->{spaceflight}{sts_label}
+##	->grid( grid_args( $dg, sticky => 'e' ) );
+##  $widget->{spaceflight}{sts_value}
+##	->grid( grid_args( $dg, sticky => 'w' ) )->raise();
 
     grid_next_row( $dg );
     $widget->{spaceflight}{all_label}
