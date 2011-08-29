@@ -18,8 +18,9 @@ my %known_inconsistent = (
 ###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 ###    27372 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
-    24906 => { kelso => 1 },	# Kelso: spare; others: tumbling
+    24906 => { kelso => 1 },	# Kelso: spare; others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
+    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -42,6 +43,12 @@ my %known_inconsistent = (
 #               (25578).
 #               13-Nov-2010 - McCants & Sladen noted.
 #               15-Dec-2010 - Kelso noted, but listed 24906 as spare.
+# 29-Aug-2011 - McCants notes Iridium 23 (24906) as partial failure(?),
+#               but stable. Sladen simply notes it as not failed.
+#               McCants and Sladen note Iridium 26 (24903) as apparently
+#               failed. The date may be off by one, as I was unable to
+#               run the tests on the 28th due to a power outage caused
+#               by hurricane Irene.
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -104,7 +111,7 @@ plan tests => scalar @sources + scalar @keys * scalar @pairs, todo => \@todo;
 my $test = 0;
 
 foreach (["Mike McCants' Iridium status",
-	mccants => <<eod],
+	mccants => <<'EOD'],
  24792   Iridium 8               Celestrak
  24793   Iridium 7               Celestrak
  24794   Iridium 6               Celestrak
@@ -121,10 +128,10 @@ foreach (["Mike McCants' Iridium status",
  24871   Iridium 920    tum      Failed; was called Iridium 20
  24872   Iridium 18              Celestrak
  24873   Iridium 921    tum      Failed; was called Iridium 21
- 24903   Iridium 26              Celestrak
+ 24903   Iridium 26     unc      Apparently failed in August 2011.
  24904   Iridium 25              Celestrak
  24905   Iridium 46              Celestrak
- 24906   Iridium 23     unc      Failed in November 2010
+ 24906   Iridium 23              Partial failure? in November 2010
  24907   Iridium 22              Celestrak
  24925   Dummy mass 1   dum      Celestrak
  24926   Dummy mass 2   dum      Celestrak
@@ -197,9 +204,9 @@ foreach (["Mike McCants' Iridium status",
  27376   Iridium 96     ?        Spare
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Spare (new plane May 2007)
-eod
+EOD
 	["T. S. Kelso's Iridium list",
-	kelso => <<eod],
+	kelso => <<'EOD'],
  24792   Iridium 8      [+]      
  24793   Iridium 7      [+]      
  24794   Iridium 6      [+]      
@@ -292,9 +299,9 @@ eod
  27376   Iridium 96     [S]      Spare
  27450   Iridium 97     [+]      
  27451   Iridium 98     [S]      Spare
-eod
+EOD
 	["Rod Sladen's Iridium Constellation Status",
-	sladen => <<eod],
+	sladen => <<'EOD'],
  24792   Iridium 8      [+]      Plane 4
  24793   Iridium 7      [+]      Plane 4
  24794   Iridium 6      [+]      Plane 4
@@ -311,10 +318,10 @@ eod
  24871   Iridium 920    [-]      Plane 6
  24872   Iridium 18     [+]      Plane 6
  24873   Iridium 921    [-]      Plane 6
- 24903   Iridium 26     [+]      Plane 2
+ 24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [+]      Plane 2
  24905   Iridium 46     [+]      Plane 2
- 24906   Iridium 23     [-]      Plane 2 - Failed on station?
+ 24906   Iridium 23     [+]      Plane 2
  24907   Iridium 22     [+]      Plane 2
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
@@ -387,7 +394,7 @@ eod
  27376   Iridium 96     [S]      Plane 3
  27450   Iridium 97     [+]      Plane 4
  27451   Iridium 98     [S]      Plane 6
-eod
+EOD
 	) {
 #####    my ($what, $skip, $got, $file, $data) = @$_;
     my ($what, $file, $data) = @$_;
