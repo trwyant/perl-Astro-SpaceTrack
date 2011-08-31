@@ -20,7 +20,7 @@ my %known_inconsistent = (
     				# McCants: spare.
     24906 => { kelso => 1 },	# Kelso: spare; others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
-    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
+###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
 );
 #~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
 #		24967 (Iridium 36) spare. No change Kelso.
@@ -49,6 +49,7 @@ my %known_inconsistent = (
 #               failed. The date may be off by one, as I was unable to
 #               run the tests on the 28th due to a power outage caused
 #               by hurricane Irene.
+#               30-Aug-2011 Kelso marks Iriidum 26 tumbling
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -223,7 +224,7 @@ EOD
  24871   Iridium 920    [-]      Tumbling
  24872   Iridium 18     [+]      
  24873   Iridium 921    [-]      Tumbling
- 24903   Iridium 26     [+]      
+ 24903   Iridium 26     [-]      Tumbling
  24904   Iridium 25     [+]      
  24905   Iridium 46     [+]      
  24906   Iridium 23     [S]      Spare
