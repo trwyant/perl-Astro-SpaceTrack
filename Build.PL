@@ -25,9 +25,7 @@ my %attr = (
     requires => $meta->requires(
 	perl	=> $meta->requires_perl(),
     ),
-    build_requires => {
-	'Test::More' => 0.40,
-    },
+    build_requires => $meta->build_requires(),
     configure_requires => {},	# Don't require Module::Build
 );
 
