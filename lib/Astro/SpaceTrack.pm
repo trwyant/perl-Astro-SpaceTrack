@@ -2814,12 +2814,12 @@ sub _get {
     sub _get_yaml_package {
 	$tried and return $package;
 	$tried++;
-	$package =
-	    eval { require YAML::XS;   'YAML::XS'   } ||
-	    eval { require YAML::Syck; 'YAML::Syck' } ||
-	    eval { require YAML;       'YAML'       } ||
-	    eval { require YAML::Tiny; 'YAML::Tiny' }
-	;
+	foreach my $try ( qw{ YAML::XS YAML::Syck YAML YAML::Tiny } ) {
+	    ( my $fn = $try ) =~ s{ :: }{/}smxg;
+	    $fn .= '.pm';
+	    eval { require $fn; 1 } or next;
+	    return ( $package = $try );
+	}
 	return $package;
     }
 }
