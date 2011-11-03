@@ -4,13 +4,14 @@ use strict;
 use warnings;
 
 use Astro::SpaceTrack;
+use HTML::Parser;
 use LWP::UserAgent;
 use Test;
 
-unless ($ENV{SPACETRACK_USER}) {
+$ENV{SPACETRACK_USER} or do {
     print "1..0 # skip Environment variable SPACETRACK_USER not defined.\n";
     exit;
-}
+};
 
 my $st = Astro::SpaceTrack->new ();
 my $rslt = $st->_get ('perl/bulk_files.pl');
@@ -103,6 +104,8 @@ foreach my $key (sort keys %expect) {
 	$expect{$key}{note} and print "#     $expect{$key}{note}\n";
 	ok (delete $got{$number});
 	if ($number++) {
+	    $test++;
+	    print "# Test $test - $key ($expect{$key}{name}) with names\n";
 	    ok (delete $got{$number});
 	}
     }
@@ -116,8 +119,6 @@ if (%got) {
 	print "#     $_ => '$got{$_}{name}'\n";
     }
 }
-
-use HTML::Parser;
 
 sub parse_string {
     my $string = shift;

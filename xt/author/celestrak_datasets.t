@@ -6,12 +6,12 @@ use warnings;
 use Astro::SpaceTrack;
 use HTML::Parser;
 use LWP::UserAgent;
-use Test::More 0.40;
+use Test::More 0.88;
 
 my $ua = LWP::UserAgent->new ();
 my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');
 unless ($rslt->is_success) {
-    plan( skip_all => 'Celestrak inaccessable: ' . $rslt->status_line );
+    plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
     exit;	# Defensive code.
 }
 
@@ -63,28 +63,15 @@ if ($expect{sts}) {
     $expect{sts}{ignore} = 1;	# What it says.
 }
 
-my $test = 1;	# Allow extra test for added links.
-{
-    foreach my $key (sort keys %expect) {
-	if ($expect{$key}{ignore}) {
-	} else {
-	    $test++;
-	}
-    }
-}
-
-plan ( tests => $test );
-
-$test = 0;
 foreach my $key (sort keys %expect) {
     if ($expect{$key}{ignore}) {
 	my $presence = delete $got{$key} ? 'present' : 'not present';
-	note( "Ignored - $key (@{[($got{$key} ||
-		$expect{$key})->{name}]}): $presence" );
+	note "Ignored - $key (@{[($got{$key} ||
+		$expect{$key})->{name}]}): $presence";
 	$expect{$key}{note} and note( "    $expect{$key}{note}" );
     } else {
-	ok ( delete $got{$key}, $expect{$key}{name} );
-	$expect{$key}{note} and note( "    $expect{$key}{note}" );
+	ok delete $got{$key}, $expect{$key}{name};
+	$expect{$key}{note} and note "    $expect{$key}{note}";
     }
 }
 
@@ -94,6 +81,8 @@ ok ( !%got, 'The above is all there is' ) or do {
 	diag( "    $_ => '$got{$_}{name}" );
     }
 };
+
+done_testing;
 
 sub parse_string {
     my $string = shift;

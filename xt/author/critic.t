@@ -4,17 +4,9 @@ use strict;
 use warnings;
 
 use File::Spec;
+use Test::More 0.88;
 
 BEGIN {
-    eval {
-	require Test::More;
-	Test::More->VERSION(0.40);
-	Test::More->import();
-	1;
-    } or do {
-	print "1..0 # skip Test::More required to criticize code.\n";
-	exit;
-    };
     eval {
 	require Test::Perl::Critic;
 	Test::Perl::Critic->import(
@@ -22,7 +14,7 @@ BEGIN {
 	);
 	1;
     } or do {
-	print "1..0 # skip Test::Perl::Critic required to criticize code.\n";
+	plan skip_all => 'Test::Perl::Critic required to criticize code.';
 	exit;
     };
 }

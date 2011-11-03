@@ -3,30 +3,24 @@ package main;
 use strict;
 use warnings;
 
-use Test;
+use Test::More 0.88;
 
-my $skip = eval {
-    require ExtUtils::Manifest;
-    ExtUtils::Manifest->import (qw{manicheck filecheck});
-    1;
-} ? '' : 'Can not load ExtUtils::Manifest';
-
-plan tests => 2;
-my $test = 0;
-
-foreach ([manicheck => 'Missing files per manifest'],
-    [filecheck => 'Files not in MANIFEST or MANIFEST.SKIP'],
-) {
-    my ($subr, $title) = @$_;
-    $test++;
-    my @got = $skip ? ('skipped') : ExtUtils::Manifest->$subr ();
-    print <<eod;
-#
-# Test $test - $title
-#      Expected: ''
-#           Got: '@got'
-eod
-    skip ($skip, @got == 0);
+BEGIN {
+    eval {
+	require ExtUtils::Manifest;
+	1;
+    } or do {
+	plan skip_all => 'Can not load ExtUtils::Manifest';
+	exit;
+    };
 }
+
+my @got = ExtUtils::Manifest->manicheck();
+ok @got == 0, 'Missing files per MANIFEST';
+
+@got = ExtUtils::Manifest->filecheck();
+ok @got == 0, 'Files not in MANIFEST or MANIFEST.SKIP';
+
+done_testing;
 
 1;

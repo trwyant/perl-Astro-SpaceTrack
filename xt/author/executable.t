@@ -3,25 +3,16 @@ package main;
 use strict;
 use warnings;
 
-BEGIN {
+use Test::More 0.88;
 
-    eval {
-	require Test::More;
-	Test::More->VERSION( 0.40 );
-	Test::More->import();
-	1;
-    } or do {
-	print "1..0 # skip Test::More 0.40 or above required.\n";
-	exit;
-    };
+BEGIN {
 
     eval {
 	require ExtUtils::Manifest;
 	ExtUtils::Manifest->import( qw{ maniread } );
 	1;
     } or do {
-	print "1..0 # skip ExtUtils::Manifest required.\n";
-	exit;
+	plan skip_all => 'ExtUtils::Manifest required.';
     };
 
 }
@@ -35,15 +26,15 @@ foreach ( sort keys %{ $manifest } ) {
     push @check, $_;
 }
 
-plan (tests => scalar @check);
-
 foreach my $file (@check) {
     open (my $fh, '<', $file) or die "Unable to open $file: $!\n";
     local $_ = <$fh>;
     close $fh;
     my @stat = stat $file;
     my $executable = $stat[2] & oct( 111 ) || m/ \A \# ! .* perl /smx;
-    ok( !$executable, "File $file is not executable" );
+    ok !$executable, "File $file is not executable";
 }
+
+done_testing;
 
 1;

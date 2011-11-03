@@ -3,18 +3,9 @@ package main;
 use strict;
 use warnings;
 
-BEGIN {
+use Test::More 0.88;
 
-    eval {
-	require Test::More;
-	Test::More->import();
-	1;
-    } or do {
-	print <<eod;
-1..0 # skip Test::More required to test POD validity.
-eod
-	exit;
-    };
+BEGIN {
 
     eval {
 	require Test::Pod;
@@ -22,14 +13,13 @@ eod
 	Test::Pod->import();
 	1;
     } or do {
-	print <<eod;
-1..0 # skip Test::Pod 1.00 or higher required to test POD validity.
-eod
+	plan skip_all =>
+	    'Test::Pod 1.00 or higher required to test POD validity.';
 	exit;
     };
 
 }
 
-all_pod_files_ok ();
+all_pod_files_ok();
 
 1;
