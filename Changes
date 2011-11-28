@@ -1,3 +1,10 @@
+0.055		28-Nov-2011	T. R. Wyant
+    Update copy of GNU GPL in LICENSES/Copying to have current FSF
+        address.
+    Require Test::More 0.88 for testing.
+    Remove the Space Shuttle option from the SpaceTrackTk 'Human Space
+        Flight' dialog.
+
 0.054		21-Jul-2011	T. R. Wyant
     With the end of the U.S. Space Shuttle program, deprecate the
         celestrak() 'sts' catalog and the spaceflight() 'SHUTTLE'
