@@ -1,3 +1,8 @@
+0.056		18-Dec-2011	T. R. Wyant
+    Validate search options -exclude and -status even if they come in
+	through the API in a hash, not just if they come in as
+	command-line-style arguments.
+
 0.055		28-Nov-2011	T. R. Wyant
     Update copy of GNU GPL in LICENSES/Copying to have current FSF
         address.
