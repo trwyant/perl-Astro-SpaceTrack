@@ -3110,21 +3110,24 @@ sub _parse_search_args {
 	ref $args[0] eq 'ARRAY' and my @extra = @{shift @args};
 	@args = _parse_retrieve_args(
 	    [ @legal_search_args, @extra ], @args );
+    }
 
-	my $opt = $args[0];
-	$opt->{status} ||= 'all';
-	$legal_search_status{$opt->{status}} or croak <<"EOD";
+    my $opt = $args[0];
+
+    $opt->{status} ||= 'all';
+    $legal_search_status{$opt->{status}} or croak <<"EOD";
 Error - Illegal status '$opt->{status}'. You must specify one of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
 EOD
-	$opt->{exclude} ||= [];
-	$opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
-	foreach (@{$opt->{exclude}}) {
-	    $legal_search_exclude{$_} or croak <<"EOD";
+
+    $opt->{exclude} ||= [];
+    $opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
+    foreach (@{$opt->{exclude}}) {
+	$legal_search_exclude{$_} or croak <<"EOD";
 Error - Illegal exclusion '$_'. You must specify one or more of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
 EOD
-	}
+
     }
 
     return @args;
