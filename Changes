@@ -1,54 +1,54 @@
-0.056		18-Dec-2011	T. R. Wyant
+0.056		2011-12-18	T. R. Wyant
     Validate search options -exclude and -status even if they come in
 	through the API in a hash, not just if they come in as
 	command-line-style arguments.
 
-0.055		28-Nov-2011	T. R. Wyant
+0.055		2011-11-28	T. R. Wyant
     Update copy of GNU GPL in LICENSES/Copying to have current FSF
         address.
     Require Test::More 0.88 for testing.
     Remove the Space Shuttle option from the SpaceTrackTk 'Human Space
         Flight' dialog.
 
-0.054		21-Jul-2011	T. R. Wyant
+0.054		2011-07-21	T. R. Wyant
     With the end of the U.S. Space Shuttle program, deprecate the
         celestrak() 'sts' catalog and the spaceflight() 'SHUTTLE'
 	argument. The latter now does nothing, so we will not get 404
 	errors when the web page goes away.
 
-0.053		04-Jul-2011	T. R. Wyant
+0.053		2011-07-04	T. R. Wyant
     Correct the URL for Mike McCants' Iridium status web page.
 
-0.052		12-Apr-2011	T. R. Wyant
+0.052		2011-04-12	T. R. Wyant
     Add attribute scheme_space_track_attribute, defaulting to 'https'.
 	Also added LWP::Protocol::https as a dependency. Both in
 	response to USSTRATCOM going to a secure server some time in the
 	last 24 hours. Thanks to Thomas Wehr for diagnosing this, and
 	reporting both problem and solution.
 
-0.051		10-Feb-2011	T. R. Wyant
+0.051		2011-02-10	T. R. Wyant
     Correct check for non-existent attribute in Astro::SpaceTrack getv()
 	method.
     Update documentation of Mike McCants' status codes.
 
-0.050		12-Oct-2010	T. R. Wyant
+0.050		2010-10-12	T. R. Wyant
     Remove the diagnostics inserted in 0.049_01.
 
-0.049_01	02-Oct-2010	T. R. Wyant
+0.049_01	2010-10-02	T. R. Wyant
     _Really_ properly default the 'sort' retrieve option. Honest.
     More voluminous diagnostics in t/query.t for spacetrack() CPAN
         testers failures in 0.049.
 
-0.049		26-Sep-2010	T. R. Wyant
+0.049		2010-09-26	T. R. Wyant
     Properly default the 'sort' retrieve option when options are
 	specified as a hash reference rather than as command-style
 	options.
 
-0.048		18-Sep-2010	T. R. Wyant
+0.048		2010-09-18	T. R. Wyant
     Correct skip counts in t/query.t. Add xt/author/query_skip_sites.t
         to try to ensure they don't get out of whack again.
 
-0.047		17-Sep-2010	T. R. Wyant
+0.047		2010-09-17	T. R. Wyant
     Add Astro::SpaceTrack method getv() to do what get() should have
 	done -- return the attribute value without wrapping it in an
 	HTTP::Response object.
@@ -66,13 +66,13 @@
 	prayer of actually supporting.
     Move author tests from xt/ to xt/author.
 
-0.046		28-Mar-2010	T. R. Wyant
+0.046		2010-03-28	T. R. Wyant
     Add methods search_decay(), search_oid(), and box_score().
     Replace '' with undef in the array returned by the search_* methods
 	in list context. The HTTP::Response returned by these methods
 	is unchanged.
 
-0.045_01	22-Mar-2010	T. R. Wyant
+0.045_01	2010-03-22	T. R. Wyant
     Add -notle option to the search_* methods. This causes them to
         return the results of the search, rather than going on to
 	retrieve the TLEs. The results are one entry per line with
@@ -80,11 +80,11 @@
 	front and back. No change in the list returned in list context,
 	except for the whitespace massaging.
 
-0.045		01-Mar-2010	T. R. Wyant
+0.045		2010-03-01	T. R. Wyant
     Redo README to be more like the CPAN-recommended organization and
         contents.
 
-0.044_01	22-Feb-2010	T. R. Wyant
+0.044_01	2010-02-22	T. R. Wyant
     Move developer tests to xt/, and run them with Build target
         authortest, supplied by inc/My/Module/Build.pm. The author tests
         are not supported with make.
@@ -103,24 +103,24 @@
     Update the counts for the various debris events that are documented
         in Astro::SpaceTrack.
 
-0.044		03-Sep-2009	T. R. Wyant
+0.044		2009-09-03	T. R. Wyant
     Get rid of YAML dump in Build.PL, that was carelessly left in
         after I convinced Module::Build not to insert itself as
         required for configuration (because I also distribute
         Makefile.PL
 
-0.043		01-Sep-2009	T. R. Wyant
+0.043		2009-09-01	T. R. Wyant
     Add the retrieve() options to search_id(), which never had them
 	before.
     Test the request arguments generated for each of the Space Track
 	methods, to try to make sure we do not lose them again.
 
-0.042		30-Aug-2009	T. R. Wyant
+0.042		2009-08-30	T. R. Wyant
     Add the retrieve() options back to Space Track search requests.
 	These were lost in version 0.035 when Perl::Critic compliance
 	was added. Thanks to Thomas Wehr for finding this.
 
-0.041		18-Aug-2009	T. R. Wyant
+0.041		2009-08-18	T. R. Wyant
     Add ability to parse effective date from NASA Human Spaceflight.
         Add this to line 0 of the NASA TLE as --effective date_text.
         This is optional, and done only if '-effective' is passed
@@ -129,30 +129,30 @@
 	Thanks to Thomas Wehr for reporting the problem this addresses,
 	and T. S. Kelso for explaining what was needed to fix it.
 
-0.040		22-Apr-2009	T. R. Wyant
+0.040		2009-04-22	T. R. Wyant
     Suppress undefined value warnings generated when username and
 	password are set via 'set' rather than via the relevant
 	environment variables when the object is instantiated.
 
-0.039		09-Mar-2009	T. R. Wyant
+0.039		2009-03-09	T. R. Wyant
     Document Celestrak 'direct-fetch-only' data sets
 	'cosmos-2251-debris' and 'iridium-33-debris'.
     Fix 'spaceflight' retrieval test, which failed if all NASA's
 	orbital elements had epochs in the future.
 
-0.038		13-Feb-2009	T. R. Wyant
+0.038		2009-02-13	T. R. Wyant
     Correct parsing of Rod Sladen's Iridium status web page to
 	track the way he recorded the demise of Iridium 33.
     Correct '## no critic' entries to put parens around names of
 	policies to be disabled.
     Update t/perlcriticrc.
 
-0.037		01-Jan-2009	T. R. Wyant
+0.037		2009-01-01	T. R. Wyant
     Retract copyright year test in t/basic.t
     Update version and copyright in Astro::SpaceTrack. No other
 	changes.
 
-0.036		31-Dec-2008	T. R. Wyant
+0.036		2008-12-31	T. R. Wyant
     Revise Celestrak retrieval status check to get (hopefully) a
 	better indication of what happened when retrieval failed.
     Add dependency on Params::Util 0.012; use _INSTANCE from that
@@ -165,7 +165,7 @@
 	the desired severity (--stern) if run with the distributed
 	t/perlcriticrc file.
 
-0.035		23-Dec-2008	T. R. Wyant
+0.035		2008-12-23	T. R. Wyant
     When using Rod Sladen's data for Iridium status, mark all
 	'failed' iridiums as tumbling, whether or not there is
 	a 't' next to their numbers. This makes the Sladen data
@@ -187,7 +187,7 @@
     t/basic.t will now display net errors where generated and
 	(hopefully) appropriate.
 
-0.034		24-Nov-2008	T. R. Wyant
+0.034		2008-11-24	T. R. Wyant
     Eliminate use of UNIVERSAL::isa as a function.
     Add 'Pragma spacetrack-source = ' header to all methods
 	that return TLEs or Iridium status, saying where
@@ -197,16 +197,16 @@
     Try for less bad test coverage. Good coverage awaits a
 	rewrite of the shell() method.
 
-0.033		30-Sep-2008	T. R. Wyant
+0.033		2008-09-30	T. R. Wyant
     Fix Build.PL -y (and -n)
     Add iridium_status('sladen') to scrape Rod Sladen's Iridium
 	Constallation Status web page.
     Add attribute 'url_iridium_status_sladen'.
 
-0.032		06-Jul-2008	T. R. Wyant
+0.032		2008-07-06	T. R. Wyant
     More graceful failure when unable to parse Space Track data.
 
-0.031		21-Dec-2007	T. R. Wyant
+0.031		2007-12-21	T. R. Wyant
     Fix embedded modifier bug, exposed by the fixing of the
 	corresponding Perl bug (id=22354) in 5.10.0 -- or 5.9.0
 	actually. Thanks to Andy Lester's article:
@@ -221,12 +221,12 @@
 	since ActiveState is apparantly deploying a Perl 5.10
 	with a development version of that module.
 
-0.030		24-Oct-2007	T. R. Wyant
+0.030		2007-10-24	T. R. Wyant
     Add Celestrak 'sts' data set name to catalog.
     Different error text for data sets in catalog but 404 and data sets
 	not in catalog and 404.
 
-0.029		13-Oct-2007	T. R. Wyant
+0.029		2007-10-13	T. R. Wyant
     Add Celestrak galileo and sbas data set names to catalog.
     Document celestrak data set names, or at least how to get them and
 	in general how they are formed.
@@ -239,7 +239,7 @@
 	'get' without arguments to display all attributes. Document
 	this.
 
-0.028		15-May-2007	T. R. Wyant
+0.028		2007-05-15	T. R. Wyant
    Interpret missing spacetrack() catalog as a failure,
      even though the request succeeds.
    Ditto missing Space Track retrieve() data.
@@ -248,30 +248,30 @@
      are not available.
    Clear session cookie when username or password change.
 
-0.027		30-Jan-2007	T. R. Wyant
+0.027		2007-01-30	T. R. Wyant
    Add ability to search by on-orbit status ('onorbit',
      'decayed', or 'all'), and to exclude 'debris' and
      'rocket' (bodies).
    Tweak docs.
    Update copyright.
 
-0.026		06-Nov-2006	T. R. Wyant
+0.026		2006-11-06	T. R. Wyant
    New location for Mike McCants' Iridium status page.
    New attributes url_iridium_status_kelso and
      url_iridium_status_mccants so users are not dead
      in the water if this happens again.
 
-0.025		19-Oct-2006	T. R. Wyant
+0.025		2006-10-19	T. R. Wyant
    Recognize new Kelso Iridium status '[+]' = working.
    Make Makefile.PL not run Build.PL with old MakeMaker.
    Retract kluge to Build.PL, which is no longer needed.
 
-0.024		12-Sep-2006	T. R. Wyant
+0.024		2006-09-12	T. R. Wyant
    No substantive changes to this module, but retracted
      t/pod_spelling.t, and tried to make Build.PL work with
      ActiveState's build system.
 
-0.023		08-Sep-2006	T. R. Wyant
+0.023		2006-09-08	T. R. Wyant
    Added spaceflight() pseudo-catalogs 'iss' and 'station'.
    Have spaceflight() return NO_RECORDS on failure, not
      NO_CAT_ID.
@@ -283,50 +283,50 @@
    Have iridium_status() return parsed data with 'portable'
      status if called in list context.
 
-0.022		20-Jul-2006	T. R. Wyant
+0.022		2006-07-20	T. R. Wyant
    Documentation corrections.
 
-0.021		13-Jul-2006	T. R. Wyant
+0.021		2006-07-13	T. R. Wyant
   Add -all qualifier to spaceflight().
   Add search_date().
 
-0.020		01-Jul-2006	T. R. Wyant
+0.020		2006-07-01	T. R. Wyant
   Add the retrieve() qualifiers to spaceflight().
   Add the attribute_names() method.
   Tweak docs, correct spelling.
 
-0.019		11-Jun-2006	T. R. Wyant
+0.019		2006-06-11	T. R. Wyant
   Added the retrieve() options to celestrak() and file().
 
-0.018		30-May-2006	T. R. Wyant
+0.018		2006-05-30	T. R. Wyant
   Added amsat() method.
 
-0.017		27-Apr-2006	T. R. Wyant
+0.017		2006-04-27	T. R. Wyant
   Added retrieve() options.
 
-0.016		11-Feb-2006	T. R. Wyant
+0.016		2006-02-11	T. R. Wyant
   Added content types 'help' and 'get', so -filter
     does not supress output.
   Added iridium_status, & content type 'iridium-status'.
 
-0.015		01-Feb-2006	T. R. Wyant
+0.015		2006-02-01	T. R. Wyant
   Added webcmd attribute, and use it in help().
 
-0.014		28-Jan-2006	T. R. Wyant
+0.014		2006-01-28	T. R. Wyant
   Added filter attribute.
   Jocky the Term::ReadLine code yet again.
 
-0.013		21-Nov-2005	T. R. Wyant
+0.013		2005-11-21	T. R. Wyant
   Added spaceflight() method.
   Added "All rights reserved." to banner() output.
   Spiffed up the documentation.
 
-0.012		04-Nov-2005	T. R. Wyant
+0.012		2005-11-04	T. R. Wyant
   Added support for number ranges in retrieve(), to
     track support for these on www.space-track.org.
   Added max_range attribute for sanity checking.
 
-0.011		30-Oct-2005	T. R. Wyant
+0.011		2005-10-30	T. R. Wyant
   Added 'Pragma: spacetrack-type = orbit' header to
     the response for those methods that return orbital
     elements, if the request in fact succeeded.
@@ -334,35 +334,35 @@
   Played the CPANTS game.
   Added "All rights reserved." to copyright statement.
 
-0.010		14-Oct-2005	T. R. Wyant
+0.010		2005-10-14	T. R. Wyant
   Added the 'direct' attribute, to fetch elements
     directly from celestrak. And about time, too.
 
-0.009		17-Sep-2005	T. R. Wyant
+0.009		2005-09-17	T. R. Wyant
   Only require Term::ReadLine and create interface if
     the shell() method actually called.
 
-0.008		19-Jul-2005	T. R. Wyant
+0.008		2005-07-19	T. R. Wyant
   Consolidate dump code.
   Have file() method take open handle as arg.
   Modify cookie check.
   Add mutator, accessor for cookie_expires,
     session_cookie.
 
-0.007		15-Apr-2005	T. R. Wyant
+0.007		2005-04-15	T. R. Wyant
   Document attributes (under set() method)
   Have login return actual failure on HTTP error. Used
     to return 401 any time we did not get the cookie.
 
-0.006		08-Apr-2005	T. R. Wyant
+0.006		2005-04-08	T. R. Wyant
   Added search_id method.
   Made specimen scripts into installable executables.
   Add pseudo-tilde expansion to shell method.
 
-0.005		02-Apr-2005	T. R. Wyant
+0.005		2005-04-02	T. R. Wyant
   Proofread and correct POD.
 
-0.004		30-Mar-2005	T. R. Wyant
+0.004		2005-03-30	T. R. Wyant
   Added file method, for local observing lists.
   Changed Content-Type header of spacetrack () response
     to text/plain. Used to be text/text.
@@ -375,5 +375,5 @@
     AUTOMATED_TESTING is true and environment variable
     SPACETRACK_USER is undefined.
 
-0.003		26-Mar-2005	T. R. Wyant
+0.003		2005-03-26	T. R. Wyant
   Initial release to CPAN.
