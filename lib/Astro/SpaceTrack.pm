@@ -1514,15 +1514,7 @@ sub retrieve {
 	    my ($lo, $hi) = split '-', shift @args;
 	    $lo > 0 or defined $hi or next;
 	    defined $hi and do {
-		($lo, $hi) = ($hi, $lo) if $lo > $hi;
-		$lo or $lo = 1;	# 0 is illegal
-		$hi - $lo >= $self->{max_range} and do {
-		    carp <<"EOD";
-Warning - Range $lo-$hi ignored because it is greater than the
-	  currently-set maximum of $self->{max_range}.
-EOD
-		    next;
-		};
+		( $lo, $hi ) = $self->_check_range( $lo, $hi );
 		$ids += $hi - $lo;
 		$ids > RETRIEVAL_SIZE and do {
 		    my $mid = $hi - $ids + RETRIEVAL_SIZE;
@@ -2011,6 +2003,8 @@ sub search_oid {
 
 sub _search_oid_generic {
     my ( $self, $ids, $opt ) = @_;
+    $ids =~ s{ ( \d+ ) \s* - \s* ( \d+ ) }
+	{ scalar $self->_expand_range( $1, $2 ) }smxeg;
     return $self->_post (
 	'perl/satcat_id_query.pl',
 	_submitted => 1,
@@ -2019,6 +2013,27 @@ sub _search_oid_generic {
 	desc => ( $opt->{descending} ? 'yes' : '' ),
 	_submit => 'Submit',
     );
+}
+
+sub _check_range {
+    my ( $self, $lo, $hi ) = @_;
+    ($lo, $hi) = ($hi, $lo) if $lo > $hi;
+    $lo or $lo = 1;	# 0 is illegal
+    $hi - $lo >= $self->{max_range} and do {
+	carp <<"EOD";
+Warning - Range $lo-$hi ignored because it is greater than the
+	  currently-set maximum of $self->{max_range}.
+EOD
+	return;
+    };
+    return ( $lo, $hi );
+}
+
+sub _expand_range {
+    my ( $self, @args ) = @_;
+    my ( $lo, $hi ) = $self->_check_range( @args )
+	or return wantarray ? () : '';
+    return wantarray ? ( $lo .. $hi ) : join ' ', $lo .. $hi;
 }
 
 
