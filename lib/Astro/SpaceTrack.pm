@@ -2825,11 +2825,13 @@ sub _get {
 #	the name of the first which is loaded successfully. If none can
 #	be loaded, it returns undef. Subsequent calls simply return
 #	whatever the first call did.
+#
+#	Well, at the moment all it tries is YAML::Any.
 
     sub _get_yaml_package {
 	$tried and return $package;
 	$tried++;
-	foreach my $try ( qw{ YAML::XS YAML::Syck YAML YAML::Tiny } ) {
+	foreach my $try ( qw{ YAML::Any } ) {
 	    ( my $fn = $try ) =~ s{ :: }{/}smxg;
 	    $fn .= '.pm';
 	    eval { require $fn; 1 } or next;
