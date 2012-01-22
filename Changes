@@ -1,3 +1,13 @@
+0.057		2012-01-22	T. R. Wyant
+  Further deprecate the Astro::SpaceTrack celestrak( 'sts' ) and
+    spaceflight( 'shuttle' ) functionality by having them display a
+    warning on first use. The next step (warning on every use) will be
+    taken on or after July 22 2012.
+  Expand ranges passed to the search_oid() method, since the Space Track
+    API does not support them.
+  Bring Changes file into compliance with Test::CPAN::Changes. Add
+    author test xt/author/changes.t to be sure it remains so.
+
 0.056		2011-12-18	T. R. Wyant
     Validate search options -exclude and -status even if they come in
 	through the API in a hash, not just if they come in as
