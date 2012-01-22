@@ -47,18 +47,17 @@ C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
 argument, because of the end of the Space Shuttle program on July 21
 2011.
 
-With this release of the software, the C<spaceflight()> C<'SHUTTLE'>
-argument will unconditionally cause nothing to be retrieved.
-
-With the first release on or after January 21 2012, the first use of
+With this release of the software, the first use of
 either the C<celestrak()> C<'sts'> catalog or the C<spaceflight()>
 C<'SHUTTLE'> argument will generate a deprecation warning.
 
-Six months or more later, all uses of C<celestrak()> C<'sts'> or
-C<spaceflight()> C<'SHUTTLE'> will generate a deprecation warning.
+With the first release on or after July 22 2012, all uses of
+C<celestrak()> C<'sts'> or C<spaceflight()> C<'SHUTTLE'> will generate a
+deprecation warning.
 
 Six further months later, the deprecated functionality will be removed.
-This means you will get a C<404> error when you try to use it.
+This means (probably) you will get a C<404> error when you try to use
+it.
 
 =head1 DESCRIPTION
 
@@ -2624,10 +2623,10 @@ EOD
 
     my %deprecate = (
 	celestrak => {
-	    sts	=> 0,
+	    sts	=> 1,
 	},
 	spaceflight => {
-	    shuttle	=> 0,
+	    shuttle	=> 1,
 	},
     );
 
@@ -2638,7 +2637,7 @@ EOD
 	$deprecate{$method}{$argument} >= 3
 	    and croak "$argument $method is retracted";
 	warnings::enabled( 'deprecated' )
-	    and carp "$argument $method is deprecated";
+	    and carp "Method $method( '$argument' ) is deprecated";
 	$deprecate{$method}{$argument} == 1
 	    and $deprecate{$method}{$argument} = 0;
 	return;
