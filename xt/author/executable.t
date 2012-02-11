@@ -3,38 +3,34 @@ package main;
 use strict;
 use warnings;
 
+use ExtUtils::Manifest qw{maniread};
 use Test::More 0.88;
 
-BEGIN {
+my $manifest = maniread();
 
-    eval {
-	require ExtUtils::Manifest;
-	ExtUtils::Manifest->import( qw{ maniread } );
-	1;
-    } or do {
-	plan skip_all => 'ExtUtils::Manifest required.';
-    };
-
-}
-
-my $manifest = maniread ();
-
-my @check;
 foreach ( sort keys %{ $manifest } ) {
-    m/ \A bin \b /smx and next;
-    m/ \A eg \b /smx and next;
-    push @check, $_;
-}
+    m{ \A bin / }smx
+	and next;
+    m{ \A eg / }smx
+	and next;
+    m{ \A tools / }smx
+	and next;
 
-foreach my $file (@check) {
-    open (my $fh, '<', $file) or die "Unable to open $file: $!\n";
-    local $_ = <$fh>;
-    close $fh;
-    my @stat = stat $file;
-    my $executable = $stat[2] & oct( 111 ) || m/ \A \# ! .* perl /smx;
-    ok !$executable, "File $file is not executable";
+    ok ! is_executable(), "$_ should not be executable";
 }
 
 done_testing;
 
+sub is_executable {
+    my @stat = stat $_;
+    $stat[2] & oct(111)
+	and return 1;
+    open my $fh, '<', $_ or die "Unable to open $_: $!\n";
+    local $_ = <$fh>;
+    close $fh;
+    return m{ \A [#]! .* perl }smx;
+}
+
 1;
+
+# ex: set textwidth=72 :
