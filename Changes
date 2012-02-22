@@ -1,3 +1,7 @@
+0.058		2012-02-22	T. R. Wyant
+  Use GET rather than POST to implement Astro::SpaceTrack box_score(),
+    since 'POST' gives undefined errors during testing. Sometimes.
+
 0.057		2012-01-22	T. R. Wyant
   Further deprecate the Astro::SpaceTrack celestrak( 'sts' ) and
     spaceflight( 'shuttle' ) functionality by having them display a
