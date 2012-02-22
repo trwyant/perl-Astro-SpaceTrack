@@ -454,7 +454,7 @@ sub box_score {
 
     my $p = Astro::SpaceTrack::Parser->new ();
 
-    my $resp = $self->_post ( 'perl/boxscore.pl' );
+    my $resp = $self->_get ( 'perl/boxscore.pl' );
     $resp->is_success()
 	and not $self->{debug_url}
 	or return $resp;
