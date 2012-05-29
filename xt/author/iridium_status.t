@@ -125,7 +125,7 @@ foreach (["Mike McCants' Iridium status",
  24841   Iridium 16     tum      Removed from operation about April 7, 2005
  24842   Iridium 911    tum      Failed; was called Iridium 11
  24869   Iridium 15              Celestrak
- 24870   Iridium 17     tum?     Failed in August 2005?
+ 24870   Iridium 17     tum      Failed in August 2005
  24871   Iridium 920    tum      Failed; was called Iridium 20
  24872   Iridium 18              Celestrak
  24873   Iridium 921    tum      Failed; was called Iridium 21
