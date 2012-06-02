@@ -73,7 +73,7 @@ My::Module::Meta - Information needed to build Astro::SpaceTrack
  use lib qw{ inc };
  use My::Module::Meta;
  my $meta = My::Module::Meta->new();
- use YAML::Any;
+ use YAML;
  print "Required modules:\n", Dump(
      $meta->requires() );
 
@@ -96,7 +96,7 @@ This method instantiates the class.
 
 =head2 build_requires
 
- use YAML::Any;
+ use YAML;
  print Dump( $meta->build_requires() );
 
 This method computes and returns a reference to a hash describing the
@@ -117,7 +117,7 @@ C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
 
 =head2 requires
 
- use YAML::Any;
+ use YAML;
  print Dump( $meta->requires() );
 
 This method computes and returns a reference to a hash describing
