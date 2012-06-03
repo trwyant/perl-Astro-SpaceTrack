@@ -1,3 +1,7 @@
+0.059		2012-06-02	T. R. Wyant
+  Get rid of YAML::Any in favor of YAML. They are both in the same
+    distro, and YAML does not suffer from deprecation warnings.
+
 0.058		2012-02-22	T. R. Wyant
   Use GET rather than POST to implement Astro::SpaceTrack box_score(),
     since 'POST' gives undefined errors during testing. Sometimes.
