@@ -13,13 +13,15 @@ sub not_defined ($$);
 sub site_check ($);
 sub skip_site (@);
 
+use constant VERIFY_HOSTNAME => 0;
+
 plan tests => 104;
 
 my $st;
 {
     site_check 'www.space-track.org';	# To make sure we have account
     local $ENV{SPACETRACK_USER} = spacetrack_account();
-    $st = Astro::SpaceTrack->new();
+    $st = Astro::SpaceTrack->new( verify_hostname => VERIFY_HOSTNAME );
 }
 
 SKIP: {
@@ -30,7 +32,8 @@ SKIP: {
 
     my $rslt = $st->login();
     ok $rslt->is_success(), 'Log in to Space-Track'
-	or set_skip( 'www.space-track.org', 'Space-Track login failed' );
+	or set_skip( 'www.space-track.org',
+	'Space-Track login failed: ' . $rslt->status_line() );
 
     SKIP: {
 
@@ -437,7 +440,7 @@ sub prompt {
 		url	=> 'http://www.amsat.org/',
 	    },
 	    'www.space-track.org'	=> {
-		url	=> 'http://www.space-track.org/',
+		url	=> 'https://www.space-track.org/',
 		check	=> \&spacetrack_skip,
 	    }
 	);
@@ -469,11 +472,13 @@ sub prompt {
 	    );
 	}
 
-	$ua ||= LWP::UserAgent->new();
+	$ua ||= LWP::UserAgent->new(
+	    ssl_opts	=> { verify_hostname => VERIFY_HOSTNAME },
+	);
 	my $rslt = $ua->get( $url );
 	$rslt->is_success()
 	    or return ( $skip_site{$site} =
-		"$site not available: ", $rslt->status_line() );
+		"$site not available: " . $rslt->status_line() );
 	if ( $info{$site}{check} and my $check = $info{$site}{check}->() ) {
 	    return ( $skip_site{$site} = $check );
 	}

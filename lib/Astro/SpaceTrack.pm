@@ -235,6 +235,7 @@ my %mutator = (	# Mutators for the various attributes.
     url_iridium_status_sladen => \&_mutate_attrib,
     username => \&_mutate_authen,
     verbose => \&_mutate_attrib,
+    verify_hostname => \&_mutate_verify_hostname,
     webcmd => \&_mutate_attrib,
     with_name => \&_mutate_attrib,
 );
@@ -264,7 +265,6 @@ sub new {
     $class = ref $class if ref $class;
 
     my $self = {
-	agent => LWP::UserAgent->new (),
 	banner => 1,	# shell () displays banner if true.
 	cookie_expires => 0,
 	debug_url => undef,	# Not turned on
@@ -286,12 +286,11 @@ sub new {
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
 	verbose => undef,	# Verbose error messages for catalogs.
+	verify_hostname => 1,	# Verify host names by default.
 	webcmd => undef,	# Command to get web help.
 	with_name => undef,	# True to retrieve three-line element sets.
     };
     bless $self, $class;
-
-    $self->{agent}->env_proxy;
 
     $ENV{SPACETRACK_OPT} and
 	$self->set (grep {defined $_} split '\s+', $ENV{SPACETRACK_OPT});
@@ -302,9 +301,6 @@ sub new {
     };
 
     @args and $self->set (@args);
-
-    $self->{agent}->cookie_jar ({})
-	unless $self->{agent}->cookie_jar;
 
     $self->_check_cookie ();
 
@@ -340,10 +336,11 @@ sub amsat {
     my $self = shift;
     delete $self->{_pragmata};
     my $content = '';
+    my $agent = $self->_get_agent();
     foreach my $url (
 	'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
     ) {
-	my $resp = $self->{agent}->get ($url);
+	my $resp = $agent->get ($url);
 	return $resp unless $resp->is_success;
 	$self->_dump_headers( $resp );
 	my @data;
@@ -598,7 +595,7 @@ sub celestrak {
 
     $self->{direct}
 	and return $self->_celestrak_direct ($opt, $name);
-    my $resp = $self->{agent}->get (
+    my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/SpaceTrack/query/$name.txt");
     if (my $check = $self->_celestrak_response_check($resp, $name)) {
 	return $check;
@@ -618,7 +615,7 @@ sub _celestrak_direct {
 ##  my $opt = shift @args;
     shift @args;	# $opt not used
     my $name = shift @args;
-    my $resp = $self->{agent}->get (
+    my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/NORAD/elements/$name.txt");
     if (my $check = $self->_celestrak_response_check($resp, $name, 'direct')) {
 	return $check;
@@ -1158,7 +1155,7 @@ The BODY_STATUS constants are exportable using the :status tag.
     # Get Iridium data from Celestrak.
     sub _iridium_status_kelso {
 	my ( $self, $fmt, $rslt ) = @_;
-	my $resp = $self->{agent}->get(
+	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_kelso' )
 	);
 	$resp->is_success or return $resp;
@@ -1189,7 +1186,7 @@ The BODY_STATUS constants are exportable using the :status tag.
     # Get Iridium status from Mike McCants
     sub _iridium_status_mccants {
 	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
-	my $resp = $self->{agent}->get(
+	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_mccants' )
 	);
 	$resp->is_success or return $resp;
@@ -1234,7 +1231,7 @@ The BODY_STATUS constants are exportable using the :status tag.
     sub _iridium_status_sladen {
 	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
 
-	my $resp = $self->{agent}->get(
+	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_sladen' )
 	);
 	$resp->is_success or return $resp;
@@ -1339,7 +1336,7 @@ EOD
 
     #	Do not use the _post method to retrieve the session cookie,
     #	unless you like bottomless recursions.
-    my $resp = $self->{agent}->post (
+    my $resp = $self->_get_agent()->post (
 	"$self->{scheme_space_track}://$self->{domain_space_track}/perl/login.pl", [
 	    username => $self->{username},
 	    password => $self->{password},
@@ -2337,7 +2334,7 @@ sub spaceflight {
     my $now = time ();
     my %tle;
     foreach my $url (@list) {
-	my $resp = $self->{agent}->get ($url);
+	my $resp = $self->_get_agent()->get ($url);
 	return $resp unless $resp->is_success;
 	$html .= $resp->content();
 	my (@data, $acquire, $effective);
@@ -2564,7 +2561,7 @@ sub _check_cookie {
     my $self = shift;
     my ($cookie, $expir);
     $expir = 0;
-    $self->{agent}->cookie_jar->scan (sub {
+    $self->_get_agent()->cookie_jar->scan (sub {
 	$self->{dump_headers} > 1 and _dump_cookie ("_check_cookie:\n", @_);
 	($cookie, $expir) = @_[2, 8] if $_[4] eq $self->{domain_space_track} &&
 	    $_[3] eq SESSION_PATH && $_[1] eq SESSION_KEY;
@@ -2696,7 +2693,7 @@ sub _dump_headers {
     chomp $rqst;
     warn "\nRequest:\n$rqst\nHeaders:\n",
 	$resp->headers->as_string, "\nCookies:\n";
-    $self->{agent}->cookie_jar->scan (sub {
+    $self->_get_agent()->cookie_jar->scan (sub {
 	_dump_cookie ("\n", @_);
 	});
     warn "\n";
@@ -2758,7 +2755,7 @@ sub _get {
 	};
 	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request($url, @args) ||
-	    $self->{agent}->get (($self->{debug_url} || $url) . $cgi);
+	    $self->_get_agent()->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
 ##	return $resp unless $resp->is_success && !$self->{debug_url};
 	$resp->is_success()
@@ -2790,6 +2787,23 @@ sub _get {
 # </body></html>
 #	If this happens, it would be good to retry the login.
 
+sub _get_agent {
+    my ( $self ) = @_;
+    $self->{agent}
+	and return $self->{agent};
+    my $agent = $self->{agent} = LWP::UserAgent->new(
+	ssl_opts	=> {
+	    verify_hostname	=> $self->getv( 'verify_hostname' ),
+	},
+    );
+
+    $agent->env_proxy();
+
+    $agent->cookie_jar()
+	or $agent->cookie_jar( {} );
+
+    return $agent;
+}
 	
 {
 
@@ -2915,14 +2929,16 @@ sub _mutate_authen {
 # This mutates the user agent's cookie jar, then co-routines off to
 # _mutate attrib.
 sub _mutate_cookie {
-    if ($_[0]->{agent} && $_[0]->{agent}->cookie_jar) {
-	if (defined $_[2]) {
-	    $_[0]->{agent}->cookie_jar->set_cookie (0, SESSION_KEY, $_[2],
-		SESSION_PATH, $_[0]{domain_space_track},
+    my ( $self, $name, $value ) = @_;
+    my $agent = $self->_get_agent();
+    if ($agent && $agent->cookie_jar) {
+	if (defined $value) {
+	    $agent->cookie_jar->set_cookie (0, SESSION_KEY, $value,
+		SESSION_PATH, $self->{domain_space_track},
 		undef, 1, undef, undef, 1, {});
 	} else {
-	    $_[0]->{agent}->cookie_jar->clear(
-		$_[0]{domain_space_track}, SESSION_PATH, SESSION_KEY);
+	    $agent->cookie_jar->clear(
+		$self->{domain_space_track}, SESSION_PATH, SESSION_KEY);
 	}
     }
     goto &_mutate_attrib;
@@ -2948,6 +2964,17 @@ EOD
     goto &_mutate_attrib;
 }
 
+#	_mutate_verify_hostname mutates the verify_hostname attribute.
+#	Since the value of this gets fed to LWP::UserAgent->new() to
+#	instantiate the {agent} attribute, we delete that attribute
+#	before changing the value, relying on $self->_get_agent() to
+#	instantiate it appropriately if needed -- and on any code that
+#	uses the agent to go through this private method to get it.
+
+sub _mutate_verify_hostname {
+    delete $_[0]->{agent};
+    goto &_mutate_attrib;
+}
 
 #	_no_such_catalog takes as arguments a source and catalog name,
 #	and returns the appropriate HTTP::Response object based on the
@@ -3162,7 +3189,7 @@ sub _post {
 	};
 	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
 	my $resp = $self->_dump_request( $url, @args) ||
-	    $self->{agent}->post ($self->{debug_url} || $url, [@args]);
+	    $self->_get_agent()->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
 ##	return $resp unless $resp->is_success && !$self->{debug_url};
 	$resp->is_success()
@@ -3474,6 +3501,15 @@ The default is an empty string.
 This attribute specifies verbose error messages.
 
 The default is false (i.e. 0).
+
+=item verify_hostname (boolean)
+
+This attribute specifies whether C<https:> certificates are verified.
+If you set this false, you can not verify that hosts using C<https:> are
+who they say they are, but it also lets you work around invalid
+certificates. Currently only the Space Track web site uses C<https:>.
+
+The default is true (i.e. 1).
 
 =item webcmd (string)
 

@@ -56,6 +56,7 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     url_iridium_status_sladen
     username
     verbose
+    verify_hostname
     webcmd
     with_name
     } ], 'Attribute list is correct';
