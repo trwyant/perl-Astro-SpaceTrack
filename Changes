@@ -1,3 +1,9 @@
+0.060		2012-06-09	T. R. Wyant
+  Add Astro::SpaceTrack attribute verify_hostname. This controls the
+    corresponding SSL option for LWP::UserAgent. By default it is true,
+    but can be made false to deal with invalid (or at least
+    unrecognized) certificates,
+
 0.059		2012-06-02	T. R. Wyant
   Get rid of YAML::Any in favor of YAML. They are both in the same
     distro, and YAML does not suffer from deprecation warnings.
