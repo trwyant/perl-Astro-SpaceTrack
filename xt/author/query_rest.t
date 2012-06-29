@@ -27,13 +27,12 @@ my $rslt;
     $st = Astro::SpaceTrack->new( verify_hostname => VERIFY_HOSTNAME );
 }
 
-subtest 'Space Track login', sub {
-
+subtest 'Space Track login - v2 interface', sub {
 
     $st->set( space_track_version => $desired_content_interface );
 
     my $skip;
-    $skip = site_check $space_track_domain,
+    $skip = site_check $space_track_domain
 	and plan skip_all => $skip;
 
     $rslt = $st->login();
@@ -43,7 +42,7 @@ subtest 'Space Track login', sub {
 
 };
 
-subtest 'Space Track access', sub {
+subtest 'Space Track access - v2 interface', sub {
 
     my $skip;
     $skip = site_check $space_track_domain
@@ -285,7 +284,7 @@ subtest 'Space Track access', sub {
 
 };
 
-subtest 'Space Track access via Celestrak', sub {
+subtest 'Space Track access via Celestrak - v2 interface', sub {
 
     my $skip;
     $skip = site_check $space_track_domain
