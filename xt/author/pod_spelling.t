@@ -22,6 +22,7 @@ all_pod_files_spelling_ok ();
 __DATA__
 amsat
 antisatellite
+API
 Celestrak
 China's
 com
@@ -69,6 +70,7 @@ spacetrack
 stdout
 sts
 tle
+tles
 txt
 unzip
 unzipped

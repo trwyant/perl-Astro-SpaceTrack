@@ -15,7 +15,10 @@ my $loader = Astro::SpaceTrack->__get_yaml_loader() or do {
     exit;
 };
 
-my $st = Astro::SpaceTrack->new( debug_url => 'dump-request:' );
+my $st = Astro::SpaceTrack->new(
+    debug_url => 'dump-request:',
+    space_track_version	=> 1,
+);
 
 is_resp qw{retrieve 25544}, {
 	args => {
@@ -64,6 +67,8 @@ is_resp qw{retrieve -sort epoch 25544}, {
 	url => 'https://www.space-track.org/perl/id_query.pl',
     },
 ;
+
+###############
 
 is_resp qw{retrieve -descending 25544}, {
 	args => {
@@ -672,6 +677,49 @@ is_resp qw{spacetrack 10}, {
 	},
 	method => 'get',
 	url => 'https://www.space-track.org/perl/dl.pl',
+    },
+;
+
+################################
+
+$st->set( space_track_version => 2 );
+
+is_resp qw{retrieve 25544}, {
+	args => [ query =>
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    orderby	=> 'NORAD_CAT_ID%20asc',
+	    limit	=> 1,
+	],
+	method => 'get_rest',
+	url => 'https://beta.space-track.org/basicspacedata',
+    },
+;
+
+is_resp qw{retrieve -sort catnum 25544}, {
+	args => [ query	=>
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    orderby	=> 'NORAD_CAT_ID%20asc',
+	    limit	=> 1,
+	],
+	method => 'get_rest',
+	url => 'https://beta.space-track.org/basicspacedata',
+    },
+;
+
+is_resp qw{retrieve -sort epoch 25544}, {
+	args => [ query	=>
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    orderby	=> 'EPOCH%20asc',
+	    limit	=> 1,
+	],
+	method => 'get_rest',
+	url => 'https://beta.space-track.org/basicspacedata',
     },
 ;
 

@@ -43,14 +43,17 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     debug_url
     direct
     domain_space_track
+    domain_space_track_rest
     dump_headers
     fallback
     filter
     iridium_status_format
     max_range
     password
+    rest_session_cookie
     scheme_space_track
     session_cookie
+    space_track_version
     url_iridium_status_kelso
     url_iridium_status_mccants
     url_iridium_status_sladen
