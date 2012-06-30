@@ -177,8 +177,6 @@ use constant NO_OBJ_NAME => 'No object name specified.';
 use constant NO_RECORDS => 'No records found.';
 
 use constant SESSION_PATH => '/';
-use constant SESSION_KEY => 'spacetrack_session';
-use constant REST_SESSION_KEY => 'chocolatechip';
 
 use constant DEFAULT_SPACE_TRACK_VERSION => 1;
 
@@ -255,20 +253,18 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
     banner => \&_mutate_attrib,
-    cookie_expires => \&_mutate_attrib,
+    cookie_expires => \&_mutate_spacetrack_interface,
     debug_url => \&_mutate_attrib,	# Force the URL. Undocumented and unsupported.
     direct => \&_mutate_attrib,
-    domain_space_track => \&_mutate_authen,
-    domain_space_track_rest => \&_mutate_rest_authen,
+    domain_space_track => \&_mutate_spacetrack_interface,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
     fallback => \&_mutate_attrib,
     filter => \&_mutate_attrib,
     iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
     password => \&_mutate_authen,
-    rest_session_cookie => \&_mutate_rest_cookie,
     scheme_space_track => \&_mutate_attrib,
-    session_cookie => \&_mutate_cookie,
+    session_cookie => \&_mutate_spacetrack_interface,
     space_track_version => \&_mutate_space_track_version,
     url_iridium_status_kelso => \&_mutate_attrib,
     url_iridium_status_mccants => \&_mutate_attrib,
@@ -279,6 +275,17 @@ my %mutator = (	# Mutators for the various attributes.
     webcmd => \&_mutate_attrib,
     with_name => \&_mutate_attrib,
 );
+
+my %accessor = (
+    cookie_expires	=> \&_access_spacetrack_interface,
+    domain_space_track	=> \&_access_spacetrack_interface,
+    session_cookie	=> \&_access_spacetrack_interface,
+);
+foreach my $key ( keys %mutator ) {
+    exists $accessor{$key}
+	or $accessor{$key} = sub { return $_[0]->{$_[1]} };
+}
+
 # Maybe I really want a cookie_file attribute, which is used to do
 # $self->{agent}->cookie_jar ({file => $self->{cookie_file}, autosave => 1}).
 # We'll want to use a false attribute value to pass an empty hash. Going to
@@ -306,20 +313,30 @@ sub new {
 
     my $self = {
 	banner => 1,	# shell () displays banner if true.
-	cookie_expires => 0,
 	debug_url => undef,	# Not turned on
 	direct => 0,	# Do not direct-fetch from redistributors
-	domain_space_track => 'www.space-track.org',
-	domain_space_track_rest	=> 'beta.space-track.org',
 	dump_headers => 0,	# No dumping.
 	fallback => 0,	# Do not fall back if primary source offline
 	filter => 0,	# Filter mode.
 	iridium_status_format => 'mccants',	# For historical reasons.
 	max_range => 500,	# Sanity limit on range size.
 	password => undef,	# Login password.
-	rest_session_cookie	=> undef,
 	scheme_space_track => 'https',
-	session_cookie => undef,
+	_space_track_interface	=> [
+	    undef,
+	    {	# Interface version 1
+		cookie_expires		=> 0,
+		cookie_name		=> 'spacetrack_session',
+		domain_space_track	=> 'www.space-track.org',
+		session_cookie		=> undef,
+	    },
+	    {	# Interface version 2
+##		cookie_expires		=> 0,
+		cookie_name		=> 'chocolatechip',
+		domain_space_track	=> 'beta.space-track.org',
+		session_cookie		=> undef,
+	    },
+	],
 	space_track_version	=> DEFAULT_SPACE_TRACK_VERSION,
 	url_iridium_status_kelso =>
 	    'http://celestrak.com/SpaceTrack/query/iridium.txt',
@@ -344,8 +361,6 @@ sub new {
     };
 
     @args and $self->set (@args);
-
-    $self->_check_cookie ();
 
     return $self;
 }
@@ -440,6 +455,7 @@ benefit of the shell method.
 		'v' . $Config::Config{version};	## no critic (ProhibitPackageVars)
 	    }
 	};
+	my $url = $self->_make_space_track_base_url( 1 );
 	return HTTP::Response->new (RC_OK, undef, undef, <<"EOD");
 
 @{[__PACKAGE__]} version $VERSION
@@ -448,11 +464,11 @@ Perl $perl_version under $^O
 This package acquires satellite orbital elements and other data from a
 variety of web sites. It is your responsibility to abide by the terms of
 use of the individual web sites. In particular, to acquire data from
-Space Track ($self->{scheme_space_track}://$self->{domain_space_track}/) you must register and
+Space Track ($url/) you must register and
 get a username and password, and you may not make the data available to
 a third party without prior permission from Space Track.
 
-Copyright 2005-2011 by T. R. Wyant (wyant at cpan dot org).
+Copyright 2005-2012 by T. R. Wyant (wyant at cpan dot org).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
@@ -540,7 +556,7 @@ sub _box_score_v1 {
 	    ORBITAL_DEBRIS_COUNT ORBITAL_TOTAL_COUNT
 	DECAYED_PAYLOAD_COUNT DECAYED_ROCKET_BODY_COUNT
 	    DECAYED_DEBRIS_COUNT DECAYED_TOTAL_COUNT
-	    COUNTRY_TOTAL
+	COUNTRY_TOTAL
 	};
 
     my @head = (
@@ -1000,9 +1016,9 @@ sub getv {
     my ( $self, $name ) = @_;
     defined $name
 	or croak 'No attribute name specified';
-    $mutator{$name}
+    my $code = $accessor{$name}
 	or croak "No such attribute as '$name'";
-    return $self->{$name};
+    return $code->( $self, $name );
 }
 
 
@@ -1484,8 +1500,9 @@ EOD
 
     #	Do not use the _post method to retrieve the session cookie,
     #	unless you like bottomless recursions.
+    my $url = $self->_make_space_track_base_url( 1 );
     my $resp = $self->_get_agent()->post (
-	"$self->{scheme_space_track}://$self->{domain_space_track}/perl/login.pl", [
+	"$url/perl/login.pl", [
 	    username => $self->{username},
 	    password => $self->{password},
 	    _submitted => 1,
@@ -1495,7 +1512,7 @@ EOD
     $resp->is_success or return $resp;
     $self->_dump_headers( $resp );
 
-    $self->_check_cookie () > time ()
+    $self->_record_cookie_generic( 1 )
 	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
 
     $self->{dump_headers} and warn <<'EOD';
@@ -1515,10 +1532,11 @@ sub _login_v2 {
 Logging in as $self->{username}.
 EOD
 
-    #	Do not use the _post method to retrieve the session cookie,
+    #	Do not use the _get_rest method to retrieve the session cookie,
     #	unless you like bottomless recursions.
+    my $url = $self->_make_space_track_base_url( 2 );
     my $resp = $self->_get_agent()->post(
-	"$self->{scheme_space_track}://$self->{domain_space_track_rest}/ajaxauth/login", [
+	"$url/ajaxauth/login", [
 	    identity => $self->{username},
 	    password => $self->{password},
 	] );
@@ -1526,7 +1544,7 @@ EOD
     $resp->is_success or return $resp;
     $self->_dump_headers( $resp );
 
-    $self->_check_rest_cookie()
+    $self->_record_cookie_generic( 2 )
 	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
 
     $self->{dump_headers} and warn <<'EOD';
@@ -1535,6 +1553,29 @@ EOD
     return HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
 }
 
+=for html <a name="logout"></a>
+
+=item $st->logout()
+
+This method deletes all session cookies. It returns an HTTP::Response
+object that indicates success.
+
+=cut
+
+sub logout {
+    my ( $self ) = @_;
+    foreach my $spacetrack_interface_info (
+	@{ $self->{_space_track_interface} } ) {
+	$spacetrack_interface_info
+	    or next;
+	exists $spacetrack_interface_info->{session_cookie}
+	    and $spacetrack_interface_info->{session_cookie} = undef;
+	exists $spacetrack_interface_info->{cookie_expires}
+	    and $spacetrack_interface_info->{cookie_expires} = 0;
+    }
+    return HTTP::Response->new(
+	RC_OK, undef, undef, "Logout successful.\n" );
+}
 
 =for html <a name="names"></a>
 
@@ -1905,7 +1946,7 @@ sub _retrieve_v2 {
 	APOGEE PERIGEE RCSVALUE
     };
 
-    sub __search_rest {
+    sub _search_rest {
 	my ( $self, @args ) = @_;
 	delete $self->{_pragmata};
 
@@ -2288,7 +2329,7 @@ sub _search_date_v2 {	## no critic (RequireArgUnpacking)
     ( my $opt, @args ) = _parse_search_args( @args );
     @_ = ( $self, $opt, LAUNCH => [
 	    map { _format_launch_date_rest( $_ ) } @args ] );
-    goto &__search_rest;
+    goto &_search_rest;
 }
 
 
@@ -2377,7 +2418,7 @@ sub _search_decay_v2 {	## no critic (RequireArgUnpacking)
     ( my $opt, @args ) = _parse_search_args( @args );
     @_ = ( $self, $opt, DECAY => [
 	    map { _format_launch_date_rest( $_ ) } @args ] );
-    goto &__search_rest;
+    goto &_search_rest;
 }
 
 
@@ -2469,7 +2510,7 @@ sub _search_id_v2 {	## no critic (RequireArgUnpacking)
     ( my $opt, @args ) = _parse_search_args( @args );
     @_ = ( $self, $opt, INTLDES => [
 	    map { _format_international_id_rest( $_ ) } @args ] );
-    goto &__search_rest;
+    goto &_search_rest;
 }
 
 
@@ -2553,7 +2594,7 @@ sub _search_name_v2 {	## no critic (RequireArgUnpacking)
     ( my $opt, @args ) = _parse_search_args( @args );
     @_ = ( $self, $opt, SATNAME => [
 	    map { "~~$_" } @args ] );
-    goto &__search_rest;
+    goto &_search_rest;
 }
 
 
@@ -2655,7 +2696,7 @@ sub _search_oid_v2 {	## no critic (RequireArgUnpacking)
     my ( $self, @args ) = @_;
     ( my $opt, @args ) = _parse_search_args( @args );
     @_ = ( $self, $opt, NORAD_CAT_ID => \@args );
-    goto &__search_rest;
+    goto &_search_rest;
 }
 
 sub _search_oid_generic {
@@ -3232,51 +3273,64 @@ sub _add_pragmata {
     return;
 }
 
-#	_check_cookie looks for our session cookie. If it's found, it returns
-#	the cookie's expiration time and sets the relevant attributes.
-#	Otherwise it returns zero.
+# _check_cookie_generic looks for our session cookie. If it is found, it
+# returns true if it thinks the cookie is valid, and false otherwise. If
+# it is not found, it returns false.
 
-sub _check_cookie {
-    my $self = shift;
-    my ($cookie, $expir);
-    $expir = 0;
-    $self->_get_agent()->cookie_jar->scan (sub {
-	$self->{dump_headers} > 1 and _dump_cookie ("_check_cookie:\n", @_);
-	($cookie, $expir) = @_[2, 8] if $_[4] eq $self->{domain_space_track} &&
-	    $_[3] eq SESSION_PATH && $_[1] eq SESSION_KEY;
-	});
-    $self->{dump_headers} and warn $expir ? <<"EOD" : <<'EOD';	## no critic (RequireCarping)
-Session cookie: $cookie
-Cookie expiration: @{[strftime '%d-%b-%Y %H:%M:%S', localtime $expir]} ($expir)
-EOD
-Session cookie not found
-EOD
-    $self->{session_cookie} = $cookie;
-    $self->{cookie_expires} = $expir;
-    return $expir || 0;
-}
+sub _record_cookie_generic {
+    my ( $self, $version ) = @_;
+    defined $version
+	or $version = $self->{space_track_version};
+    my $interface_info = $self->{_space_track_interface}[$version];
+    my $cookie_name = $interface_info->{cookie_name};
+    my $domain = $interface_info->{domain_space_track};
 
-sub _check_rest_cookie {
-    my ( $self ) = @_;
-    my ( $cookie, $expir );
-    $expir = 0;
+    my ( $cookie, $expires );
     $self->_get_agent()->cookie_jar->scan( sub {
-	    $self->{dump_headers} > 1 and _dump_cookie ("_check_cookie:\n", @_);
-	    $_[4] eq $self->{domain_space_track_rest}
+	    $self->{dump_headers} > 1
+		and _dump_cookie( "_record_cookie_generic:\n", @_ );
+	    $_[4] eq $domain
 		or return;
 	    $_[3] eq SESSION_PATH
 		or return;
-	    $_[1] eq REST_SESSION_KEY
+	    $_[1] eq $cookie_name
 		or return;
-	    ( $cookie, $expir ) = @_[2, 8];
+	    ( $cookie, $expires ) = @_[2, 8];
 	    return;
 	} );
-    # Note that REST session cookie does not expire.
-    $self->{dump_headers} and warn <<"EOD";	## no critic (RequireCarping)
-Session cookie: $cookie
-EOD
-    $self->{rest_session_cookie} = $cookie;
-    return $cookie ? 1 : 0;
+
+    if ( defined $cookie ) {
+	$interface_info->{session_cookie} = $cookie;
+	$self->{dump_headers}
+	    and warn "Session cookie: $cookie\n";	## no critic (RequireCarping)
+	if ( exists $interface_info->{cookie_expires} ) {
+	    $interface_info->{cookie_expires} = $expires;
+	    $self->{dump_headers}
+		and warn 'Cookie expiration: ',
+		    strftime( '%d-%b-%Y %H:%M:%S', localtime $expires ),
+		    " ($expires)\n";	## no critic (RequireCarping)
+	    return $expires > time;
+	}
+	return $interface_info->{session_cookie} ? 1 : 0;
+    } else {
+	$self->{dump_headers}
+	    and warn "Session cookie not found\n";	## no critic (RequireCarping)
+	return;
+    }
+}
+
+sub _check_cookie_generic {
+    my ( $self, $version ) = @_;
+    defined $version
+	or $version = $self->{space_track_version};
+    my $interface_info = $self->{_space_track_interface}[$version];
+
+    if ( exists $interface_info->{cookie_expires} ) {
+	return defined $interface_info->{cookie_expires}
+	    && $interface_info->{cookie_expires} > time;
+    } else {
+	return defined $interface_info->{session_cookie};
+    }
 }
 
 #	_convert_content converts the content of an HTTP::Response
@@ -3483,12 +3537,15 @@ sub _get {
     }
     $cgi and substr( $cgi, 0, 1, '?' );
     {	# Single-iteration loop
-	$self->{debug_url} or $self->{cookie_expires} > time () or do {
+	$self->{debug_url}
+	    or $self->_check_cookie_generic( 1 )
+	    or do {
 	    my $resp = $self->_login_v1();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
-	my $resp = $self->_dump_request($url, @args) ||
+	my $url = join '/', $self->_make_space_track_base_url( 1 ),
+	    $path;
+	my $resp = $self->_dump_request( $url, @args ) ||
 	    $self->_get_agent()->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
 ##	return $resp unless $resp->is_success && !$self->{debug_url};
@@ -3497,7 +3554,7 @@ sub _get {
 	    or return $resp;
 	local $_ = $resp->content;
 	m/ login [.] pl /smxi and do {
-	    $self->{cookie_expires} = 0;
+	    $self->logout() = 0;
 	    redo;
 	};
 	return $resp;
@@ -3551,22 +3608,34 @@ sub _get_agent {
 sub _get_rest {
     my ( $self, $path, @args ) = @_;
     my $cgi = join '/', @args;
-    {	# Single-iteration loop
-	$self->{debug_url} or $self->{rest_cookie} or do {
-	    my $resp = $self->_login_v2();
-	    $resp->is_success()
-		or return $resp;
-	};
-	my $url = join '', $self->{scheme_space_track}, '://',
-	    $self->{domain_space_track_rest}, '/', $path;
-##	warn "Debug - $url/$cgi";
-	my $resp = $self->_dump_request( $url, \@args ) ||
-	    $self->_get_agent()->get( ( $self->{debug_url} || $url ) .
-		"/$cgi" );
-	$self->_dump_headers( $resp );
-	return $resp;
-    }	# end of single-iteration loop
-    return;	# Should never get here.
+
+    $self->{debug_url}
+	or $self->_check_cookie_generic( 2 )
+	or do {
+	my $resp = $self->_login_v2();
+	$resp->is_success()
+	    or return $resp;
+    };
+    my $url = join '/', $self->_make_space_track_base_url( 2 ),
+	$path;
+##  warn "Debug - $url/$cgi";
+    my $resp = $self->_dump_request( $url, \@args ) ||
+	$self->_get_agent()->get( ( $self->{debug_url} || $url ) .
+	    "/$cgi" );
+    $self->_dump_headers( $resp );
+    return $resp;
+}
+
+# _get_space_track_domain() returns the domain name portion of the Space
+# Track URL from the appropriate attribute. The argument is the
+# interface version number, which defaults to the value of the
+# space_track_version attribute.
+
+sub _get_space_track_domain {
+    my ( $self, $version ) = @_;
+    defined $version
+	or $version = $self->{space_track_version};
+    return $self->{_space_track_interface}[$version]{domain_space_track};
 }
 	
 {
@@ -3666,6 +3735,16 @@ sub _instance {
     return $object->isa( $class );
 }
 
+# _make_space_track_base_url() makes the a base Space Track URL. You can
+# pass the interface version number (1 or 2) as an argument -- it
+# defaults to the value of the space_track_version attribute.
+
+sub _make_space_track_base_url {
+    my ( $self, $version ) = @_;
+    return $self->{scheme_space_track} . '://' .
+	$self->_get_space_track_domain( $version );
+}
+
 #	_mutate_attrib takes the name of an attribute and the new value
 #	for the attribute, and does what its name says.
 
@@ -3675,36 +3754,46 @@ sub _mutate_attrib {
     return ($_[0]{$_[1]} = $_[2]);
 }
 
+# TODO - for this to work, I need to be able to clear the cookie on
+# setting the domain. I think I need a logout() method.
+
+{
+    my %need_logout = map { $_ => 1 } qw{ domain_space_track };
+
+    sub _mutate_spacetrack_interface {
+	my ( $self, $name, $value ) = @_;
+	my $version = $self->{space_track_version};
+
+	my $spacetrack_interface_info =
+	    $self->{_space_track_interface}[$version];
+
+	exists $spacetrack_interface_info->{$name}
+	    or croak "Can not set $name for interface version $version";
+
+	$need_logout{$name}
+	    and $self->logout();
+
+	return ( $spacetrack_interface_info->{$name} = $value );
+    }
+}
+
+sub _access_spacetrack_interface {
+    my ( $self, $name ) = @_;
+    my $version = $self->{space_track_version};
+    my $spacetrack_interface_info =
+	$self->{_space_track_interface}[$version];
+    exists $spacetrack_interface_info->{$name}
+	or croak "Can not get $name for interface version $version";
+    return $spacetrack_interface_info->{$name};
+}
+
 #	_mutate_authen clears the session cookie and then sets the
 #	desired attribute
 
 # This clears the session cookie and cookie expiration, then co-routines
 # off to _mutate attrib.
 sub _mutate_authen {
-    $_[0]->set (session_cookie => undef, cookie_expires => 0);
-    goto &_mutate_attrib;
-}
-
-#	_mutate_cookie sets the session cookie, in both the object and
-#	the user agent's cookie jar. If the session cookie is undef, we
-#	delete the session cookie from the cookie jar; otherwise we set
-#	it to the specified value.
-
-# This mutates the user agent's cookie jar, then co-routines off to
-# _mutate attrib.
-sub _mutate_cookie {
-    my ( $self, $name, $value ) = @_;
-    my $agent = $self->_get_agent();
-    if ($agent && $agent->cookie_jar) {
-	if (defined $value) {
-	    $agent->cookie_jar->set_cookie (0, SESSION_KEY, $value,
-		SESSION_PATH, $self->{domain_space_track},
-		undef, 1, undef, undef, 1, {});
-	} else {
-	    $agent->cookie_jar->clear(
-		$self->{domain_space_track}, SESSION_PATH, SESSION_KEY);
-	}
-    }
+    $_[0]->logout();
     goto &_mutate_attrib;
 }
 
@@ -3725,30 +3814,6 @@ sub _mutate_number {
     $_[2] =~ m/ \D /smx and croak <<"EOD";
 Attribute $_[1] must be set to a numeric value.
 EOD
-    goto &_mutate_attrib;
-}
-
-sub _mutate_rest_authen {
-    $_[0]->set( rest_session_cookie => undef, rest_cookie_expires => 0 );
-    goto &_mutate_attrib;
-}
-
-sub _mutate_rest_cookie {
-    my ( $self, $name, $value ) = @_;
-    my $agent = $self->_get_agent();
-    if ( $agent && $agent->cookie_jar ) {
-	if ( defined $value ) {
-	    $agent->cookie_jar->set_cookie (0, REST_SESSION_KEY, $value,
-		SESSION_PATH, $self->{domain_space_track_rest},
-		undef, 1, undef, undef, 1, {}
-	    );
-	} else {
-	    $agent->cookie_jar->clear(
-		$self->{domain_space_track_rest}, SESSION_PATH,
-		REST_SESSION_KEY,
-	    );
-	}
-    }
     goto &_mutate_attrib;
 }
 
@@ -4045,11 +4110,14 @@ EOD
 sub _post {
     my ($self, $path, @args) = @_;
     {	# Single-iteration loop
-	$self->{debug_url} or $self->{cookie_expires} > time() or do {
+	$self->{debug_url}
+	    or $self->_check_cookie_generic( 1 )
+	    or do {
 	    my $resp = $self->_login_v1();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = "$self->{scheme_space_track}://$self->{domain_space_track}/$path";
+	my $url = join '/', $self->_make_space_track_base_url( 1 ),
+	    $path;
 	my $resp = $self->_dump_request( $url, @args) ||
 	    $self->_get_agent()->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
@@ -4059,7 +4127,7 @@ sub _post {
 	    or return $resp;
 	local $_ = $resp->content;
 	m/ login [.] pl /smxi and do {
-	    $self->{cookie_expires} = 0;
+	    $self->logout();
 	    redo;
 	};
 	return $resp;
@@ -4254,6 +4322,10 @@ This attribute specifies the expiration time of the cookie. You should
 only set this attribute with a previously-retrieved value, which
 matches the cookie.
 
+The object maintains a separate copy of this attribute for each possible
+value of C<space_track_version>. Not all versions of the interface have
+expiring cookies.
+
 =item direct (boolean)
 
 This attribute specifies that orbital elements should be fetched
@@ -4269,18 +4341,12 @@ The user will not normally need to modify this, but if the web site
 changes names for some reason, this attribute may provide a way to get
 queries going again.
 
-The default is 'www.space-track.org'.
+The object maintains a separate copy of this attribute for each possible
+value of C<space_track_version>.
 
-=item domain_space_track_rest (string)
-
-B<This attribute is unsupported>
-
-This attribute specifies the domain name of the Space Track REST
-interface.  The user will not normally need to modify this, but if the
-web site changes names for some reason, this attribute may provide a way
-to get queries going again.
-
-The default is 'beta.space-track.org'.
+The default is C<'www.space-track.org'> for version 1, and
+C<'beta.space-track.org'> for version 2. These will change if necessary
+to remain appropriate to the Space Track web site.
 
 =item fallback (boolean)
 
@@ -4321,15 +4387,6 @@ This attribute specifies the Space-Track password.
 
 The default is an empty string.
 
-=item rest_session_cookie (text)
-
-B<This attribute is unsupported.>
-
-This attribute specifies the REST session cookie. You should only set it
-with a previously-retrieved value.
-
-The default is an empty string.
-
 =item scheme_space_track (string)
 
 This attribute specifies the URL scheme used to access the Space Track
@@ -4343,6 +4400,9 @@ The default is C<'https'>.
 
 This attribute specifies the session cookie. You should only set it
 with a previously-retrieved value.
+
+The object maintains a separate copy of this attribute for each possible
+value of C<space_track_version>.
 
 The default is an empty string.
 
