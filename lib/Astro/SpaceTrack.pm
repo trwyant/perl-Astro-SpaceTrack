@@ -3467,14 +3467,14 @@ sub _dump_headers {
 #	moral: don't try to dump requests unless YAML is installed.
 
 sub _dump_request {
-    my ( $self, $url, @args ) = @_;
+    my ( $self, $url, $args ) = @_;
     my $display = $self->{dump_headers} & 0x02;
     my $respond = ( $self->{debug_url} || '' ) =~ m/ \A dump-request: /smx;
     $display or $respond or return;
     my $dumper = _get_yaml_dumper() or return;
     (my $method = (caller 1)[3]) =~ s/ \A (?: .* :: )? _? //smx;
     my %data = (
-	args => ( @args == 1 ? $args[0] : { @args } ),
+	args => $args,
 	method => $method,
 	url => $url,
     );
@@ -3530,8 +3530,8 @@ sub _get {
     {
 	my @unpack = @args;
 	while (@unpack) {
-	    my $name = shift @unpack;
-	    my $val = shift @unpack || '';
+	    my ( $name, $val ) = splice @unpack, 0, 2;
+	    defined $val or $val = '';
 	    $cgi .= "&$name=$val";
 	}
     }
@@ -3545,7 +3545,7 @@ sub _get {
 	};
 	my $url = join '/', $self->_make_space_track_base_url( 1 ),
 	    $path;
-	my $resp = $self->_dump_request( $url, @args ) ||
+	my $resp = $self->_dump_request( $url, { @args } ) ||
 	    $self->_get_agent()->get (($self->{debug_url} || $url) . $cgi);
 	$self->_dump_headers( $resp );
 ##	return $resp unless $resp->is_success && !$self->{debug_url};
@@ -4115,7 +4115,7 @@ sub _post {
 	};
 	my $url = join '/', $self->_make_space_track_base_url( 1 ),
 	    $path;
-	my $resp = $self->_dump_request( $url, @args) ||
+	my $resp = $self->_dump_request( $url, { @args } ) ||
 	    $self->_get_agent()->post ($self->{debug_url} || $url, [@args]);
 	$self->_dump_headers( $resp );
 ##	return $resp unless $resp->is_success && !$self->{debug_url};
