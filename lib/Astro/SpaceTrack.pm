@@ -3821,17 +3821,14 @@ EOD
 # used to retrieve data from Space Track. Valid values are 1 and 2, with
 # any false value causing the default to be set.
 
-{
-    my @valid_version = qw{ 0 1 1 };
-    sub _mutate_space_track_version {
-	my ( $self, $name, $value ) = @_;
-	$value
-	    or $value = DEFAULT_SPACE_TRACK_VERSION;
-	$value =~ m/ \A \d+ \z /smx
-	    and $valid_version[$value]
-	    or croak "Invalid Space Track version $value";
-	return ( $self->{$name} = $value );
-    }
+sub _mutate_space_track_version {
+    my ( $self, $name, $value ) = @_;
+    $value
+	or $value = DEFAULT_SPACE_TRACK_VERSION;
+    $value =~ m/ \A \d+ \z /smx
+	and $self->{_space_track_interface}[$value]
+	or croak "Invalid Space Track version $value";
+    return ( $self->{$name} = $value );
 }
 
 #	_mutate_verify_hostname mutates the verify_hostname attribute.
