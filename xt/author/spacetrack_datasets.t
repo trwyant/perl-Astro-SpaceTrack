@@ -6,19 +6,17 @@ use warnings;
 use Astro::SpaceTrack;
 use HTML::Parser;
 use LWP::UserAgent;
-use Test;
+use Test::More 0.96;	# Because of subtest()
 
-$ENV{SPACETRACK_USER} or do {
-    print "1..0 # skip Environment variable SPACETRACK_USER not defined.\n";
-    exit;
-};
+$ENV{SPACETRACK_USER}
+    or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
 
-my $st = Astro::SpaceTrack->new ();
+my $st = Astro::SpaceTrack->new (
+    space_track_version	=> 1,	# v2 does not support this. Yet.
+);
 my $rslt = $st->_get ('perl/bulk_files.pl');
-unless ($rslt->is_success) {
-    print "1..0 # skip Spacetrack inaccessable: " . $rslt->status_line;
-    exit;
-}
+$rslt->is_success()
+    or plan skip_all => 'Space Track inaccessable: ' . $rslt->status_line();
 
 my %got = parse_string ($rslt->content);
 
@@ -63,62 +61,29 @@ if ($expect{sts}) {
 
 =cut
 
-my @todo;
-my $test = 1;	# Allow extra test for added links.
-{
-    foreach my $key (sort keys %expect) {
-	if ($expect{$key}{ignore}) {
-	} else {
-	    $test++;
-	    $expect{$key}{todo} and push @todo, $test;
-	    if ($expect{$key}{number}) {
-		$test++;
-		$expect{$key}{todo} and push @todo, $test;
-	    }
-	}
-    }
-}
-
-plan (tests => $test, todo => \@todo);
-
-$test = 0;
 foreach my $key (sort keys %expect) {
     my $number = $expect{$key}{number};
-    if ($expect{$key}{ignore}) {
-	if ($expect{$key}{silent}) {
+    if ( $expect{$key}{ignore} ) {
+	if ( $expect{$key}{silent} ) {
 	    delete $got{$number};
 	} else {
-	    warn "\n# Ignored - $key (@{[($got{$number} ||
-		    $expect{$key})->{name}]})\n";
-	    $expect{$key}{note} and warn "#     $expect{$key}{note}\n";
-###	    if (my $item = delete $got{$number}) {
-	    if (delete $got{$number}) {
-		warn "#     present\n";
-	    } else {
-		warn "#     not present\n";
-	    }
+	    my $info = $got{$number} || $expect{$key};
+	    note "\nIgnored - $key ($info->{name})";
+	    $expect{$key}{note}
+		and note "    $expect{$key}{note}";
+	    note '    ' . ( delete $got{$number} ? 'present' : 'not present' );
 	}
     } else {
-	$test++;
-	print "# Test $test - $key ($expect{$key}{name})\n";
-	$expect{$key}{note} and print "#     $expect{$key}{note}\n";
-	ok (delete $got{$number});
-	if ($number++) {
-	    $test++;
-	    print "# Test $test - $key ($expect{$key}{name}) with names\n";
-	    ok (delete $got{$number});
+	ok delete $got{$number}, "$key ($expect{$key}{name})";
+	$expect{$key}{note}
+	    and note "    $expect{$key}{note}";
+	if ( $number++ ) {
+	    ok delete $got{$number}, "$key ($expect{$key}{name}) with names";
 	}
     }
 }
-$test++;
-print "# Test $test - The above is all there is\n";
-ok (!%got);
-if (%got) {
-    print "# The following have been added:\n";
-    foreach (sort keys %got) {
-	print "#     $_ => '$got{$_}{name}'\n";
-    }
-}
+
+done_testing;
 
 sub parse_string {
     my $string = shift;
@@ -152,3 +117,5 @@ sub parse_string {
 }
 
 1;
+
+# ex: set textwidth=72 :

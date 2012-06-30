@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Astro::SpaceTrack;
-use Test;
+use Test::More 0.96;	# Because of subtest().
 
 # The following hash is used to compute the todo list. The keys are
 # the OIDs for the Iridium satellites. The value for each key is a hash
@@ -86,7 +86,6 @@ foreach my $inx (0 .. (scalar @sources - 2)) {
     }
 }
 
-my @todo;
 my @keys;
 {	#	Begin local symbol block
     my %ky;
@@ -96,20 +95,7 @@ my @keys;
 	}
     }
     @keys = sort {$a <=> $b} keys %ky;
-    my $test = scalar @sources + 1;	# Skip the bulk compares
-    foreach my $id (@keys) {
-	my $ki = $known_inconsistent{$id};
-	foreach my $pr (@pairs) {
-	    ($ki->{$pr->[0]} || $ki->{$pr->[1]})
-		and push @todo, $test;
-	    $test++;
-	}
-    }
 }
-
-plan tests => scalar @sources + scalar @keys * scalar @pairs, todo => \@todo;
-
-my $test = 0;
 
 foreach (["Mike McCants' Iridium status",
 	mccants => <<'EOD'],
@@ -397,60 +383,68 @@ EOD
  27451   Iridium 98     [S]      Plane 6
 EOD
 	) {
-#####    my ($what, $skip, $got, $file, $data) = @$_;
-    my ($what, $file, $data) = @$_;
-    $test++;
+    my ( $what, $file, $data ) = @$_;
     $data ||= '';
     my $got = $skip{$file} ? 'skip' : $text{$file};
     1 while $got =~ s/\015\012/\n/gm;
-    print <<eod;
-#
-# Test $test: Content of $what
-eod
-    skip ($skip{$file}, $got eq $data);
-    unless ($skip{$file} || $got eq $data) {
-	my $fn = "$file.expect";
-	open (my $fh, '>', $fn) or die "Unable to open $fn: $!";
-	print $fh $data;
-	close $fh;
-	$fn = "$file.got";
-	open ($fh, '>', $fn) or die "Unable to open $fn: $!";
-	print $fh $got;
-	close $fh;
-	warn <<eod;
-#
-# Expected and gotten information written to $file.expect and
-# $file.got respectively.
-#
-eod
+
+    SKIP: {
+	$skip{$file}
+	    and skip $skip{$file}, 1;
+
+	if ( not is $got, $data, "Content of $what" ) {
+	    my $fn = "$file.expect";
+	    open (my $fh, '>', $fn) or die "Unable to open $fn: $!";
+	    print $fh $data;
+	    close $fh;
+	    $fn = "$file.got";
+	    open ($fh, '>', $fn) or die "Unable to open $fn: $!";
+	    print $fh $got;
+	    close $fh;
+	    diag <<"EOD";
+Expected and gotten information written to $file.expect and
+$file.got respectively.
+EOD
+	}
     }
 }
 
-foreach my $id (@keys) {
-    foreach my $pr (@pairs) {
-	my @data;
-	foreach my $src (@$pr) {
-	    push @data,
-		$skip{$src} ? ['skipped'] :
-		exists $status{$src}{$id} ?
-		    [$status{$src}{$id}, $status_map{$status{$src}{$id}}] :
-		    ['missing'];
-	}
-	$test++;
-	print <<eod;
-#
-# Test $test - Status of $id ($name{$id})
-eod
-	foreach my $inx (0, 1) {
-	    printf "#%12s: %s\n", $pr->[$inx], join ' - ', @{$data[$inx]};
-	}
-	@data = map {$_->[0]} @data;
-	if ($data[0] =~ m/\D/ || $data[1] =~ m/\D/) {
-	    skip ($skip{$pr->[0]} || $skip{$pr->[1]}, $data[0] eq $data[1]);
-	} else {
-	    skip ($skip{$pr->[0]} || $skip{$pr->[1]}, $data[0] == $data[1]);
+foreach my $id ( @keys ) {
+    foreach my $pr ( @pairs ) {
+	SKIP: {
+	    my $skip;
+	    $skip = _skip_reason( $id, $pr )
+		and skip $skip, 1;
+
+	    cmp_ok $status{$pr->[0]}{$id}, '==', $status{$pr->[1]}{$id},
+	    "$id status consistent between $pr->[0] and $pr->[1]";
 	}
     }
+}
+
+done_testing;
+
+sub _skip_reason {
+    my ( $id, $pr ) = @_;
+
+    foreach my $src ( @{ $pr } ) {
+	$skip{$src}
+	    and return $skip{$src};
+    }
+
+    foreach my $src ( @{ $pr } ) {
+	exists $status{$src}{$id}
+	    or return "$id missing from $src";
+    }
+
+    foreach my $inx ( 0 .. $#$pr ) {
+	my $src = $pr->[$inx];
+	my $pard = $pr->[$#$pr - $inx];
+	$known_inconsistent{$id}{$src}
+	    and return "$id status known inconsistent between $src and $pard";
+    }
+
+    return;
 }
 
 1;
