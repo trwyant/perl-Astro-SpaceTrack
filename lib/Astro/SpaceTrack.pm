@@ -4259,8 +4259,9 @@ sub _search_generic_tabulate {
 
 {
     my %exclude_names = (
-	rocket	=> [ qw{ r/b akm pkm } ],
-	debris	=> [ qw{ deb debris coolant shroud }, 'westford needles' ],
+	rocket	=> [ map { quotemeta $_ } qw{ r/b akm pkm } ],
+	debris	=> [ map { quotemeta $_ } qw{ deb debris coolant
+	    shroud }, 'westford needles' ],
     );
 
     # _simulate_rest_exclude() simulates the results of a v1 exclusion
