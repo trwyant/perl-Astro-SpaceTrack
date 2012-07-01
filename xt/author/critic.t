@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use File::Spec;
-use Test::More 0.88;
+use Test::More 0.96;
 
 BEGIN {
     eval {

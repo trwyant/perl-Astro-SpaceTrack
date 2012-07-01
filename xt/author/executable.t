@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use ExtUtils::Manifest qw{maniread};
-use Test::More 0.88;
+use Test::More 0.96;
 
 my $manifest = maniread();
 

@@ -5,7 +5,7 @@ use 5.006002;
 use strict;
 use warnings;
 
-use Test::More 0.88;
+use Test::More 0.96;
 
 eval {
     require Test::Kwalitee;

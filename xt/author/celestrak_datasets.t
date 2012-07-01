@@ -6,7 +6,7 @@ use warnings;
 use Astro::SpaceTrack;
 use HTML::Parser;
 use LWP::UserAgent;
-use Test::More 0.88;
+use Test::More 0.96;
 
 my $ua = LWP::UserAgent->new ();
 my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');

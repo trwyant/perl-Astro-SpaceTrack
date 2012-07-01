@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More 0.88;	# Because of done_testing();
+use Test::More 0.96;	# Because of subtest();
 
 BEGIN {
     eval {
