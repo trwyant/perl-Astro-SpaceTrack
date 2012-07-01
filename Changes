@@ -1,3 +1,24 @@
+0.060_01	2012-07-01	T. R. Wyant
+  Provide access to Space Track v2 REST interface, which is currently in
+    beta. This involves adding attribute space_track_version. Attributes
+    cookie_expires, domain_space_track, and session_cookie now have
+    separate values for each possible value of space_track_version.
+    Due to limitations of the version 2 interface, bulk data downloads
+    throw an exception, and the with_name attribute is ignored by
+    retrieve(),
+  Add a logout() method, which deletes all the session cookies. I
+    considered having it only delete the session cookie for the current
+    space_track_version, but decided that this was too confusing.
+  Fix problem with Astro::SpaceTrack file() method passing its options
+    hash to the retrieve() method as an OID. This was probably
+    introduced in version 0.020.
+  Bump Test::More requirement from 0.88 to 0.96 so I can do subtests.
+  Add method content_interface, which returns the version of the Space
+    Track interface use to fetch the data. If Space Track was not
+    involved, returns undef.
+  Add verify_hostname option to SpaceTrackTk settings window. Add
+    'Settings ...' button to login screen.
+
 0.060		2012-06-09	T. R. Wyant
   Add Astro::SpaceTrack attribute verify_hostname. This controls the
     corresponding SSL option for LWP::UserAgent. By default it is true,
