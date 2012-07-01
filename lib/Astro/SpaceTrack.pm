@@ -82,13 +82,10 @@ incapable of returning the common name of the body.
 =item The C<spacetrack()> method (which returns predefined packages of
 TLEs) is unsupported, and throws an exception.
 
-=item Use of the C<-exclude> option to the C<search_*()> methods is an
-error. It is possible that a future version of C<Astro::SpaceTrack> will
-simulate this by filtering in the client.
-
-=item The C<box_score()> method is unsupported, and throws an exception.
-This is because I have not yet coded it up. It appears to be supported
-by version 2 of the interface, but not documented.
+=item The C<-exclude> option to the C<search_*()> methods is not
+supported by version 2 of the interface. When version 2 is in use, this
+software filters the results of a search to simulate the functionality
+of version 1 of the interface.
 
 =back
 
@@ -1906,6 +1903,9 @@ sub _retrieve_v2 {
 
 	# TODO this may not be right at all, because this may not be the
 	# way selection works.
+
+=begin comment
+
 	if ( defined $opt->{exclude} ) {
 	    my @aggregate;
 	    foreach my $exclude ( @{ $opt->{exclude} } ) {
@@ -1918,6 +1918,10 @@ sub _retrieve_v2 {
 	    @aggregate
 		and $rest{SATNAME} = join ',', @aggregate;
 	}
+
+=end comment
+
+=cut
 
 ##	'status=s' => q{('onorbit', 'decayed', or 'all')},
 ##	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
@@ -1974,6 +1978,8 @@ sub _retrieve_v2 {
 		or return $rslt;
 
 	    my $data = JSON::decode_json( $rslt->content() );
+
+	    $self->_simulate_rest_exclude( $opt, $data );
 
 	    push @found , @{ $data };
 
@@ -4251,6 +4257,31 @@ sub _search_generic_tabulate {
     return;
 }
 
+{
+    my %exclude_names = (
+	rocket	=> [ qw{ r/b akm pkm } ],
+	debris	=> [ qw{ deb debris coolant shroud }, 'westford needles' ],
+    );
+
+    # _simulate_rest_exclude() simulates the results of a v1 exclusion
+    # on a v2 search, by filtering out all the bodies whose names meet
+    # the exclusion criteria.
+
+    sub _simulate_rest_exclude {
+	my ( $self, $opt, $data ) = @_;
+	defined $opt->{exclude}
+	    or return;
+	my @exclusion;
+	foreach my $exclude ( @{ $opt->{exclude} } ) {
+	    push @exclusion, @{ $exclude_names{$exclude} };
+	}
+	@exclusion
+	    or return;
+	my $re = join '|', @exclusion;
+	@{ $data } = grep { $_->{SATNAME} !~ m/$re/smxi } @{ $data };
+	return;
+    }
+}
 
 #	_source takes a filename, and returns the contents of the file
 #	as a list. It dies if anything goes wrong.
