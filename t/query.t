@@ -85,7 +85,9 @@ subtest 'Log in to Space Track - v1 interface', sub {
 
 subtest 'Space Track access - v1 interface', sub {
 
-    skip_site 'www.space-track.org', 90;
+    my $skip;
+    $skip = site_check $space_track_domain
+	and plan skip_all => $skip;
 
     not_defined $st->content_type(), 'Content type should be undef'
 	or diag( 'content_type is ', $st->content_type() );
@@ -848,7 +850,7 @@ sub prompt {
     BEGIN {
 	%info = (
 	    'beta.space-track.org'	=> {
-		url	=> 'https://www.space-track.org/',
+		url	=> 'https://beta.space-track.org/',
 		check	=> \&spacetrack_skip,
 	    },
 	    'celestrak.com'	=> {
@@ -871,6 +873,14 @@ sub prompt {
 		check	=> \&spacetrack_skip,
 	    }
 	);
+
+	if ( defined $ENV{ASTRO_SPACETRACK_SKIP_SITE} ) {
+	    foreach my $site ( split qr{ \s* , \s* }smx,
+		$ENV{ASTRO_SPACETRACK_SKIP_SITE} ) {
+		exists $info{$site}{url}
+		    and $skip_site{$site} = "$site skipped by user request";
+	    }
+	}
     }
     my $ua;
 
@@ -911,19 +921,6 @@ sub prompt {
 	}
 	return ( $skip_site{$site} = undef );
     }
-}
-
-# Skip the given number of tests if the site is not usable.
-
-sub skip_site (@) {		## no critic (RequireArgUnpacking)
-    my @sites = @_;
-    my $tests = pop @sites;
-    foreach my $where ( @sites ) {
-	my $skip = site_check $where or next;
-	@_ = ( $skip, $tests );
-	goto &skip;
-    }
-    return;
 }
 
 {
