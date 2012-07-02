@@ -1,3 +1,6 @@
+0.060_02	2012-07-02	T. R. Wyant
+  Add JSON as dependency. It's used by the Space Track V2 interface.
+
 0.060_01	2012-07-01	T. R. Wyant
   Provide access to Space Track v2 REST interface, which is currently in
     beta. This involves adding attribute space_track_version. Attributes
