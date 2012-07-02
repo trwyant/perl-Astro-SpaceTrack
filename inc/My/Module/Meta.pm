@@ -43,6 +43,7 @@ sub requires {
 	'HTTP::Response'	=> 0,
 	'HTTP::Status'		=> 0,
 	'IO::File'		=> 0,
+	'JSON'			=> 0,	# For Space Track v2
 	'LWP::UserAgent'	=> 0,
 	'LWP::Protocol::https'	=> 0,	# Space track needs as of 11-Apr-2011
 	'POSIX'			=> 0,
