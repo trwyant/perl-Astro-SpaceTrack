@@ -1,3 +1,6 @@
+0.060_03	2012-07-02	T. R. Wyant
+  Correct erroneous skip() outside SKIP: block in t/query.t.
+
 0.060_02	2012-07-02	T. R. Wyant
   Add JSON as dependency. It's used by the Space Track V2 interface.
 
