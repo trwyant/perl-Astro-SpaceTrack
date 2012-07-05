@@ -83,9 +83,9 @@ incapable of returning the common name of the body.
 TLEs) is unsupported, and throws an exception.
 
 =item The C<-exclude> option to the C<search_*()> methods is not
-supported by version 2 of the interface. When version 2 is in use, this
-software filters the results of a search to simulate the functionality
-of version 1 of the interface.
+supported by version 2 of the interface. When version 2 is in use,
+C<Astro::SpaceTrack> filters the results of a search to simulate the
+functionality of version 1 of the interface.
 
 =back
 
@@ -161,6 +161,7 @@ use POSIX qw{strftime};
 use Scalar::Util 1.07 qw{ blessed };
 use Text::ParseWords;
 use Time::Local;
+use URI::Escape qw{};
 
 use constant COPACETIC => 'OK';
 use constant BAD_SPACETRACK_RESPONSE =>
@@ -1800,7 +1801,7 @@ sub _retrieve_v2 {
 	    class		=> 'tle',
 	    NORAD_CAT_ID	=> $oid,
 	    format		=> 'tle',
-	    %{ $opt },
+	    map { $_ => $opt->{$_} } sort keys %{ $opt },
 	);
 	$resp->is_success()
 	    or return $resp;
@@ -1856,15 +1857,20 @@ sub _retrieve_v2 {
 =cut
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
-	    # TODO retrieval by epoch
-	    croak 'Selection by epoch not yet supported';
+	    $rest{EPOCH} = sprintf '%04d-%02d-%02d--%04d-%02d-%02d',
+		$opt->{start_epoch}[5] + 1900,
+		$opt->{start_epoch}[4] + 1,
+		$opt->{start_epoch}[3],
+		$opt->{end_epoch}[5] + 1900,
+		$opt->{end_epoch}[4] + 1,
+		$opt->{end_epoch}[3];
 	} else {
 	    $rest{limit} = $opt->{last5} ? 5 : 1;
 	}
 
 	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum'} ||
 	    'NORAD_CAT_ID' )
-	.  ( $opt->{descending} ? '%20desc' : '%20asc' );
+	.  ( $opt->{descending} ? ' desc' : ' asc' );
 
 	foreach my $name ( qw{ class format } ) {
 	    defined $opt->{$name}
@@ -2173,13 +2179,13 @@ sub __search_rest_raw {
     exists $args{predicates}
 	or $args{predicates} = 'all';
     exists $args{orderby}
-	or $args{orderby} = 'NORAD_CAT_ID%20asc';
+	or $args{orderby} = 'NORAD_CAT_ID asc';
 #   exists $args{limit}
 #	or $args{limit} = 1000;
 
     my $resp = $self->_get_rest(
 	basicspacedata	=> 'query',
-	%args,
+	map { $_ => $args{$_} } sort keys %args,
     );
 #   $resp->content( $content );
 #   $self->_convert_content( $resp );
@@ -3602,18 +3608,21 @@ sub _get_agent {
     return $agent;
 }
 
-# _get_rest() gets the given path on the domain. Arguments after the
-# first are the CGI parameters. It checks the currency of the session
-# cookie, and executes a login if it deems it necessary.  The normal
-# return is the HTTP::Response object from the get (), but if a login
-# was attempted and failed, the HTTP::Response object from the login
-# will be returned.
+# _get_rest() gets the given path on the domain. Arguments are the
+# individual elements of the path. These will be URI-escaped. In other
+# words, DO NOT pass aggregated path elements like "foo/bar"; instead
+# pass 'foo' and 'bar' as separate arguments.
+#
+# This method checks the currency of the session cookie, and executes a
+# login if it deems it necessary.  The normal return is the
+# HTTP::Response object from the get (), but if a login was attempted
+# and failed, the HTTP::Response object from the login will be returned.
 #
 # THIS IS TO BE USED ONLY FOR THE SPACETRACK V2 INTERFACE
 
 sub _get_rest {
-    my ( $self, $path, @args ) = @_;
-    my $cgi = join '/', @args;
+    my ( $self, @args ) = @_;
+    my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
 
     $self->{debug_url}
 	or $self->_check_cookie_generic( 2 )
@@ -3622,8 +3631,7 @@ sub _get_rest {
 	$resp->is_success()
 	    or return $resp;
     };
-    my $url = join '/', $self->_make_space_track_base_url( 2 ),
-	$path;
+    my $url = $self->_make_space_track_base_url( 2 );
 ##  warn "Debug - $url/$cgi";
     my $resp = $self->_dump_request( $url, \@args ) ||
 	$self->_get_agent()->get( ( $self->{debug_url} || $url ) .

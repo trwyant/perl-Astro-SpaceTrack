@@ -617,9 +617,16 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    throws_exception $st, retrieve => -start_epoch => '2006/04/01', 25544,
-	qr{Selection by epoch not yet supported},
+    is_success $st, retrieve => -start_epoch => '2006/04/01', 25544,
 	'Retrieve historical ISS orbital elements';
+
+    is $st->content_type(), 'orbit', "Content type is 'orbit'";
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
 
     is_success $st, 'box_score', 'Retrieve satellite box score';
 

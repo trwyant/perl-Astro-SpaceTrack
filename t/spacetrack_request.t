@@ -685,41 +685,44 @@ is_resp qw{spacetrack 10}, {
 $st->set( space_track_version => 2 );
 
 is_resp qw{retrieve 25544}, {
-	args => [ query =>
+	args => [
+	    basicspacedata	=> 'query',
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID%20asc',
 	    limit	=> 1,
+	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org/basicspacedata',
+	url => 'https://beta.space-track.org',
     },
 ;
 
 is_resp qw{retrieve -sort catnum 25544}, {
-	args => [ query	=>
+	args => [
+	    basicspacedata	=> 'query',
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID%20asc',
 	    limit	=> 1,
+	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org/basicspacedata',
+	url => 'https://beta.space-track.org',
     },
 ;
 
 is_resp qw{retrieve -sort epoch 25544}, {
-	args => [ query	=>
+	args => [
+	    basicspacedata	=> 'query',
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    orderby	=> 'EPOCH%20asc',
 	    limit	=> 1,
+	    orderby	=> 'EPOCH asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org/basicspacedata',
+	url => 'https://beta.space-track.org',
     },
 ;
 
