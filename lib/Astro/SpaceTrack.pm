@@ -151,9 +151,11 @@ use Astro::SpaceTrack::Parser;
 use Carp;
 use Compress::Zlib ();
 use Getopt::Long;
-use HTTP::Response;	# Not in the base, but comes with LWP.
-use HTTP::Status qw{RC_NOT_FOUND RC_OK RC_PRECONDITION_FAILED
-	RC_UNAUTHORIZED RC_INTERNAL_SERVER_ERROR};	# Not in the base, but comes with LWP.
+use HTTP::Response;
+use HTTP::Status qw{
+    HTTP_NOT_FOUND HTTP_OK HTTP_PRECONDITION_FAILED HTTP_UNAUTHORIZED
+    HTTP_INTERNAL_SERVER_ERROR
+};
 use IO::File;
 use JSON qw{};
 use LWP::UserAgent;	# Not in the base.
@@ -410,9 +412,9 @@ sub amsat {
     }
 
     $content or
-	return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
+	return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_CAT_ID);
 
-    my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+    my $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
     $self->_add_pragmata($resp,
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'amsat',
@@ -454,7 +456,7 @@ benefit of the shell method.
 	    }
 	};
 	my $url = $self->_make_space_track_base_url( 1 );
-	return HTTP::Response->new (RC_OK, undef, undef, <<"EOD");
+	return HTTP::Response->new (HTTP_OK, undef, undef, <<"EOD");
 
 @{[__PACKAGE__]} version $VERSION
 Perl $perl_version under $^O
@@ -525,7 +527,7 @@ sub _box_score_v1 {
     $content =~ s/ &nbsp; / /smxg;
     my @this_page = @{$p->parse_string (table => $content)};
     ref $this_page[0] eq 'ARRAY'
-	or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	or return HTTP::Response->new ( HTTP_INTERNAL_SERVER_ERROR,
 	BAD_SPACETRACK_RESPONSE, undef, $content);
     my @data = @{$this_page[0]};
     $content = '';
@@ -538,7 +540,7 @@ sub _box_score_v1 {
 	}
 	$content .= join( "\t", @{ $datum } ) . "\n";
     }
-    $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
     $self->_add_pragmata($resp,
 	'spacetrack-type' => 'box_score',
 	'spacetrack-source' => 'spacetrack',
@@ -587,7 +589,7 @@ sub _box_score_v1 {
 	    $content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
 	}
 
-	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+	$resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'box_score',
 	    'spacetrack-source' => 'spacetrack',
@@ -776,7 +778,7 @@ sub _celestrak_repack_iridium {
     sub _celestrak_response_check {
 	my ($self, $resp, $name, @args) = @_;
 	unless ($resp->is_success) {
-	    $resp->code == RC_NOT_FOUND
+	    $resp->code == HTTP_NOT_FOUND
 		and return $self->_no_such_catalog(
 		celestrak => $name, @args);
 	    return $resp;
@@ -785,7 +787,7 @@ sub _celestrak_repack_iridium {
 	    if ($loc =~ m/ redirect [.] htm [?] ( \d{3} ) ; /smx) {
 		my $msg = "redirected $1";
 		@args and $msg = "@args; $msg";
-		$1 == RC_NOT_FOUND
+		$1 == HTTP_NOT_FOUND
 		    and return $self->_no_such_catalog(
 		    celestrak => $name, $msg);
 		return HTTP::Response->new (+$1, "$msg\n")
@@ -958,10 +960,10 @@ sub file {
     ref $name and fileno ($name)
 	and return $self->_handle_observing_list (<$name>);
     -e $name or return HTTP::Response->new (
-	RC_NOT_FOUND, "Can't find file $name");
+	HTTP_NOT_FOUND, "Can't find file $name");
     my $fh = IO::File->new($name, '<') or
 	return HTTP::Response->new (
-	    RC_INTERNAL_SERVER_ERROR, "Can't open $name: $!");
+	    HTTP_INTERNAL_SERVER_ERROR, "Can't open $name: $!");
     local $/ = undef;
     return $self->_handle_observing_list ($opt, <$fh>)
 }
@@ -990,7 +992,7 @@ sub get {
     my ( $self, $name ) = @_;
     delete $self->{_pragmata};
     my $value = $self->getv( $name );
-    my $resp = HTTP::Response->new( RC_OK, undef, undef, $value );
+    my $resp = HTTP::Response->new( HTTP_OK, undef, undef, $value );
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'get',
     );
@@ -1049,9 +1051,9 @@ sub help {
     if ($self->{webcmd}) {
 	system (join ' ', $self->{webcmd},
 	    "http://search.cpan.org/~wyant/Astro-SpaceTrack-$VERSION/");
-	return HTTP::Response->new (RC_OK, undef, undef, 'OK');
+	return HTTP::Response->new (HTTP_OK, undef, undef, 'OK');
     } else {
-	my $resp = HTTP::Response->new (RC_OK, undef, undef, <<'EOD');
+	my $resp = HTTP::Response->new (HTTP_OK, undef, undef, <<'EOD');
 The following commands are defined:
   box_score
     Retrieve the SATCAT box score. A Space Track login is needed.
@@ -1468,10 +1470,10 @@ If any arguments are given, this method passes them to the set ()
 method. Then it executes a login to the Space Track web site. The return
 is normally the HTTP::Response object from the login. But if no session
 cookie was obtained, the return is an HTTP::Response with an appropriate
-message and the code set to RC_UNAUTHORIZED from HTTP::Status (a.k.a.
+message and the code set to HTTP_UNAUTHORIZED from HTTP::Status (a.k.a.
 401). If a login is attempted without the username and password being
 set, the return is an HTTP::Response with an appropriate message and the
-code set to RC_PRECONDITION_FAILED from HTTP::Status (a.k.a. 412).
+code set to HTTP_PRECONDITION_FAILED from HTTP::Status (a.k.a. 412).
 
 A Space Track username and password are required to use this method.
 
@@ -1491,7 +1493,7 @@ sub _login_v1 {
     @args and $self->set (@args);
     ($self->{username} && $self->{password}) or
 	return HTTP::Response->new (
-	    RC_PRECONDITION_FAILED, NO_CREDENTIALS);
+	    HTTP_PRECONDITION_FAILED, NO_CREDENTIALS);
     $self->{dump_headers} and warn <<"EOD";
 Logging in as $self->{username}.
 EOD
@@ -1512,12 +1514,12 @@ EOD
     $self->_dump_headers( $resp );
 
     $self->_record_cookie_generic( 1 )
-	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
+	or return HTTP::Response->new (HTTP_UNAUTHORIZED, LOGIN_FAILED);
 
     $self->{dump_headers} and warn <<'EOD';
 Login successful.
 EOD
-    return HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
+    return HTTP::Response->new (HTTP_OK, undef, undef, "Login successful.\n");
 }
 
 sub _login_v2 {
@@ -1526,7 +1528,7 @@ sub _login_v2 {
     @args and $self->set( @args );
     ( $self->{username} && $self->{password} ) or
 	return HTTP::Response->new (
-	    RC_PRECONDITION_FAILED, NO_CREDENTIALS);
+	    HTTP_PRECONDITION_FAILED, NO_CREDENTIALS);
     $self->{dump_headers} and warn <<"EOD";
 Logging in as $self->{username}.
 EOD
@@ -1545,12 +1547,12 @@ EOD
     $self->_dump_headers( $resp );
 
     $self->_record_cookie_generic( 2 )
-	or return HTTP::Response->new (RC_UNAUTHORIZED, LOGIN_FAILED);
+	or return HTTP::Response->new( HTTP_UNAUTHORIZED, LOGIN_FAILED );
 
     $self->{dump_headers} and warn <<'EOD';
 Login successful.
 EOD
-    return HTTP::Response->new (RC_OK, undef, undef, "Login successful.\n");
+    return HTTP::Response->new (HTTP_OK, undef, undef, "Login successful.\n");
 }
 
 =for html <a name="logout"></a>
@@ -1574,7 +1576,7 @@ sub logout {
 	    and $spacetrack_interface_info->{cookie_expires} = 0;
     }
     return HTTP::Response->new(
-	RC_OK, undef, undef, "Logout successful.\n" );
+	HTTP_OK, undef, undef, "Logout successful.\n" );
 }
 
 =for html <a name="names"></a>
@@ -1598,7 +1600,7 @@ sub names {
     delete $self->{_pragmata};
     my $name = lc shift;
     $catalogs{$name} or return HTTP::Response (
-	    RC_NOT_FOUND, "Data source '$name' not found.");
+	    HTTP_NOT_FOUND, "Data source '$name' not found.");
     my $src = $catalogs{$name};
     my @list;
     foreach my $cat (sort keys %$src) {
@@ -1606,7 +1608,7 @@ sub names {
 	    "$cat ($src->{$cat}{number}): $src->{$cat}{name}\n" :
 	    "$cat: $src->{$cat}{name}\n";
     }
-    my $resp = HTTP::Response->new (RC_OK, undef, undef, join ('', @list));
+    my $resp = HTTP::Response->new (HTTP_OK, undef, undef, join ('', @list));
     return $resp unless wantarray;
     @list = ();
     foreach my $cat (sort {$src->{$a}{name} cmp $src->{$b}{name}}
@@ -1726,7 +1728,7 @@ sub _retrieve_v1 {
 
     @args = grep { m/ \A \d+ (?: - \d+)? \z /smx } @args;
 
-    @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_CAT_ID);
+    @args or return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_CAT_ID);
     my $content = '';
     local $_ = undef;
     my $resp;
@@ -1761,7 +1763,7 @@ sub _retrieve_v1 {
 	$_ = $resp->content;
 	next if m/ No \s records \s found /smxi;
 	if ( m/ ERROR: /smx ) {
-	    return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	    return HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
 		"Failed to retrieve IDs @batch.\n",
 		undef, $content);
 	}
@@ -1770,7 +1772,7 @@ sub _retrieve_v1 {
 	s{ \A \n }{}smx;
 	$content .= $_;
     }
-    $content or return HTTP::Response->new (RC_NOT_FOUND, NO_RECORDS);
+    $content or return HTTP::Response->new (HTTP_NOT_FOUND, NO_RECORDS);
     $resp->content ($content);
     $self->_convert_content ($resp);
     $self->_add_pragmata($resp,
@@ -1793,7 +1795,7 @@ sub _retrieve_v2 {
     # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
 
     @args
-	or return HTTP::Response->new( RC_PRECONDITION_FAILED, NO_CAT_ID );
+	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
     my $content = '';
     local $_ = undef;
@@ -1812,7 +1814,7 @@ sub _retrieve_v2 {
 	$content .= $_;
     }
     $content
-	or return HTTP::Response->new ( RC_NOT_FOUND, NO_RECORDS );
+	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
     $resp->content( $content );
     $self->_convert_content( $resp );
     $self->_add_pragmata( $resp,
@@ -2025,7 +2027,7 @@ EOD
 		}
 	    }
 
-	    $rslt = HTTP::Response->new( RC_OK, undef, undef, $content );
+	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
 		'spacetrack-type' => 'orbit',
 		'spacetrack-source' => 'spacetrack',
@@ -2044,7 +2046,7 @@ EOD
 		    @heading_order
 		) . "\n";
 	    }
-	    $rslt = HTTP::Response->new( RC_OK, undef, undef, $content );
+	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
 		'spacetrack-type' => 'search',
 		'spacetrack-source' => 'spacetrack',
@@ -2105,7 +2107,7 @@ EOD
 
 	exists $opt->{tle} or $opt->{tle} = 1;
 
-	@args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+	@args or return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_OBJ_NAME);
 
 	my %rest_args;
 
@@ -2142,7 +2144,7 @@ EOD
 	    foreach my $oid ( sort { $a <=> $b } keys %id ) {
 		$content .= join( "\t", @{ $id{$oid} } ) . "\n";
 	    }
-	    $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	    $self->_add_pragmata($resp,
 		'spacetrack-type' => 'search',
 		'spacetrack-source' => 'spacetrack',
@@ -2171,7 +2173,7 @@ sub __search_rest_raw {
     # https://beta.space-track.org/basicspacedata/query/class/satcat/CURRENT/Y/NORAD_CAT_ID/25544/predicates/all/limit/10,0/metadata/true
 
     %args
-	or return HTTP::Response->new( RC_PRECONDITION_FAILED, NO_CAT_ID );
+	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
     exists $args{class}
 	or $args{class} = 'satcat';
@@ -2782,7 +2784,7 @@ sub set {	## no critic (ProhibitAmbiguousNames)
 	my $value = shift @args;
 	$mutator{$name}->($self, $name, $value);
     }
-    return HTTP::Response->new (RC_OK, undef, undef, COPACETIC);
+    return HTTP::Response->new (HTTP_OK, undef, undef, COPACETIC);
 }
 
 
@@ -3120,10 +3122,10 @@ sub spaceflight {
 	map {@$_} values %tle;
 
     $content
-	or return HTTP::Response->new( RC_PRECONDITION_FAILED,
+	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED,
 	    NO_RECORDS, undef, $html );
 
-    my $resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+    my $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
     $self->_add_pragmata($resp,
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'spaceflight',
@@ -3228,11 +3230,11 @@ Requested file  doesn't exist");history.go(-1);
 	my $content = $resp->content ();
 	if ($content =~ m/ <html> /smx) {
 	    if ($content =~ m/ Requested \s file \s doesn't \s exist/smxi) {
-		$resp = HTTP::Response->new (RC_NOT_FOUND,
+		$resp = HTTP::Response->new (HTTP_NOT_FOUND,
 		    "The file for catalog $catnum is missing.\n",
 		    undef, $content);
 	    } else {
-		$resp = HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+		$resp = HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
 		    "The file for catalog $catnum could not be retrieved.\n",
 		    undef, $content);
 	    }
@@ -3475,7 +3477,7 @@ sub _dump_headers {
 #
 #	If the debug_url is defined, and has the 'dump-request:' scheme,
 #	AND any of several YAML modules can be loaded, this routine
-#	returns an HTTP::Response object with status RC_OK and whose
+#	returns an HTTP::Response object with status HTTP_OK and whose
 #	content is the request and its arguments encoded in YAML.
 #
 #	If any of the conditions fails, this module simply returns. The
@@ -3496,7 +3498,7 @@ sub _dump_request {
     my $yaml = $dumper->( \%data );
     $yaml =~ s/ \n{2,} /\n/smxg;
     $display and print $yaml;
-    $respond and return HTTP::Response->new( RC_OK, undef, undef, $yaml );
+    $respond and return HTTP::Response->new( HTTP_OK, undef, undef, $yaml );
     return;
 }
 
@@ -3769,7 +3771,7 @@ sub _make_space_track_base_url {
 sub _mung_login_status {
     my ( $resp ) = @_;
     # 500 Can't connect to www.space-track.org:443 (certificate verify failed)
-    $resp->code() == RC_INTERNAL_SERVER_ERROR
+    $resp->code() == HTTP_INTERNAL_SERVER_ERROR
 	or return $resp;
     ( my $msg = $resp->message() ) =~
 	    s{ ( [(] \Qcertificate verify failed\E ) [)]}
@@ -3905,10 +3907,10 @@ sub _no_such_catalog {
 	"Missing $name catalog '$catalog'" :
 	"No such $name catalog as '$catalog'";
     $lead .= defined $note ? " ($note)." : '.';
-    return HTTP::Response->new (RC_NOT_FOUND, "$lead\n")
+    return HTTP::Response->new (HTTP_NOT_FOUND, "$lead\n")
 	unless $self->{verbose};
     my $resp = $self->names ($source);
-    return HTTP::Response->new (RC_NOT_FOUND,
+    return HTTP::Response->new (HTTP_NOT_FOUND,
 	join '', "$lead Try one of:\n", $resp->content,
 	$no_such_trail{$source} || ''
     );
@@ -4185,7 +4187,8 @@ sub _search_generic {
     @args = _parse_retrieve_args( @args );
     my $opt = shift @args;
 
-    @args or return HTTP::Response->new (RC_PRECONDITION_FAILED, NO_OBJ_NAME);
+    @args or return HTTP::Response->new(
+	HTTP_PRECONDITION_FAILED, NO_OBJ_NAME );
 
     my %id;
     my $resp;
@@ -4219,7 +4222,7 @@ sub _search_generic {
 	foreach my $oid ( sort { $a <=> $b } keys %id ) {
 	    $content .= join( "\t", @{ $id{$oid} } ) . "\n";
 	}
-	$resp = HTTP::Response->new (RC_OK, undef, undef, $content);
+	$resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'search',
 	    'spacetrack-source' => 'spacetrack',
@@ -4259,7 +4262,7 @@ sub _search_generic_tabulate {
 	$content =~ s/ &nbsp; / /smxg;
 	my @this_page = @{$p->parse_string (table => $content)};
 	ref $this_page[0] eq 'ARRAY'
-	    or return HTTP::Response->new (RC_INTERNAL_SERVER_ERROR,
+	    or return HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
 	    BAD_SPACETRACK_RESPONSE, undef, $content);
 	my @data = @{$this_page[0]};
 	if ( $splice ) {
