@@ -1,3 +1,10 @@
+0.060_04	2012-07-06	T. R. Wyant
+  Implement epoch selection of TLEs via the Space Track REST interface.
+  Run all the Space Track REST arguments through URI::Escape, which has
+    been added as a requirement.
+  Try to detect Space Track login failure due to a host verification
+    problem, and recommend setting the verify_hostname attribute false.
+
 0.060_03	2012-07-02	T. R. Wyant
   Correct erroneous skip() outside SKIP: block in t/query.t.
 
