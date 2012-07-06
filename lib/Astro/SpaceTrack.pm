@@ -1981,6 +1981,7 @@ sub _retrieve_v2 {
 		$search_for );
 
 	    $rslt->is_success()
+		and not $self->{debug_url}
 		or return $rslt;
 
 	    my $data = JSON::decode_json( $rslt->content() );

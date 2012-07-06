@@ -20,6 +20,10 @@ my $st = Astro::SpaceTrack->new(
     space_track_version	=> 1,
 );
 
+my $base_url = $st->_make_space_track_base_url();
+
+note 'Space Track v1 interface';
+
 is_resp qw{retrieve 25544}, {
 	args => {
 	    _sessionid => '',
@@ -32,7 +36,7 @@ is_resp qw{retrieve 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -48,7 +52,7 @@ is_resp qw{retrieve -sort catnum 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -64,11 +68,9 @@ is_resp qw{retrieve -sort epoch 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
-
-###############
 
 is_resp qw{retrieve -descending 25544}, {
 	args => {
@@ -82,7 +84,7 @@ is_resp qw{retrieve -descending 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -98,7 +100,7 @@ is_resp qw{retrieve -last5 25544}, {
 	    timeframe => 'last5',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -120,7 +122,7 @@ is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -142,7 +144,7 @@ is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -164,7 +166,7 @@ is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -186,7 +188,7 @@ is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
 	    timeframe => 'timespan',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -204,7 +206,7 @@ is_resp qw{retrieve 25544}, {
 	    timeframe => 'latest',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/id_query.pl',
+	url => "$base_url/perl/id_query.pl",
     },
 ;
 
@@ -221,7 +223,7 @@ is_resp qw{search_date 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -238,7 +240,7 @@ is_resp qw{search_date -status all 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -255,7 +257,7 @@ is_resp qw{search_date -status onorbit 2009-04-01}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -272,7 +274,7 @@ is_resp qw{search_date -status decayed 2009-04-01}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -289,7 +291,7 @@ is_resp qw{search_date -exclude debris 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -306,7 +308,7 @@ is_resp qw{search_date -exclude rocket 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -325,7 +327,7 @@ is_resp qw{search_date -exclude rocket 2009-04-01}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'https://www.space-track.org/perl/launch_query.pl',
+	    url => "$base_url/perl/launch_query.pl",
 	},
     ;
 }
@@ -343,7 +345,7 @@ is_resp qw{search_date -exclude debris -exclude rocket 2009-04-01}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -360,7 +362,7 @@ is_resp qw{search_id 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -377,7 +379,7 @@ is_resp qw{search_id 98}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -394,7 +396,7 @@ is_resp qw{search_id 98067A}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -411,7 +413,7 @@ is_resp qw{search_id -status all 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -428,7 +430,7 @@ is_resp qw{search_id -status onorbit 98067}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -445,7 +447,7 @@ is_resp qw{search_id -status decayed 98067}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -462,7 +464,7 @@ is_resp qw{search_id -exclude debris 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -479,7 +481,7 @@ is_resp qw{search_id -exclude rocket 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -498,7 +500,7 @@ is_resp qw{search_id -exclude rocket 98067}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'https://www.space-track.org/perl/launch_query.pl',
+	    url => "$base_url/perl/launch_query.pl",
 	},
     ;
 }
@@ -516,7 +518,7 @@ is_resp qw{search_id -exclude debris -exclude rocket 98067}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/launch_query.pl',
+	url => "$base_url/perl/launch_query.pl",
     },
 ;
 
@@ -532,7 +534,7 @@ is_resp qw{search_name ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -548,7 +550,7 @@ is_resp qw{search_name -status all ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -564,7 +566,7 @@ is_resp qw{search_name -status onorbit ISS}, {
 	    status => 'onorbit',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -580,7 +582,7 @@ is_resp qw{search_name -status decayed ISS}, {
 	    status => 'decayed',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -596,7 +598,7 @@ is_resp qw{search_name -exclude debris ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -612,7 +614,7 @@ is_resp qw{search_name -exclude rocket ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -630,7 +632,7 @@ is_resp qw{search_name -exclude rocket ISS}, {
 		status => 'all',
 	    },
 	    method => 'post',
-	    url => 'https://www.space-track.org/perl/name_query.pl',
+	    url => "$base_url/perl/name_query.pl",
 	},
     ;
 }
@@ -647,7 +649,7 @@ is_resp qw{search_name -exclude debris -exclude rocket ISS}, {
 	    status => 'all',
 	},
 	method => 'post',
-	url => 'https://www.space-track.org/perl/name_query.pl',
+	url => "$base_url/perl/name_query.pl",
     },
 ;
 
@@ -656,7 +658,7 @@ is_resp qw{spacetrack iridium}, {
 	    ID => 10,
 	},
 	method => 'get',
-	url => 'https://www.space-track.org/perl/dl.pl',
+	url => "$base_url/perl/dl.pl",
     },
 ;
 
@@ -667,7 +669,7 @@ is_resp qw{spacetrack iridium}, {
 	    ID => 9,
 	},
 	method => 'get',
-	url => 'https://www.space-track.org/perl/dl.pl',
+	url => "$base_url/perl/dl.pl",
     },
 ;
 
@@ -676,13 +678,25 @@ is_resp qw{spacetrack 10}, {
 	    ID => 10,
 	},
 	method => 'get',
-	url => 'https://www.space-track.org/perl/dl.pl',
+	url => "$base_url/perl/dl.pl",
+    },
+;
+
+is_resp qw{box_score}, {
+	args => {
+	},
+	method => 'get',
+	url => "$base_url/perl/boxscore.pl",
     },
 ;
 
 ################################
 
+note 'Space Track v2 interface';
+
 $st->set( space_track_version => 2 );
+
+$base_url = $st->_make_space_track_base_url();
 
 is_resp qw{retrieve 25544}, {
 	args => [
@@ -694,7 +708,7 @@ is_resp qw{retrieve 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org',
+	url => $base_url,
     },
 ;
 
@@ -708,7 +722,7 @@ is_resp qw{retrieve -sort catnum 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org',
+	url => $base_url,
     },
 ;
 
@@ -722,7 +736,581 @@ is_resp qw{retrieve -sort epoch 25544}, {
 	    orderby	=> 'EPOCH asc',
 	],
 	method => 'get_rest',
-	url => 'https://beta.space-track.org',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -descending 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    limit	=> 1,
+	    orderby	=> 'NORAD_CAT_ID desc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -last5 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    limit	=> 5,
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    EPOCH	=> '2009-04-01--2009-04-02',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    EPOCH	=> '2009-04-01--2009-04-02',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    EPOCH	=> '2009-03-31--2009-04-01',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    EPOCH	=> '2009-03-01--2009-04-01',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{set with_name 1}, 'OK';
+
+# TODO NASA-format TLEs not supported via REST interface.
+is_resp qw{retrieve 25544}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'tle',
+	    NORAD_CAT_ID => 25544,
+	    format	=> 'tle',
+	    limit	=> 1,
+	    orderby	=> 'NORAD_CAT_ID asc',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_date 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_date -status all 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_date -status onorbit 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> 'null-val',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_date -status decayed 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> '<>null-val',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_date -exclude debris 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_date -exclude rocket 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+{
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
+    # TODO -exclude not supported by Space Track v2. We simulate it.
+    is_resp qw{search_date -exclude debris,rocket 2009-04-01}, {
+	    args => [
+		basicspacedata	=> 'query',
+		CURRENT	=> 'Y',
+		LAUNCH	=> '2009-04-01',
+		class	=> 'satcat',
+		format	=> 'json',
+		orderby	=> 'NORAD_CAT_ID asc',
+		predicates	=> 'all',
+	    ],
+	    method => 'get_rest',
+	    url => $base_url,
+	},
+    ;
+}
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_date -exclude debris -exclude rocket 2009-04-01}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    LAUNCH	=> '2009-04-01',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id 98}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id 98067A}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '1998-067A',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id -status all 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id -status onorbit 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> 'null-val',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_id -status decayed 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> '<>null-val',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_id -exclude debris 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_id -exclude rocket 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+{
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
+    # TODO -exclude not supported by Space Track v2. We simulate it.
+    is_resp qw{search_id -exclude debris,rocket 98067}, {
+	    args => [
+		basicspacedata	=> 'query',
+		CURRENT	=> 'Y',
+		INTLDES	=> '~~1998-067',
+		class	=> 'satcat',
+		format	=> 'json',
+		orderby	=> 'NORAD_CAT_ID asc',
+		predicates	=> 'all',
+	    ],
+	    method => 'get_rest',
+	    url => $base_url,
+	},
+    ;
+}
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_id -exclude debris -exclude rocket 98067}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    INTLDES	=> '~~1998-067',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_name ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_name -status all ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_name -status onorbit ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> 'null-val',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+is_resp qw{search_name -status decayed ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    DECAY	=> '<>null-val',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_name -exclude debris ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_name -exclude rocket ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+{
+    no warnings qw{qw};	## no critic (ProhibitNoWarnings)
+    # TODO -exclude not supported by Space Track v2. We simulate it.
+    is_resp qw{search_name -exclude debris,rocket ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+	},
+    ;
+}
+
+# TODO -exclude not supported by Space Track v2. We simulate it.
+is_resp qw{search_name -exclude debris -exclude rocket ISS}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    CURRENT	=> 'Y',
+	    SATNAME	=> '~~ISS',
+	    class	=> 'satcat',
+	    format	=> 'json',
+	    orderby	=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+=begin comment
+
+# TODO Not supported by Space Track v2 interface
+is_resp qw{spacetrack iridium}, {
+	args => [
+	    basicspacedata	=> 'query',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+=end comment
+
+=cut
+
+is_resp qw{set with_name 0}, 'OK';
+
+=begin comment
+
+# TODO Not supported by Space Track v2 interface
+is_resp qw{spacetrack iridium}, {
+	args => [
+	    basicspacedata	=> 'query',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+# TODO Not supported by Space Track v2 interface
+is_resp qw{spacetrack 10}, {
+	args => [
+	    basicspacedata	=> 'query',
+	],
+	method => 'get_rest',
+	url => $base_url,
+    },
+;
+
+=end comment
+
+=cut
+
+is_resp qw{box_score}, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class	=> 'boxscore',
+	    format	=> 'json',
+	    predicates	=> 'all',
+	],
+	method => 'get_rest',
+	url => $base_url,
     },
 ;
 
