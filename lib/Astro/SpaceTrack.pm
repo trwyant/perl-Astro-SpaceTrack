@@ -1507,7 +1507,8 @@ EOD
 	    _sessionid => "",
 	    ]);
 
-    $resp->is_success or return $resp;
+    $resp->is_success()
+	or return _mung_login_status( $resp );
     $self->_dump_headers( $resp );
 
     $self->_record_cookie_generic( 1 )
@@ -1539,7 +1540,8 @@ EOD
 	    password => $self->{password},
 	] );
 
-    $resp->is_success or return $resp;
+    $resp->is_success
+	or return _mung_login_status( $resp );
     $self->_dump_headers( $resp );
 
     $self->_record_cookie_generic( 2 )
@@ -3758,6 +3760,23 @@ sub _make_space_track_base_url {
     my ( $self, $version ) = @_;
     return $self->{scheme_space_track} . '://' .
 	$self->_get_space_track_domain( $version );
+}
+
+# mung_login_status() takes as its argument an HTTP::Response object. If
+# the code is 500 and the message suggests a certificate problem, add
+# the suggestion that the user set verify_hostname false.
+
+sub _mung_login_status {
+    my ( $resp ) = @_;
+    # 500 Can't connect to www.space-track.org:443 (certificate verify failed)
+    $resp->code() == RC_INTERNAL_SERVER_ERROR
+	or return $resp;
+    ( my $msg = $resp->message() ) =~
+	    s{ ( [(] \Qcertificate verify failed\E ) [)]}
+	    {$1; try setting the verify_hostname attribute false)}smx
+	or return $resp;
+    $resp->message( $msg );
+    return $resp;
 }
 
 #	_mutate_attrib takes the name of an attribute and the new value
