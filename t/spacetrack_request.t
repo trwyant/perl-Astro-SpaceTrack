@@ -6,6 +6,7 @@ use warnings;
 use Test::More 0.96;
 
 use Astro::SpaceTrack;
+use HTTP::Status qw{ HTTP_I_AM_A_TEAPOT };
 
 sub is_resp (@);
 sub year();
@@ -16,8 +17,9 @@ my $loader = Astro::SpaceTrack->__get_yaml_loader() or do {
 };
 
 my $st = Astro::SpaceTrack->new(
-    debug_url => 'dump-request:',
     space_track_version	=> 1,
+    dump_headers =>
+	Astro::SpaceTrack->DUMP_REQUEST | Astro::SpaceTrack->DUMP_NO_EXECUTE,
 );
 
 my $base_url = $st->_make_space_track_base_url();
@@ -1324,10 +1326,10 @@ sub is_resp (@) {	## no critic (RequireArgUnpacking)
     my ($got);
 
     if ( $resp && $resp->isa('HTTP::Response') ) {
-	if ( $resp->is_success() ) {
+	if ( $resp->code() == HTTP_I_AM_A_TEAPOT ) {
+	    $got = $loader->( $resp->content() );
+	} elsif ( $resp->is_success() ) {
 	    $got = $resp->content();
-	    $got =~ m/ \A --- /smx
-		and $got = $loader->( $got );
 	} else {
 	    $got = $resp->status_line();
 	}

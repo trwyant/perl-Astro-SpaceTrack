@@ -153,8 +153,12 @@ use Compress::Zlib ();
 use Getopt::Long;
 use HTTP::Response;
 use HTTP::Status qw{
-    HTTP_NOT_FOUND HTTP_OK HTTP_PRECONDITION_FAILED HTTP_UNAUTHORIZED
+    HTTP_NOT_FOUND
+    HTTP_I_AM_A_TEAPOT
     HTTP_INTERNAL_SERVER_ERROR
+    HTTP_OK
+    HTTP_PRECONDITION_FAILED
+    HTTP_UNAUTHORIZED
 };
 use IO::File;
 use JSON qw{};
@@ -179,6 +183,13 @@ use constant NO_RECORDS => 'No records found.';
 use constant SESSION_PATH => '/';
 
 use constant DEFAULT_SPACE_TRACK_VERSION => 1;
+
+use constant DUMP_NONE => 0;		# No dump
+use constant DUMP_TRACE => 0x01;	# Logic trace
+use constant DUMP_REQUEST => 0x02;	# Request content
+use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
+use constant DUMP_COOKIE => 0x08;	# Dump cookies.
+use constant DUMP_HEADERS => 0x10;	# Dump headers.
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
@@ -254,7 +265,6 @@ my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
     banner => \&_mutate_attrib,
     cookie_expires => \&_mutate_spacetrack_interface,
-    debug_url => \&_mutate_attrib,	# Force the URL. Undocumented and unsupported.
     direct => \&_mutate_attrib,
     domain_space_track => \&_mutate_spacetrack_interface,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
@@ -313,9 +323,8 @@ sub new {
 
     my $self = {
 	banner => 1,	# shell () displays banner if true.
-	debug_url => undef,	# Not turned on
 	direct => 0,	# Do not direct-fetch from redistributors
-	dump_headers => 0,	# No dumping.
+	dump_headers => DUMP_NONE,	# No dumping.
 	fallback => 0,	# Do not fall back if primary source offline
 	filter => 0,	# Filter mode.
 	iridium_status_format => 'mccants',	# For historical reasons.
@@ -520,7 +529,6 @@ sub _box_score_v1 {
 
     my $resp = $self->_get ( 'perl/boxscore.pl' );
     $resp->is_success()
-	and not $self->{debug_url}
 	or return $resp;
 
     my $content = $resp->content;
@@ -574,7 +582,6 @@ sub _box_score_v1 {
 	my $resp = $self->_get_rest( qw{ basicspacedata query class boxscore
 	    format json predicates all } );
 	$resp->is_success()
-	    and not $self->{debug_url}
 	    or return $resp;
 
 	my $data = JSON::decode_json( $resp->content() );
@@ -1096,8 +1103,6 @@ The following commands are defined:
       addendum = extra text for the shell () banner;
       banner = false to supress the shell () banner;
       cookie_expires = Perl date the session cookie expires;
-      debug_url = Override canned url for debugging - do not
-        set this in normal use;
       direct = true to fetch orbital elements directly
         from a redistributer. Currently this only affects the
         celestrak() method. The default is false.
@@ -1494,7 +1499,7 @@ sub _login_v1 {
     ($self->{username} && $self->{password}) or
 	return HTTP::Response->new (
 	    HTTP_PRECONDITION_FAILED, NO_CREDENTIALS);
-    $self->{dump_headers} and warn <<"EOD";
+    $self->{dump_headers} & DUMP_TRACE and warn <<"EOD";
 Logging in as $self->{username}.
 EOD
 
@@ -1516,7 +1521,7 @@ EOD
     $self->_record_cookie_generic( 1 )
 	or return HTTP::Response->new (HTTP_UNAUTHORIZED, LOGIN_FAILED);
 
-    $self->{dump_headers} and warn <<'EOD';
+    $self->{dump_headers} & DUMP_TRACE and warn <<'EOD';
 Login successful.
 EOD
     return HTTP::Response->new (HTTP_OK, undef, undef, "Login successful.\n");
@@ -1529,7 +1534,7 @@ sub _login_v2 {
     ( $self->{username} && $self->{password} ) or
 	return HTTP::Response->new (
 	    HTTP_PRECONDITION_FAILED, NO_CREDENTIALS);
-    $self->{dump_headers} and warn <<"EOD";
+    $self->{dump_headers} & DUMP_TRACE and warn <<"EOD";
 Logging in as $self->{username}.
 EOD
 
@@ -1549,7 +1554,7 @@ EOD
     $self->_record_cookie_generic( 2 )
 	or return HTTP::Response->new( HTTP_UNAUTHORIZED, LOGIN_FAILED );
 
-    $self->{dump_headers} and warn <<'EOD';
+    $self->{dump_headers} & DUMP_TRACE and warn <<'EOD';
 Login successful.
 EOD
     return HTTP::Response->new (HTTP_OK, undef, undef, "Login successful.\n");
@@ -1985,7 +1990,6 @@ sub _retrieve_v2 {
 		$search_for );
 
 	    $rslt->is_success()
-		and not $self->{debug_url}
 		or return $rslt;
 
 	    my $data = JSON::decode_json( $rslt->content() );
@@ -2177,7 +2181,8 @@ sub __search_rest_raw {
 
     exists $args{class}
 	or $args{class} = 'satcat';
-    exists $args{CURRENT}
+    $args{class} ne 'satcat'
+	or exists $args{CURRENT}
 	or $args{CURRENT} = 'Y';
     exists $args{format}
 	or $args{format} = 'json';
@@ -3226,39 +3231,40 @@ Requested file  doesn't exist");history.go(-1);
 
 =cut
 
-    ($resp->is_success() && !$self->{debug_url}) and do {
-	my $content = $resp->content ();
-	if ($content =~ m/ <html> /smx) {
-	    if ($content =~ m/ Requested \s file \s doesn't \s exist/smxi) {
-		$resp = HTTP::Response->new (HTTP_NOT_FOUND,
-		    "The file for catalog $catnum is missing.\n",
-		    undef, $content);
-	    } else {
-		$resp = HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
-		    "The file for catalog $catnum could not be retrieved.\n",
-		    undef, $content);
-	    }
+    $resp->is_success()
+	or return $resp;
+
+    my $content = $resp->content ();
+    if ($content =~ m/ <html> /smx) {
+	if ($content =~ m/ Requested \s file \s doesn't \s exist/smxi) {
+	    $resp = HTTP::Response->new (HTTP_NOT_FOUND,
+		"The file for catalog $catnum is missing.\n",
+		undef, $content);
 	} else {
-	    $catnum and $resp->content (
-		Compress::Zlib::memGunzip ($resp->content));
-	    # SpaceTrack returns status 200 on a non-existent catalog
-	    # number, but whatever content they send back doesn't unzip, so
-	    # we catch it here.
-	    defined ($resp->content ())
-		or return $self->_no_such_catalog (spacetrack => $catnum);
-	    $resp->remove_header ('content-disposition');
-	    $resp->header (
-		'content-type' => 'text/plain',
-##		'content-length' => length ($resp->content),
-	    );
-	    $self->_convert_content ($resp);
-	    $self->_add_pragmata($resp,
-		'spacetrack-type' => 'orbit',
-		'spacetrack-source' => 'spacetrack',
-		'spacetrack-interface' => 1,
-	    );
+	    $resp = HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
+		"The file for catalog $catnum could not be retrieved.\n",
+		undef, $content);
 	}
-    };
+    } else {
+	$catnum and $resp->content (
+	    Compress::Zlib::memGunzip ($resp->content));
+	# SpaceTrack returns status 200 on a non-existent catalog
+	# number, but whatever content they send back doesn't unzip, so
+	# we catch it here.
+	defined ($resp->content ())
+	    or return $self->_no_such_catalog (spacetrack => $catnum);
+	$resp->remove_header ('content-disposition');
+	$resp->header (
+	    'content-type' => 'text/plain',
+##	    'content-length' => length ($resp->content),
+	);
+	$self->_convert_content ($resp);
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'orbit',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 1,
+	);
+    }
     return $resp;
 }
 
@@ -3304,7 +3310,7 @@ sub _record_cookie_generic {
 
     my ( $cookie, $expires );
     $self->_get_agent()->cookie_jar->scan( sub {
-	    $self->{dump_headers} > 1
+	    $self->{dump_headers} & DUMP_COOKIE
 		and _dump_cookie( "_record_cookie_generic:\n", @_ );
 	    $_[4] eq $domain
 		or return;
@@ -3318,11 +3324,11 @@ sub _record_cookie_generic {
 
     if ( defined $cookie ) {
 	$interface_info->{session_cookie} = $cookie;
-	$self->{dump_headers}
+	$self->{dump_headers} & DUMP_TRACE
 	    and warn "Session cookie: $cookie\n";	## no critic (RequireCarping)
 	if ( exists $interface_info->{cookie_expires} ) {
 	    $interface_info->{cookie_expires} = $expires;
-	    $self->{dump_headers}
+	    $self->{dump_headers} & DUMP_TRACE
 		and warn 'Cookie expiration: ',
 		    strftime( '%d-%b-%Y %H:%M:%S', localtime $expires ),
 		    " ($expires)\n";	## no critic (RequireCarping)
@@ -3330,7 +3336,7 @@ sub _record_cookie_generic {
 	}
 	return $interface_info->{session_cookie} ? 1 : 0;
     } else {
-	$self->{dump_headers}
+	$self->{dump_headers} & DUMP_TRACE
 	    and warn "Session cookie not found\n";	## no critic (RequireCarping)
 	return;
     }
@@ -3459,7 +3465,8 @@ use Data::Dumper;
 
 sub _dump_headers {
     my ( $self, $resp ) = @_;
-    $self->{dump_headers} or return;
+    $self->{dump_headers} & DUMP_HEADERS
+	or return;
     local $Data::Dumper::Terse = 1;
     my $rqst = $resp->request;
     $rqst = ref $rqst ? $rqst->as_string : "undef\n";
@@ -3475,19 +3482,20 @@ sub _dump_headers {
 
 #	_dump_request dumps the request if desired.
 #
-#	If the debug_url is defined, and has the 'dump-request:' scheme,
-#	AND any of several YAML modules can be loaded, this routine
-#	returns an HTTP::Response object with status HTTP_OK and whose
-#	content is the request and its arguments encoded in YAML.
+#	If the dump_request attribute has the DUMP_REQUEST bit set AND
+#	any of several YAML modules can be loaded, this routine dumps
+#	the request. If the DUMP_NO_EXECUTE bit is set, the dump is
+#	returned in the content of an HTTP::Response object, with the
+#	response code set to HTTP_I_AM_A_TEAPOT. Otherwise the request
+#	is dumped to STDERR.
 #
 #	If any of the conditions fails, this module simply returns. The
 #	moral: don't try to dump requests unless YAML is installed.
 
 sub _dump_request {
     my ( $self, $url, $args ) = @_;
-    my $display = $self->{dump_headers} & 0x02;
-    my $respond = ( $self->{debug_url} || '' ) =~ m/ \A dump-request: /smx;
-    $display or $respond or return;
+    $self->{dump_headers} & DUMP_REQUEST
+	or return;
     my $dumper = _get_yaml_dumper() or return;
     (my $method = (caller 1)[3]) =~ s/ \A (?: .* :: )? _? //smx;
     my %data = (
@@ -3497,8 +3505,11 @@ sub _dump_request {
     );
     my $yaml = $dumper->( \%data );
     $yaml =~ s/ \n{2,} /\n/smxg;
-    $display and print $yaml;
-    $respond and return HTTP::Response->new( HTTP_OK, undef, undef, $yaml );
+    if ( $self->{dump_headers} & DUMP_NO_EXECUTE ) {
+	return HTTP::Response->new( HTTP_I_AM_A_TEAPOT, undef, undef, $yaml );
+    } else {
+	print $yaml;
+    }
     return;
 }
 
@@ -3554,24 +3565,25 @@ sub _get {
     }
     $cgi and substr( $cgi, 0, 1, '?' );
     {	# Single-iteration loop
-	$self->{debug_url}
+	$self->{dump_headers} & DUMP_NO_EXECUTE
 	    or $self->_check_cookie_generic( 1 )
 	    or do {
 	    my $resp = $self->_login_v1();
-	    return $resp unless $resp->is_success;
+	    $resp->is_success()
+		or return $resp;
 	};
 	my $url = join '/', $self->_make_space_track_base_url( 1 ),
 	    $path;
-	my $resp = $self->_dump_request( $url, { @args } ) ||
-	    $self->_get_agent()->get (($self->{debug_url} || $url) . $cgi);
+	my $resp;
+	$resp = $self->_dump_request( $url, { @args } )
+	    and return $resp;
+	$resp = $self->_get_agent()->get( $url . $cgi);
 	$self->_dump_headers( $resp );
-##	return $resp unless $resp->is_success && !$self->{debug_url};
 	$resp->is_success()
-	    and not $self->{debug_url}
 	    or return $resp;
 	local $_ = $resp->content;
 	m/ login [.] pl /smxi and do {
-	    $self->logout() = 0;
+	    $self->logout();
 	    redo;
 	};
 	return $resp;
@@ -3629,7 +3641,7 @@ sub _get_rest {
     my ( $self, @args ) = @_;
     my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
 
-    $self->{debug_url}
+    $self->{dump_headers} & DUMP_NO_EXECUTE
 	or $self->_check_cookie_generic( 2 )
 	or do {
 	my $resp = $self->_login_v2();
@@ -3638,9 +3650,10 @@ sub _get_rest {
     };
     my $url = $self->_make_space_track_base_url( 2 );
 ##  warn "Debug - $url/$cgi";
-    my $resp = $self->_dump_request( $url, \@args ) ||
-	$self->_get_agent()->get( ( $self->{debug_url} || $url ) .
-	    "/$cgi" );
+    my $resp;
+    $resp = $self->_dump_request( $url, \@args )
+	and return $resp;
+    $resp = $self->_get_agent()->get( $url . "/$cgi" );
     $self->_dump_headers( $resp );
     return $resp;
 }
@@ -3789,9 +3802,6 @@ sub _mung_login_status {
 sub _mutate_attrib {
     return ($_[0]{$_[1]} = $_[2]);
 }
-
-# TODO - for this to work, I need to be able to clear the cookie on
-# setting the domain. I think I need a logout() method.
 
 {
     my %need_logout = map { $_ => 1 } qw{ domain_space_track };
@@ -4143,7 +4153,7 @@ EOD
 sub _post {
     my ($self, $path, @args) = @_;
     {	# Single-iteration loop
-	$self->{debug_url}
+	$self->{dump_headers} & DUMP_NO_EXECUTE
 	    or $self->_check_cookie_generic( 1 )
 	    or do {
 	    my $resp = $self->_login_v1();
@@ -4151,12 +4161,12 @@ sub _post {
 	};
 	my $url = join '/', $self->_make_space_track_base_url( 1 ),
 	    $path;
-	my $resp = $self->_dump_request( $url, { @args } ) ||
-	    $self->_get_agent()->post ($self->{debug_url} || $url, [@args]);
+	my $resp;
+	$resp = $self->_dump_request( $url, { @args } )
+	    and return $resp;
+	$resp = $self->_get_agent()->post( $url, \@args );
 	$self->_dump_headers( $resp );
-##	return $resp unless $resp->is_success && !$self->{debug_url};
 	$resp->is_success()
-	    and not $self->{debug_url}
 	    or return $resp;
 	local $_ = $resp->content;
 	m/ login [.] pl /smxi and do {
@@ -4253,9 +4263,7 @@ sub _search_generic_tabulate {
 
     foreach my $name ( @args ) {
 	defined (my $resp = $poster->($self, $name, $opt)) or next;
-##	return $resp unless $resp->is_success && !$self->{debug_url};
 	$resp->is_success()
-	    and not $self->{debug_url}
 	    or return $resp;
 	my $content = $resp->content;
 	next if $content =~ m/ No \s results \s found /smxi;
