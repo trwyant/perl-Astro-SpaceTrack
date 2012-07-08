@@ -3496,20 +3496,22 @@ sub _dump_request {
     my ( $self, $url, $args ) = @_;
     $self->{dump_headers} & DUMP_REQUEST
 	or return;
+
     my $dumper = _get_yaml_dumper() or return;
-    (my $method = (caller 1)[3]) =~ s/ \A (?: .* :: )? _? //smx;
-    my %data = (
-	args => $args,
-	method => $method,
-	url => $url,
+    ( my $method = ( caller 1 )[3] ) =~ s/ \A (?: .* :: )? _? //smx;
+
+    my $yaml = $dumper->( {
+	    args => $args,
+	    method => $method,
+	    url => $url,
+	}
     );
-    my $yaml = $dumper->( \%data );
-    $yaml =~ s/ \n{2,} /\n/smxg;
-    if ( $self->{dump_headers} & DUMP_NO_EXECUTE ) {
-	return HTTP::Response->new( HTTP_I_AM_A_TEAPOT, undef, undef, $yaml );
-    } else {
-	print $yaml;
-    }
+
+    $self->{dump_headers} & DUMP_NO_EXECUTE
+	and return HTTP::Response->new(
+	HTTP_I_AM_A_TEAPOT, undef, undef, $yaml );
+
+    warn $yaml;
     return;
 }
 
@@ -3553,31 +3555,33 @@ sub _format_launch_date_rest {
 #	THIS IS TO BE USED ONLY FOR THE SPACETRACK V1 INTERFACE
 
 sub _get {
-    my ($self, $path, @args) = @_;
+    my ( $self, $path, %args ) = @_;
+
+    my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
+
+    if ( my $resp = $self->_dump_request( $url, \%args ) ) {
+	return $resp;
+    }
+
     my $cgi = '';
-    {
-	my @unpack = @args;
-	while (@unpack) {
-	    my ( $name, $val ) = splice @unpack, 0, 2;
-	    defined $val or $val = '';
-	    $cgi .= "&$name=$val";
-	}
+    foreach my $name ( sort keys %args ) {
+	my $val = $args{$name};
+	defined $val
+	    or $val = '';
+	$cgi .= sprintf '&%s=%s', map { URI::Escape::uri_escape( $_ ) }
+	    $name, $val;
     }
     $cgi and substr( $cgi, 0, 1, '?' );
     {	# Single-iteration loop
-	$self->{dump_headers} & DUMP_NO_EXECUTE
-	    or $self->_check_cookie_generic( 1 )
+
+	$self->_check_cookie_generic( 1 )
 	    or do {
 	    my $resp = $self->_login_v1();
 	    $resp->is_success()
 		or return $resp;
 	};
-	my $url = join '/', $self->_make_space_track_base_url( 1 ),
-	    $path;
-	my $resp;
-	$resp = $self->_dump_request( $url, { @args } )
-	    and return $resp;
-	$resp = $self->_get_agent()->get( $url . $cgi);
+
+	my $resp = $self->_get_agent()->get( $url . $cgi);
 	$self->_dump_headers( $resp );
 	$resp->is_success()
 	    or return $resp;
@@ -3639,21 +3643,22 @@ sub _get_agent {
 
 sub _get_rest {
     my ( $self, @args ) = @_;
+    my $url = $self->_make_space_track_base_url( 2 );
+
+    if ( my $resp = $self->_dump_request( $url, \@args ) ) {
+	return $resp;
+    }
+
     my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
 
-    $self->{dump_headers} & DUMP_NO_EXECUTE
-	or $self->_check_cookie_generic( 2 )
+    $self->_check_cookie_generic( 2 )
 	or do {
 	my $resp = $self->_login_v2();
 	$resp->is_success()
 	    or return $resp;
     };
-    my $url = $self->_make_space_track_base_url( 2 );
 ##  warn "Debug - $url/$cgi";
-    my $resp;
-    $resp = $self->_dump_request( $url, \@args )
-	and return $resp;
-    $resp = $self->_get_agent()->get( $url . "/$cgi" );
+    my $resp = $self->_get_agent()->get( "$url/$cgi" );
     $self->_dump_headers( $resp );
     return $resp;
 }
@@ -4151,20 +4156,22 @@ EOD
 # THIS IS TO BE USED ONLY FOR THE SPACE TRACK V1 INTERFACE
 
 sub _post {
-    my ($self, $path, @args) = @_;
+    my ( $self, $path, %args ) = @_;
+
+    my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
+
+    if ( my $resp = $self->_dump_request( $url, \%args ) ) {
+	return $resp;
+    }
+
     {	# Single-iteration loop
-	$self->{dump_headers} & DUMP_NO_EXECUTE
-	    or $self->_check_cookie_generic( 1 )
+	$self->_check_cookie_generic( 1 )
 	    or do {
 	    my $resp = $self->_login_v1();
 	    return $resp unless $resp->is_success;
 	};
-	my $url = join '/', $self->_make_space_track_base_url( 1 ),
-	    $path;
-	my $resp;
-	$resp = $self->_dump_request( $url, { @args } )
-	    and return $resp;
-	$resp = $self->_get_agent()->post( $url, \@args );
+
+	my $resp = $self->_get_agent()->post( $url, \%args );
 	$self->_dump_headers( $resp );
 	$resp->is_success()
 	    or return $resp;
