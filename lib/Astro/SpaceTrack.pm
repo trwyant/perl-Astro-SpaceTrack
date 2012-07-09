@@ -61,13 +61,27 @@ it.
 The Space Track web site is in the throes of implementing a new REST
 API, to replace the old screen-scraping API. This API is currently in
 beta. This module implements the REST API to the extent possible, but
-should not be used for production code at this point.
+should probably not be used for production code at this point.
 
 This module will use either the old (version 1) API or the new (version
 2) API, depending on the value of the C<space_track_version> attribute,
 which can be either C<1> or C<2>, with C<1> being the default. It is
 anticipated that some time in the future the default of this attribute
 will become C<2>.
+
+I do not have a timing for the conversion, though I understand that a
+multimonth transition period is planned when the REST interface is
+complete. I also do not know the details of the transition plan. If they
+change web domains suddenly, you may be able to get yourself going again
+with the C<domain_space_track> attribute.
+
+At some point near the beginning of the transition period, the default
+value of the C<space_track_version> attribute will become C<2>, and the
+value of C<1> will become deprecated. Because I do not know the timing
+of any of this I can not commit to a deprecation schedule, but I can
+promise that setting C<space_track_version> to C<1> will throw an
+exception as soon after the decommissioning of the old web site as I can
+manage.
 
 Version 2 of the interface differs from version 1 in the following ways
 that are known to me at this time.  All are due to limitations in the
@@ -77,15 +91,21 @@ stated otherwise.
 =over
 
 =item The retrieve() method (which retrieves TLEs for given OIDs) is
-incapable of returning the common name of the body.
+incapable of returning the common name of the body. I am informed that
+there is already a feature request for this, but that it has not yet
+been prioritized. In the meantime, if you B<really> want common names in
+your TLE data, you can get them via the C<search_oid()> method.
 
 =item The C<spacetrack()> method (which returns predefined packages of
-TLEs) is unsupported, and throws an exception.
+TLEs) is unsupported, and throws an exception. I know of no work being
+done in this area.
 
 =item The C<-exclude> option to the C<search_*()> methods is not
 supported by version 2 of the interface. When version 2 is in use,
 C<Astro::SpaceTrack> filters the results of a search to simulate the
-functionality of version 1 of the interface.
+functionality of version 1 of the interface. I am informed that there is
+a request for this functionality, but that it has not yet been
+prioritized.
 
 =back
 
