@@ -3511,19 +3511,13 @@ sub _dump_headers {
 #	If any of the conditions fails, this module simply returns.
 
 sub _dump_request {
-    my ( $self, $url, $args ) = @_;
+    my ( $self, %args ) = @_;
     $self->{dump_headers} & DUMP_REQUEST
 	or return;
 
     my $dumper = _get_dumper( pretty => 1 ) or return;
-    ( my $method = ( caller 1 )[3] ) =~ s/ \A (?: .* :: )? _? //smx;
 
-    my $yaml = $dumper->( {
-	    args => $args,
-	    method => $method,
-	    url => $url,
-	}
-    );
+    my $yaml = $dumper->( \%args );
 
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
@@ -3577,7 +3571,12 @@ sub _get {
 
     my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
 
-    if ( my $resp = $self->_dump_request( $url, \%args ) ) {
+    if ( my $resp = $self->_dump_request(
+	    args	=> \%args,
+	    method	=> 'GET',
+	    url		=> $url,
+	    version	=> 1,
+	) ) {
 	return $resp;
     }
 
@@ -3663,7 +3662,12 @@ sub _get_rest {
     my ( $self, @args ) = @_;
     my $url = $self->_make_space_track_base_url( 2 );
 
-    if ( my $resp = $self->_dump_request( $url, \@args ) ) {
+    if ( my $resp = $self->_dump_request(
+	    args	=> \@args,
+	    method	=> 'GET',
+	    url		=> $url,
+	    version	=> 2,
+	) ) {
 	return $resp;
     }
 
@@ -4157,7 +4161,12 @@ sub _post {
 
     my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
 
-    if ( my $resp = $self->_dump_request( $url, \%args ) ) {
+    if ( my $resp = $self->_dump_request(
+	    args	=> \%args,
+	    method	=> 'POST',
+	    url		=> $url,
+	    version	=> 1,
+	) ) {
 	return $resp;
     }
 
