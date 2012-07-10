@@ -84,7 +84,7 @@ exception as soon after the decommissioning of the old web site as I can
 manage.
 
 Version 2 of the interface differs from version 1 in the following ways
-that are known to me at this time.  All are due to limitations in the
+that are known to me at this time. All are due to limitations in the
 functionality provided by version 2 of the interface, unless explicitly
 stated otherwise.
 
@@ -599,7 +599,7 @@ sub _box_score_v1 {
     sub _box_score_v2 {
 	my ( $self ) = @_;
 
-	my $resp = $self->_get_rest( qw{ basicspacedata query class boxscore
+	my $resp = $self->spacetrack_v2( qw{ basicspacedata query class boxscore
 	    format json predicates all } );
 	$resp->is_success()
 	    or return $resp;
@@ -1558,8 +1558,8 @@ sub _login_v2 {
 Logging in as $self->{username}.
 EOD
 
-    #	Do not use the _get_rest method to retrieve the session cookie,
-    #	unless you like bottomless recursions.
+    #	Do not use the spacetrack_v2 method to retrieve the session
+    #	cookie, unless you like bottomless recursions.
     my $url = $self->_make_space_track_base_url( 2 );
     my $resp = $self->_get_agent()->post(
 	"$url/ajaxauth/login", [
@@ -1826,7 +1826,7 @@ sub _retrieve_v2 {
     local $_ = undef;
     my $resp;
     foreach my $oid ( @args ) {
-	$resp = $self->_get_rest( basicspacedata => 'query',
+	$resp = $self->spacetrack_v2( basicspacedata => 'query',
 	    class		=> 'tle',
 	    NORAD_CAT_ID	=> $oid,
 	    format		=> 'tle',
@@ -2213,7 +2213,7 @@ sub __search_rest_raw {
 #   exists $args{limit}
 #	or $args{limit} = 1000;
 
-    my $resp = $self->_get_rest(
+    my $resp = $self->spacetrack_v2(
 	basicspacedata	=> 'query',
 	map { $_ => $args{$_} } sort keys %args,
     );
@@ -3293,6 +3293,66 @@ sub _spacetrack_v2 {
     croak 'Bulk data downloads not supported by REST API';
 }
 
+=for html <a name="spacetrack_v2"></a>
+
+=item $resp = $st->spacetrack_v2( @path );
+
+This method exposes the Space Track version 2 interface (a.k.a the REST
+interface). It has nothing to do with the (probably badly-named)
+C<spacetrack()> method. Unlike other methods that interface to Space
+Track, this method uses version 2 of the Space Track interface
+regardless of the value of the C<space_track_version> attribute.
+
+The arguments are the arguments to the REST interface. These will be
+URI-escaped, and a login will be performed if necessary. This method
+returns an C<HTTP::Response> object containing the results of the
+operation.
+
+Except for the URI escaping of the arguments and the implicit login,
+this method interfaces directly to Space Track. It is provided for those
+who want a way to experiment with the REST interface, or who wish to do
+something not covered by the higher-level methods.
+
+For example, if you want the JSON version of the satellite box score
+(rather than the tab-delimited version provided by the C<box_score()>
+method) you will find the JSON in the response object of the following
+call:
+
+ my $resp = $st->spacetrack_v2( qw{
+     basicspacedata query class boxscore
+     format json predicates all
+     } );
+ );
+
+=cut
+
+sub spacetrack_v2 {
+    my ( $self, @args ) = @_;
+    my $url = $self->_make_space_track_base_url( 2 );
+
+    if ( my $resp = $self->_dump_request(
+	    args	=> \@args,
+	    method	=> 'GET',
+	    url		=> $url,
+	    version	=> 2,
+	) ) {
+	return $resp;
+    }
+
+    my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
+
+    $self->_check_cookie_generic( 2 )
+	or do {
+	my $resp = $self->_login_v2();
+	$resp->is_success()
+	    or return $resp;
+    };
+##  warn "Debug - $url/$cgi";
+    my $resp = $self->_get_agent()->get( "$url/$cgi" );
+    $self->_dump_headers( $resp );
+    return $resp;
+}
+
 
 ####
 #
@@ -3644,45 +3704,6 @@ sub _get_agent {
 	or $agent->cookie_jar( {} );
 
     return $agent;
-}
-
-# _get_rest() gets the given path on the domain. Arguments are the
-# individual elements of the path. These will be URI-escaped. In other
-# words, DO NOT pass aggregated path elements like "foo/bar"; instead
-# pass 'foo' and 'bar' as separate arguments.
-#
-# This method checks the currency of the session cookie, and executes a
-# login if it deems it necessary.  The normal return is the
-# HTTP::Response object from the get (), but if a login was attempted
-# and failed, the HTTP::Response object from the login will be returned.
-#
-# THIS IS TO BE USED ONLY FOR THE SPACETRACK V2 INTERFACE
-
-sub _get_rest {
-    my ( $self, @args ) = @_;
-    my $url = $self->_make_space_track_base_url( 2 );
-
-    if ( my $resp = $self->_dump_request(
-	    args	=> \@args,
-	    method	=> 'GET',
-	    url		=> $url,
-	    version	=> 2,
-	) ) {
-	return $resp;
-    }
-
-    my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
-
-    $self->_check_cookie_generic( 2 )
-	or do {
-	my $resp = $self->_login_v2();
-	$resp->is_success()
-	    or return $resp;
-    };
-##  warn "Debug - $url/$cgi";
-    my $resp = $self->_get_agent()->get( "$url/$cgi" );
-    $self->_dump_headers( $resp );
-    return $resp;
 }
 
 # _get_space_track_domain() returns the domain name portion of the Space

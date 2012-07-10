@@ -35,6 +35,7 @@ Fengyun
 IDs
 ISP
 ISS
+JSON
 Kelso
 Kelso's
 kelso
@@ -75,6 +76,7 @@ tles
 txt
 unzip
 unzipped
+URI
 usa
 username
 webcmd

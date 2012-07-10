@@ -25,6 +25,7 @@ i_can 'get';
 i_can 'help';
 i_can 'iridium_status';
 i_can 'login';
+i_can 'logout';
 i_can 'names';
 i_can 'retrieve';
 i_can 'search_date';
@@ -35,6 +36,7 @@ i_can 'shell';
 i_can 'source';
 i_can 'spaceflight';
 i_can 'spacetrack';
+i_can 'spacetrack_v2';
 
 is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     addendum
