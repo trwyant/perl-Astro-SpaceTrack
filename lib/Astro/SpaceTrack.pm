@@ -3502,22 +3502,20 @@ sub _dump_headers {
 
 #	_dump_request dumps the request if desired.
 #
-#	If the dump_request attribute has the DUMP_REQUEST bit set AND
-#	any of several YAML modules can be loaded, this routine dumps
-#	the request. If the DUMP_NO_EXECUTE bit is set, the dump is
-#	returned in the content of an HTTP::Response object, with the
-#	response code set to HTTP_I_AM_A_TEAPOT. Otherwise the request
-#	is dumped to STDERR.
+#	If the dump_request attribute has the DUMP_REQUEST bit set, this
+#	routine dumps the request. If the DUMP_NO_EXECUTE bit is set,
+#	the dump is returned in the content of an HTTP::Response object,
+#	with the response code set to HTTP_I_AM_A_TEAPOT. Otherwise the
+#	request is dumped to STDERR.
 #
-#	If any of the conditions fails, this module simply returns. The
-#	moral: don't try to dump requests unless YAML is installed.
+#	If any of the conditions fails, this module simply returns.
 
 sub _dump_request {
     my ( $self, $url, $args ) = @_;
     $self->{dump_headers} & DUMP_REQUEST
 	or return;
 
-    my $dumper = _get_yaml_dumper() or return;
+    my $dumper = _get_dumper( pretty => 1 ) or return;
     ( my $method = ( caller 1 )[3] ) =~ s/ \A (?: .* :: )? _? //smx;
 
     my $yaml = $dumper->( {
@@ -3695,52 +3693,31 @@ sub _get_space_track_domain {
     return $self->{_space_track_interface}[$version]{domain_space_track};
 }
 	
-{
+# _get_dumper() retrieves a dumper and returns a code reference to it.
+# The dumper will pretty-print if C<< ( pretty => 1 ) >> is passed as
+# argument and the dumper is capable of it.
 
-    my ($dumper, $loader, $package, $tried);
-
-#	_get_yaml_dumper retrieves a YAML dumper. If one can be found,
-#	a code reference to it is returned. Otherwise we simply return.
-
-    sub _get_yaml_dumper {
-	$dumper and return $dumper;
-	($package ||= _get_yaml_package()) or return;
-	$dumper = $package->can('Dump');
-	return $dumper;
+sub _get_dumper {
+    my %arg = @_;
+    my $json = JSON->new()->utf8( 1 );
+    $arg{pretty} and $json->pretty( 1 );
+    return sub {
+	return $json->encode( $_[0] );
     }
- 
-#	__get_yaml_loader retrieves a YAML loader. If one can be found,
-#	a code reference to it is returned. Otherwise we simply return.
+}
+
+# __get_loader() retrieves a loader. A code reference to it is returned.
 #
-#	NOTE WELL: This subroutine is for the benefit of
-#	t/spacetrack_request.t, and is called by that code. The leading
-#	double underscore is to flag it to Perl::Critic as package
-#	private rather than module private.
+# NOTE WELL: This subroutine is for the benefit of
+# t/spacetrack_request.t, and is called by that code. The leading double
+# underscore is to flag it to Perl::Critic as package private rather
+# than module private.
 
-    sub __get_yaml_loader {
-	$loader and return $loader;
-	($package ||= _get_yaml_package()) or return;
-	$loader = $package->can('Load');
-	return $loader;
-    }
-
-#	_get_yaml_package tries to load several YAML packages, returning
-#	the name of the first which is loaded successfully. If none can
-#	be loaded, it returns undef. Subsequent calls simply return
-#	whatever the first call did.
-#
-#	Well, at the moment all it tries is YAML.
-
-    sub _get_yaml_package {
-	$tried and return $package;
-	$tried++;
-	foreach my $try ( qw{ YAML } ) {
-	    ( my $fn = $try ) =~ s{ :: }{/}smxg;
-	    $fn .= '.pm';
-	    eval { require $fn; 1 } or next;
-	    return ( $package = $try );
-	}
-	return $package;
+sub __get_loader {
+    my ( $invocant, %arg ) = @_;
+    my $json = JSON->new()->utf8( 1 );
+    return sub {
+	return $json->decode( $_[0] );
     }
 }
 

@@ -1155,8 +1155,8 @@ sub retrieve {
 	@args = $data->{$source};
     }
 #   warn "Debug - \$st->$source( ", join( ', ', map { "'$_'" } @args ), ' )';
-#   use YAML;
-#   warn "Debug - \$data is ", Dump( $data ), ' ';
+#   use JSON;
+#   warn "Debug - \$data is ", to_json( $data, { pretty => 1 } ), ' ';
     my ( $error );
     if ( my $rslt = eval {
 	    local $SIG{__WARN__} = sub {

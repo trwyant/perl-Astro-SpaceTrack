@@ -76,9 +76,9 @@ My::Module::Meta - Information needed to build Astro::SpaceTrack
  use lib qw{ inc };
  use My::Module::Meta;
  my $meta = My::Module::Meta->new();
- use YAML;
- print "Required modules:\n", Dump(
-     $meta->requires() );
+ use JSON;
+ print "Required modules:\n", to_json(
+     $meta->requires(), { pretty => 1 } );
 
 =head1 DETAILS
 
@@ -99,8 +99,8 @@ This method instantiates the class.
 
 =head2 build_requires
 
- use YAML;
- print Dump( $meta->build_requires() );
+ use JSON;
+ print to_json( $meta->build_requires(), { pretty => 1 } );
 
 This method computes and returns a reference to a hash describing the
 modules required to build the C<Astro::Coord::ECI> package, suitable for
@@ -120,8 +120,8 @@ C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
 
 =head2 requires
 
- use YAML;
- print Dump( $meta->requires() );
+ use JSON;
+ print to_json( $meta->requires(), { pretty => 1 } );
 
 This method computes and returns a reference to a hash describing
 the modules required to run the C<App::Satpass2> package, suitable for

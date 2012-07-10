@@ -11,8 +11,8 @@ use HTTP::Status qw{ HTTP_I_AM_A_TEAPOT };
 sub is_resp (@);
 sub year();
 
-my $loader = Astro::SpaceTrack->__get_yaml_loader() or do {
-    plan skip_all => 'YAML required to check Space Track requests.';
+my $loader = Astro::SpaceTrack->__get_loader() or do {
+    plan skip_all => 'JSON required to check Space Track requests.';
     exit;
 };
 
