@@ -1,3 +1,12 @@
+0.060_05	2012-07-11	T. R. Wyant
+  Expose spacetrack_query_v2(), which is our lowest-level interface to
+    Space Track version 2.
+  Use JSON rather than YAML for serialization in (e.g.)
+    t/spacetrack_request.t, since the former is now a requirement, but
+    the latter never was.
+  Bit-mapped the unsupported dump_headers attribute.
+  Eliminated the unsupported debug_url attribute.
+
 0.060_04	2012-07-06	T. R. Wyant
   Implement epoch selection of TLEs via the Space Track REST interface.
   Run all the Space Track REST arguments through URI::Escape, which has
