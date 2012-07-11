@@ -599,8 +599,10 @@ sub _box_score_v1 {
     sub _box_score_v2 {
 	my ( $self ) = @_;
 
-	my $resp = $self->spacetrack_v2( qw{ basicspacedata query class boxscore
-	    format json predicates all } );
+	my $resp = $self->spacetrack_query_v2( qw{
+	    basicspacedata query class boxscore
+	    format json predicates all
+	} );
 	$resp->is_success()
 	    or return $resp;
 
@@ -1558,8 +1560,8 @@ sub _login_v2 {
 Logging in as $self->{username}.
 EOD
 
-    #	Do not use the spacetrack_v2 method to retrieve the session
-    #	cookie, unless you like bottomless recursions.
+    # Do not use the spacetrack_query_v2 method to retrieve the session
+    # cookie, unless you like bottomless recursions.
     my $url = $self->_make_space_track_base_url( 2 );
     my $resp = $self->_get_agent()->post(
 	"$url/ajaxauth/login", [
@@ -1826,7 +1828,8 @@ sub _retrieve_v2 {
     local $_ = undef;
     my $resp;
     foreach my $oid ( @args ) {
-	$resp = $self->spacetrack_v2( basicspacedata => 'query',
+	$resp = $self->spacetrack_query_v2(
+	    basicspacedata	=> 'query',
 	    class		=> 'tle',
 	    NORAD_CAT_ID	=> $oid,
 	    format		=> 'tle',
@@ -2213,7 +2216,7 @@ sub __search_rest_raw {
 #   exists $args{limit}
 #	or $args{limit} = 1000;
 
-    my $resp = $self->spacetrack_v2(
+    my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
 	map { $_ => $args{$_} } sort keys %args,
     );
@@ -3293,9 +3296,9 @@ sub _spacetrack_v2 {
     croak 'Bulk data downloads not supported by REST API';
 }
 
-=for html <a name="spacetrack_v2"></a>
+=for html <a name="spacetrack_query_v2"></a>
 
-=item $resp = $st->spacetrack_v2( @path );
+=item $resp = $st->spacetrack_query_v2( @path );
 
 This method exposes the Space Track version 2 interface (a.k.a the REST
 interface). It has nothing to do with the (probably badly-named)
@@ -3318,7 +3321,7 @@ For example, if you want the JSON version of the satellite box score
 method) you will find the JSON in the response object of the following
 call:
 
- my $resp = $st->spacetrack_v2( qw{
+ my $resp = $st->spacetrack_query_v2( qw{
      basicspacedata query class boxscore
      format json predicates all
      } );
@@ -3326,7 +3329,7 @@ call:
 
 =cut
 
-sub spacetrack_v2 {
+sub spacetrack_query_v2 {
     my ( $self, @args ) = @_;
     my $url = $self->_make_space_track_base_url( 2 );
 
