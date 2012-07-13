@@ -1,3 +1,9 @@
+0.060_06	2012-07-12	T. R. Wyant
+  Require HTTP::Status 6.03, because I can't forebear to use the
+    "teapot" status for testing purposes.
+
+------------------------------------------------------------------------
+
 0.060_05	2012-07-11	T. R. Wyant
   Expose spacetrack_query_v2(), which is our lowest-level interface to
     Space Track version 2.
