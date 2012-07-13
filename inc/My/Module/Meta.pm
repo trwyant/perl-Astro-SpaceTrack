@@ -41,7 +41,7 @@ sub requires {
 	'Getopt::Long'		=> 0,
 	'HTML::Parser'		=> 0,
 	'HTTP::Response'	=> 0,
-	'HTTP::Status'		=> 6.0,	# For HTTP_* constants
+	'HTTP::Status'		=> 6.03,	# For the teapot status
 	'IO::File'		=> 0,
 	'JSON'			=> 0,	# For Space Track v2
 	'LWP::UserAgent'	=> 0,
