@@ -1824,12 +1824,13 @@ sub _retrieve_v2 {
 
     @args
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
+    defined $opt->{format}
+	or $opt->{format} = 'tle';
 
     my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
 	class		=> 'tle',
 	NORAD_CAT_ID	=> join( ',', @args ),
-	format		=> 'tle',
 	map { $_ => $opt->{$_} } sort keys %{ $opt },
     );
     $resp->is_success()
@@ -2025,26 +2026,26 @@ sub _retrieve_v2 {
 	    $opt->{format} = 'json';
 	    $rest_args = $self->_convert_retrieve_options_to_rest( $opt );
 
+	    $rslt = $self->_retrieve_v2( $opt,
+		map { $_->{NORAD_CAT_ID} } @found );
+	    $rslt->is_success()
+		or return $rslt;
+	    my %search_info = map { $_->{NORAD_CAT_ID} => $_ } @found;
+	    my $bodies = JSON::decode_json( $rslt->content() );
 	    my $content;
-	    foreach my $datum ( @found ) {
-		$rslt = $self->_retrieve_v2( $opt,
-		    $datum->{NORAD_CAT_ID} );
-		$rslt->is_success()
-		    or return $rslt;
-		my $bodies = JSON::decode_json( $rslt->content() );
-		foreach my $body ( @{ $bodies } ) {
-		    my @line_0;
-		    $with_name
-			and push @line_0, $datum->{SATNAME};
-		    $opt->{rcs}
-			and push @line_0, "--rcs $datum->{RCSVALUE}";
-		    @line_0
-			and $content .= join( ' ', @line_0 ) . "\n";
-		    $content .= <<"EOD";
+	    foreach my $body ( @{ $bodies } ) {
+		my $info = $search_info{$body->{NORAD_CAT_ID}};
+		my @line_0;
+		$with_name
+		    and push @line_0, $info->{SATNAME};
+		$opt->{rcs}
+		    and push @line_0, "--rcs $info->{RCSVALUE}";
+		@line_0
+		    and $content .= join( ' ', @line_0 ) . "\n";
+		$content .= <<"EOD";
 $body->{TLE_LINE1}
 $body->{TLE_LINE2}
 EOD
-		}
 	    }
 
 	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
