@@ -746,11 +746,11 @@ is_resp qw{retrieve 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 1,
 	    orderby	=> 'NORAD_CAT_ID asc',
+	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/NORAD_CAT_ID%20asc/sublimit/1",
 	version => 2,
     },
 ;
@@ -761,11 +761,11 @@ is_resp qw{retrieve -sort catnum 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 1,
 	    orderby	=> 'NORAD_CAT_ID asc',
+	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/NORAD_CAT_ID%20asc/sublimit/1",
 	version => 2,
     },
 ;
@@ -776,11 +776,11 @@ is_resp qw{retrieve -sort epoch 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 1,
 	    orderby	=> 'EPOCH asc',
+	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20asc/sublimit/1",
 	version => 2,
     },
 ;
@@ -791,11 +791,11 @@ is_resp qw{retrieve -descending 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 1,
 	    orderby	=> 'NORAD_CAT_ID desc',
+	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/NORAD_CAT_ID%20desc/sublimit/1",
 	version => 2,
     },
 ;
@@ -806,11 +806,11 @@ is_resp qw{retrieve -last5 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 5,
 	    orderby	=> 'NORAD_CAT_ID asc',
+	    sublimit	=> 5,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/NORAD_CAT_ID%20asc/sublimit/5",
 	version => 2,
     },
 ;
@@ -825,7 +825,7 @@ is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/EPOCH/2009-04-01--2009-04-02/orderby/NORAD_CAT_ID%20asc",
 	version => 2,
     },
 ;
@@ -840,7 +840,7 @@ is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/EPOCH/2009-04-01--2009-04-02/orderby/NORAD_CAT_ID%20asc",
 	version => 2,
     },
 ;
@@ -855,7 +855,7 @@ is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/EPOCH/2009-03-31--2009-04-01/orderby/NORAD_CAT_ID%20asc",
 	version => 2,
     },
 ;
@@ -870,7 +870,7 @@ is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
 	    orderby	=> 'NORAD_CAT_ID asc',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/EPOCH/2009-03-01--2009-04-01/orderby/NORAD_CAT_ID%20asc",
 	version => 2,
     },
 ;
@@ -884,11 +884,11 @@ is_resp qw{retrieve 25544}, {
 	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    format	=> 'tle',
-	    limit	=> 1,
 	    orderby	=> 'NORAD_CAT_ID asc',
+	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/NORAD_CAT_ID%20asc/sublimit/1",
 	version => 2,
     },
 ;
@@ -904,7 +904,7 @@ is_resp qw{search_date 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -920,7 +920,7 @@ is_resp qw{search_date -status all 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -937,7 +937,7 @@ is_resp qw{search_date -status onorbit 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/null-val/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -954,7 +954,7 @@ is_resp qw{search_date -status decayed 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/%3C%3Enull-val/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -971,7 +971,7 @@ is_resp qw{search_date -exclude debris 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -988,7 +988,7 @@ is_resp qw{search_date -exclude rocket 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1007,7 +1007,7 @@ is_resp qw{search_date -exclude rocket 2009-04-01}, {
 		predicates	=> 'all',
 	    ],
 	    method => 'GET',
-	    url => $base_url,
+	    url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
 	},
     ;
@@ -1025,7 +1025,7 @@ is_resp qw{search_date -exclude debris -exclude rocket 2009-04-01}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/LAUNCH/2009-04-01/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1041,7 +1041,7 @@ is_resp qw{search_id 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1057,7 +1057,7 @@ is_resp qw{search_id 98}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1073,7 +1073,7 @@ is_resp qw{search_id 98067A}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/1998-067A/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1089,7 +1089,7 @@ is_resp qw{search_id -status all 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1106,7 +1106,7 @@ is_resp qw{search_id -status onorbit 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/null-val/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1123,7 +1123,7 @@ is_resp qw{search_id -status decayed 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/%3C%3Enull-val/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1140,7 +1140,7 @@ is_resp qw{search_id -exclude debris 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1157,7 +1157,7 @@ is_resp qw{search_id -exclude rocket 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1176,7 +1176,7 @@ is_resp qw{search_id -exclude rocket 98067}, {
 		predicates	=> 'all',
 	    ],
 	    method => 'GET',
-	    url => $base_url,
+	    url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
 	},
     ;
@@ -1194,7 +1194,7 @@ is_resp qw{search_id -exclude debris -exclude rocket 98067}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-067/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1210,7 +1210,7 @@ is_resp qw{search_name ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1226,7 +1226,7 @@ is_resp qw{search_name -status all ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1243,7 +1243,7 @@ is_resp qw{search_name -status onorbit ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/null-val/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1260,7 +1260,7 @@ is_resp qw{search_name -status decayed ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/DECAY/%3C%3Enull-val/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1277,7 +1277,7 @@ is_resp qw{search_name -exclude debris ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1294,7 +1294,7 @@ is_resp qw{search_name -exclude rocket ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1313,7 +1313,7 @@ is_resp qw{search_name -exclude rocket ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
 	},
     ;
@@ -1331,7 +1331,7 @@ is_resp qw{search_name -exclude debris -exclude rocket ISS}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/CURRENT/Y/SATNAME/~~ISS/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
@@ -1391,7 +1391,7 @@ is_resp qw{box_score}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/boxscore/format/json/predicates/all",
 	version => 2,
     },
 ;

@@ -1814,6 +1814,7 @@ sub _retrieve_v2 {
     my ( $self, @args ) = @_;
     delete $self->{_pragmata};
     # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
+    # https://beta.space-track.org/basicspacedata/query/class/tle/format/tle/NORAD_CAT_ID/25544,36411,26871,27422/orderby/EPOCH%20desc/sublimit/1
     @args = _parse_retrieve_args( @args );
     my $opt = _parse_retrieve_dates( shift @args );
 
@@ -1824,23 +1825,18 @@ sub _retrieve_v2 {
     @args
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
-    my $content = '';
-    local $_ = undef;
-    my $resp;
-    foreach my $oid ( @args ) {
-	$resp = $self->spacetrack_query_v2(
-	    basicspacedata	=> 'query',
-	    class		=> 'tle',
-	    NORAD_CAT_ID	=> $oid,
-	    format		=> 'tle',
-	    map { $_ => $opt->{$_} } sort keys %{ $opt },
-	);
-	$resp->is_success()
-	    or return $resp;
-	$_ = $resp->content;
-	next if m/ function [.] key-exists /smxi;
-	$content .= $_;
-    }
+    my $resp = $self->spacetrack_query_v2(
+	basicspacedata	=> 'query',
+	class		=> 'tle',
+	NORAD_CAT_ID	=> join( ',', @args ),
+	format		=> 'tle',
+	map { $_ => $opt->{$_} } sort keys %{ $opt },
+    );
+    $resp->is_success()
+	or return $resp;
+    my $content = $resp->content;
+    $content =~ m/ function [.] key-exists /smxi
+	and $content = '';
     $content
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
     $resp->content( $content );
@@ -1897,7 +1893,7 @@ sub _retrieve_v2 {
 		$opt->{end_epoch}[4] + 1,
 		$opt->{end_epoch}[3];
 	} else {
-	    $rest{limit} = $opt->{last5} ? 5 : 1;
+	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
 	}
 
 	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum'} ||
@@ -1989,7 +1985,7 @@ sub _retrieve_v2 {
     };
 
     sub _search_rest {
-	my ( $self, @args ) = @_;
+	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
 	@args = _parse_search_args( @args );
@@ -2002,14 +1998,11 @@ sub _retrieve_v2 {
 
 	my $rest_args = $self->_convert_search_options_to_rest( $opt );
 
-	my @search_list = ref $args[-1] eq 'ARRAY' ? @{ pop @args } : (
-	    pop @args );
-
 	my @found;
 
-	foreach my $search_for ( @search_list ) {
+	foreach my $search_for ( map { $xfrm->( $_ ) } @args ) {
 
-	    my $rslt = $self->__search_rest_raw( %{ $rest_args }, @args,
+	    my $rslt = $self->__search_rest_raw( %{ $rest_args }, $pred,
 		$search_for );
 
 	    $rslt->is_success()
@@ -2370,10 +2363,7 @@ sub _search_date_v1 {
 }
 
 sub _search_date_v2 {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
-    ( my $opt, @args ) = _parse_search_args( @args );
-    @_ = ( $self, $opt, LAUNCH => [
-	    map { _format_launch_date_rest( $_ ) } @args ] );
+    splice @_, 1, 0, LAUNCH => \&_format_launch_date_rest;
     goto &_search_rest;
 }
 
@@ -2459,10 +2449,7 @@ sub _search_decay_v1 {
 }
 
 sub _search_decay_v2 {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
-    ( my $opt, @args ) = _parse_search_args( @args );
-    @_ = ( $self, $opt, DECAY => [
-	    map { _format_launch_date_rest( $_ ) } @args ] );
+    splice @_, 1, 0, DECAY => \&_format_launch_date_rest;
     goto &_search_rest;
 }
 
@@ -2551,10 +2538,7 @@ sub _search_id_v1 {
 }
 
 sub _search_id_v2 {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
-    ( my $opt, @args ) = _parse_search_args( @args );
-    @_ = ( $self, $opt, INTLDES => [
-	    map { _format_international_id_rest( $_ ) } @args ] );
+    splice @_, 1, 0, INTLDES => \&_format_international_id_rest;
     goto &_search_rest;
 }
 
@@ -2635,10 +2619,7 @@ sub _search_name_v1 {
 }
 
 sub _search_name_v2 {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
-    ( my $opt, @args ) = _parse_search_args( @args );
-    @_ = ( $self, $opt, SATNAME => [
-	    map { "~~$_" } @args ] );
+    splice @_, 1, 0, SATNAME => sub { return ( map { "~~$_" } @_ ) };
     goto &_search_rest;
 }
 
@@ -2738,9 +2719,7 @@ sub _search_oid_v1 {
 }
 
 sub _search_oid_v2 {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
-    ( my $opt, @args ) = _parse_search_args( @args );
-    @_ = ( $self, $opt, NORAD_CAT_ID => \@args );
+    splice @_, 1, 0, NORAD_CAT_ID => sub { return @_ };
     goto &_search_rest;
 }
 
@@ -3331,7 +3310,13 @@ call:
 
 sub spacetrack_query_v2 {
     my ( $self, @args ) = @_;
-    my $url = $self->_make_space_track_base_url( 2 );
+
+    # Note that we need to add the comma to URI::Escape's RFC3986 list,
+    # since Space Track does not decode it.
+    my $url = $self->_make_space_track_base_url( 2 ) . '/' .
+	join '/', map {
+	    URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~-' )
+	} @args;
 
     if ( my $resp = $self->_dump_request(
 	    args	=> \@args,
@@ -3342,8 +3327,6 @@ sub spacetrack_query_v2 {
 	return $resp;
     }
 
-    my $cgi = join '/', map { URI::Escape::uri_escape( $_ ) } @args;
-
     $self->_check_cookie_generic( 2 )
 	or do {
 	my $resp = $self->_login_v2();
@@ -3351,7 +3334,7 @@ sub spacetrack_query_v2 {
 	    or return $resp;
     };
 ##  warn "Debug - $url/$cgi";
-    my $resp = $self->_get_agent()->get( "$url/$cgi" );
+    my $resp = $self->_get_agent()->get( $url );
     $self->_dump_headers( $resp );
     return $resp;
 }
