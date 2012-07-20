@@ -1990,9 +1990,6 @@ sub _retrieve_v2 {
 	delete $self->{_pragmata};
 
 	@args = _parse_search_args( @args );
-	delete $self->{_pragmata};
-
-	@args = _parse_retrieve_args( @args );
 	my $opt = shift @args;
 
 	my $want_tle = exists $opt->{tle} ? $opt->{tle} : 1;
