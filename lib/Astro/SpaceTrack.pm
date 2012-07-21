@@ -110,6 +110,7 @@ prioritized.
 =item The C<-sort> and C<-descending> retrieval options are ignored. The
 issue is that unless you do the equivalent of C<-sort=epoch -descending>
 the new interface gives you the oldest data on record, not the newest.
+This may change as the Space Track code evolves.
 
 =back
 
