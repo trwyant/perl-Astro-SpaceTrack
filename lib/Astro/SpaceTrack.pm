@@ -107,6 +107,10 @@ functionality of version 1 of the interface. I am informed that there is
 a request for this functionality, but that it has not yet been
 prioritized.
 
+=item The C<-sort> and C<-descending> retrieval options are ignored. The
+issue is that unless you do the equivalent of C<-sort=epoch -descending>
+the new interface gives you the oldest data on record, not the newest.
+
 =back
 
 =head1 DESCRIPTION
@@ -184,7 +188,7 @@ use IO::File;
 use JSON qw{};
 use LWP::UserAgent;	# Not in the base.
 use POSIX qw{strftime};
-use Scalar::Util 1.07 qw{ blessed };
+use Scalar::Util 1.07 qw{ blessed openhandle };
 use Text::ParseWords;
 use Time::Local;
 use URI::Escape qw{};
@@ -210,6 +214,10 @@ use constant DUMP_REQUEST => 0x02;	# Request content
 use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
 use constant DUMP_COOKIE => 0x08;	# Dump cookies.
 use constant DUMP_HEADERS => 0x10;	# Dump headers.
+
+use constant SPACE_TRACK_V2_OPTIONS => [
+    'json!'	=> '(Return TLEs in JSON format)',
+];
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
@@ -744,6 +752,8 @@ sub celestrak {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
+    $self->get( 'space_track_version' ) > 1
+	and unshift @args, SPACE_TRACK_V2_OPTIONS;
     @args = _parse_retrieve_args( @args );
     my $opt = shift @args;
 
@@ -751,27 +761,23 @@ sub celestrak {
     $self->_deprecation_notice( celestrak => $name );
 
     $self->{direct}
-	and return $self->_celestrak_direct ($opt, $name);
+	and return $self->_celestrak_direct( $opt, $name );
     my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/SpaceTrack/query/$name.txt");
-    if (my $check = $self->_celestrak_response_check($resp, $name)) {
+    if ( my $check = $self->_celestrak_response_check( $resp, $name ) ) {
 	return $check;
     }
     $self->_convert_content ($resp);
     $self->_dump_headers( $resp );
-    $resp = $self->_handle_observing_list ($opt, $resp->content);
-    return ($resp->is_success || !$self->{fallback}) ? $resp :
-	$self->_celestrak_direct ($opt, $name);
+    $resp = $self->_handle_observing_list( $opt, $resp->content() );
+    return ( $resp->is_success || !$self->{fallback} ) ? $resp :
+	$self->_celestrak_direct( $opt, $name );
 }
 
 sub _celestrak_direct {
-    my ($self, @args) = @_;
+    my ( $self, $opt, $name ) = @_;
     delete $self->{_pragmata};
 
-    @args = _parse_retrieve_args( @args );
-##  my $opt = shift @args;
-    shift @args;	# $opt not used
-    my $name = shift @args;
     my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/NORAD/elements/$name.txt");
     if (my $check = $self->_celestrak_response_check($resp, $name, 'direct')) {
@@ -981,20 +987,24 @@ You can specify the L</retrieve> options on this method as well.
 
 sub file {
     my ($self, @args) = @_;
-    @args = _parse_retrieve_args( @args );
-    my $opt = shift @args;
+
+    $self->get( 'space_track_version' ) > 1
+	and unshift @args, SPACE_TRACK_V2_OPTIONS;
+    my ( $opt, $file ) = _parse_retrieve_args( @args );
 
     delete $self->{_pragmata};
-    my $name = shift @args;
-    ref $name and fileno ($name)
-	and return $self->_handle_observing_list (<$name>);
-    -e $name or return HTTP::Response->new (
-	HTTP_NOT_FOUND, "Can't find file $name");
-    my $fh = IO::File->new($name, '<') or
-	return HTTP::Response->new (
-	    HTTP_INTERNAL_SERVER_ERROR, "Can't open $name: $!");
+
+    if ( ! openhandle( $file ) ) {
+	-e $file or return HTTP::Response->new (
+	    HTTP_NOT_FOUND, "Can't find file $file");
+	my $fh = IO::File->new($file, '<') or
+	    return HTTP::Response->new (
+		HTTP_INTERNAL_SERVER_ERROR, "Can't open $file: $!");
+	$file = $fh;
+    }
+
     local $/ = undef;
-    return $self->_handle_observing_list ($opt, <$fh>)
+    return $self->_handle_observing_list( $opt, <$file> )
 }
 
 
@@ -1685,6 +1695,9 @@ The legal options are:
    specifies the data be returned in descending order.
  end_epoch date
    specifies the end epoch for the desired data.
+ json
+   specifies the TLE be returned in JSON format
+   (space_track_version == 2 only!)
  last5
    specifies the last 5 element sets be retrieved.
    Ignored if start_epoch or end_epoch specified.
@@ -1815,28 +1828,33 @@ sub _retrieve_v2 {
     delete $self->{_pragmata};
     # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
     # https://beta.space-track.org/basicspacedata/query/class/tle/format/tle/NORAD_CAT_ID/25544,36411,26871,27422/orderby/EPOCH%20desc/sublimit/1
-    @args = _parse_retrieve_args( @args );
+    @args = _parse_retrieve_args(
+	SPACE_TRACK_V2_OPTIONS,
+	@args );
     my $opt = _parse_retrieve_dates( shift @args );
 
-    $opt = $self->_convert_retrieve_options_to_rest( $opt );
+    my $rest = $self->_convert_retrieve_options_to_rest( $opt );
 
     # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
 
     @args
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
-    defined $opt->{format}
-	or $opt->{format} = 'tle';
+    defined $rest->{format}
+	or $rest->{format} = 'tle';
+    $rest->{orderby} = 'EPOCH desc';
 
     my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
 	class		=> 'tle',
 	NORAD_CAT_ID	=> join( ',', @args ),
-	map { $_ => $opt->{$_} } sort keys %{ $opt },
+	map { $_ => $rest->{$_} } sort keys %{ $rest },
     );
     $resp->is_success()
 	or return $resp;
     my $content = $resp->content;
     $content =~ m/ function [.] key-exists /smxi
+	and $content = '';
+    $content eq '[]'
 	and $content = '';
     $content
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
@@ -1900,6 +1918,9 @@ sub _retrieve_v2 {
 	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum'} ||
 	    'NORAD_CAT_ID' )
 	.  ( $opt->{descending} ? ' desc' : ' asc' );
+
+	$opt->{json}
+	    and $rest{format} = 'json';
 
 	foreach my $name ( qw{ class format } ) {
 	    defined $opt->{$name}
@@ -1989,7 +2010,7 @@ sub _retrieve_v2 {
 	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
-	@args = _parse_search_args( @args );
+	@args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
 	my $opt = shift @args;
 
 	my $want_tle = exists $opt->{tle} ? $opt->{tle} : 1;
@@ -2032,18 +2053,28 @@ sub _retrieve_v2 {
 	    my $content;
 	    foreach my $body ( @{ $bodies } ) {
 		my $info = $search_info{$body->{NORAD_CAT_ID}};
-		my @line_0;
-		$with_name
-		    and push @line_0, $info->{SATNAME};
-		$opt->{rcs}
-		    and push @line_0, "--rcs $info->{RCSVALUE}";
-		@line_0
-		    and $content .= join( ' ', @line_0 ) . "\n";
-		$content .= <<"EOD";
+		if ( $opt->{json} ) {
+		    $with_name
+			and $body->{SATNAME} = $info->{SATNAME};
+		    $opt->{rcs}
+			and $body->{RCSVALUE} = $info->{RCSVALUE};
+		} else {
+		    my @line_0;
+		    $with_name
+			and push @line_0, $info->{SATNAME};
+		    $opt->{rcs}
+			and push @line_0, "--rcs $info->{RCSVALUE}";
+		    @line_0
+			and $content .= join( ' ', @line_0 ) . "\n";
+		    $content .= <<"EOD";
 $body->{TLE_LINE1}
 $body->{TLE_LINE2}
 EOD
+		}
 	    }
+
+	    $opt->{json}
+		and $content = JSON::encode_json( $bodies );
 
 	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
@@ -2055,14 +2086,18 @@ EOD
 	} else {
 
 	    my $content;
-	    foreach my $datum (
-		\%headings,
-		@found
-	    ) {
-		$content .= join( "\t",
-		    map { defined $datum->{$_} ? $datum->{$_} : '' }
-		    @heading_order
-		) . "\n";
+	    if ( $opt->{json} ) {
+		$content = JSON::encode_json( \@found );
+	    } else {
+		foreach my $datum (
+		    \%headings,
+		    @found
+		) {
+		    $content .= join( "\t",
+			map { defined $datum->{$_} ? $datum->{$_} : '' }
+			@heading_order
+		    ) . "\n";
+		}
 	    }
 	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
@@ -3742,11 +3777,11 @@ sub __get_loader {
 #	catalog number and name.
 
 sub _handle_observing_list {
-    my ($self, @args) = @_;
+    my ( $self, $opt, @args ) = @_;
     my (@catnum, @data);
 
-    @args = _parse_retrieve_args( @args );
-    my $opt = shift @args;
+    # Do not _parse_retrieve_args() here; we expect our caller to handle
+    # this.
 
     foreach (map {split qr{ \n }smx, $_} @args) {
 	s/ \s+ \z //smx;
@@ -4055,7 +4090,9 @@ sub _parse_retrieve_args {
 
     $opt->{sort} ||= 'catnum';
 
-    $opt->{sort} eq 'catnum' or $opt->{sort} eq 'epoch' or die <<"EOD";
+    $opt->{sort} eq 'catnum'
+	or $opt->{sort} eq 'epoch'
+	or die <<"EOD";
 Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
         (the default) or 'epoch'.
 EOD
