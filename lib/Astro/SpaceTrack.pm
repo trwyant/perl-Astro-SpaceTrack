@@ -467,7 +467,16 @@ This method returns a list of legal attribute names.
 =cut
 
 sub attribute_names {
-    return wantarray ? sort keys %mutator : [sort keys %mutator]
+    my ( $self ) = @_;
+    ref $self
+	or return wantarray ? sort keys %mutator : [sort keys %mutator];
+    my $space_track_version = $self->getv( 'space_track_version' );
+    my @names = grep {
+	$mutator{$_} == \&_mutate_spacetrack_interface ?
+	exists $self->{_space_track_interface}[$space_track_version]{$_}
+	: 1
+    } sort keys %mutator;
+    return wantarray ? @names : \@names;
 }
 
 
