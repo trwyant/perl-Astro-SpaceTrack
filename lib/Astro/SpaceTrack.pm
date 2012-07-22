@@ -1721,9 +1721,11 @@ If you specify either start_epoch or end_epoch, you get data with
 epochs at least equal to the start epoch, but less than the end
 epoch (i.e. the interval is closed at the beginning but open at
 the end). If you specify only one of these, you get a one-day
-interval. Dates are specified either numerically (as a Perl date)
-or as numeric year-month-day, punctuated by any non-numeric string.
-It is an error to specify an end_epoch before the start_epoch.
+interval. Dates are specified either numerically (as a Perl date) or as
+numeric year-month-day (and optional hour, hour:minute, or
+hour:minute:second), punctuated by any non-numeric string. The
+hour:minute:second is ignored unless C<space_track_version> is C<2>.  It
+is an error to specify an end_epoch before the start_epoch.
 
 If you are passing the options as a hash reference, you must specify
 a value for the boolean options 'descending' and 'last5'. This value is
@@ -1764,12 +1766,12 @@ sub _retrieve_v1 {
 
     my @params = $opt->{start_epoch} ?
 	(timeframe => 'timespan',
-	    start_year => $opt->{start_epoch}[5] + 1900,
-	    start_month => $opt->{start_epoch}[4] + 1,
-	    start_day => $opt->{start_epoch}[3],
-	    end_year => $opt->{end_epoch}[5] + 1900,
-	    end_month => $opt->{end_epoch}[4] + 1,
-	    end_day => $opt->{end_epoch}[3],
+	    start_year => $opt->{_start_epoch}[0],
+	    start_month => $opt->{_start_epoch}[1],
+	    start_day => $opt->{_start_epoch}[2],
+	    end_year => $opt->{_end_epoch}[0],
+	    end_month => $opt->{_end_epoch}[1],
+	    end_day => $opt->{_end_epoch}[2],
 	) :
 	$opt->{last5} ? (timeframe => 'last5') : (timeframe => 'latest');
     push @params, common_name => $self->{with_name} ? 'yes' : '';
@@ -1889,38 +1891,11 @@ sub _retrieve_v2 {
 	my ( $self, $opt ) = @_;
 	my %rest;
 
-
-=begin comment
-
-    my $opt = _parse_retrieve_dates( shift @args );
-
-    my @params = $opt->{start_epoch} ?
-	(timeframe => 'timespan',
-	    start_year => $opt->{start_epoch}[5] + 1900,
-	    start_month => $opt->{start_epoch}[4] + 1,
-	    start_day => $opt->{start_epoch}[3],
-	    end_year => $opt->{end_epoch}[5] + 1900,
-	    end_month => $opt->{end_epoch}[4] + 1,
-	    end_day => $opt->{end_epoch}[3],
-	) :
-	$opt->{last5} ? (timeframe => 'last5') : (timeframe => 'latest');
-
-    push @params, common_name => $self->{with_name} ? 'yes' : '';
-    push @params, sort => $opt->{sort};
-    push @params, descending => $opt->{descending} ? 'yes' : '';
-
-=end comment
-
-=cut
-
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
-	    $rest{EPOCH} = sprintf '%04d-%02d-%02d--%04d-%02d-%02d',
-		$opt->{start_epoch}[5] + 1900,
-		$opt->{start_epoch}[4] + 1,
-		$opt->{start_epoch}[3],
-		$opt->{end_epoch}[5] + 1900,
-		$opt->{end_epoch}[4] + 1,
-		$opt->{end_epoch}[3];
+	    $rest{EPOCH} = sprintf
+		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
+		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
+		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
 	} else {
 	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
 	}
@@ -3083,7 +3058,7 @@ sub spaceflight {
 	    'effective!' => 'include effective date',
 	],
 	@args );
-    my $opt = _parse_retrieve_dates (shift @args, {perldate => 1});
+    my $opt = _parse_retrieve_dates( shift @args );
 
     $opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
 
@@ -4125,34 +4100,59 @@ EOD
 #	The return is the same hash reference that was passed in.
 
 sub _parse_retrieve_dates {
-    my $opt = shift;
-    my $ctl = shift || {};
+    my ( $opt, $ctl ) = @_;
+    $ctl ||= {};
 
     my $found;
-    foreach my $key (qw{end_epoch start_epoch}) {
+    foreach my $key ( qw{ end_epoch start_epoch } ) {
+
 	next unless $opt->{$key};
-	$opt->{$key} !~ m/ \D /smx or
-	    $opt->{$key} =~ m/ \A (\d+) \D+ (\d+) \D+ (\d+) \z /smx
-		and $opt->{$key} = eval {timegm (0, 0, 0, +$3, $2-1, +$1)}
-		or croak <<"EOD";
-Error - Illegal date '$opt->{$key}'. Valid dates are a number
-	(interpreted as a Perl date) or numeric year-month-day.
-EOD
+
+	if ( $opt->{$key} =~ m/ \D /smx ) {
+	    my $str = $opt->{$key};
+	    $str =~ m< \A
+		( \d+ ) \D+ ( \d+ ) \D+ ( \d+ )
+		(?: \D+ ( \d+ ) (?: \D+ ( \d+ ) (?: \D+ ( \d+ ) )? )? )?
+	    \z >smx
+		or croak "Error - Illegal date '$str'";
+	    my @time = ( $6, $5, $4, $3, $2, $1 );
+	    foreach ( @time ) {
+		defined $_
+		    or $_ = 0;
+	    }
+	    if ( $time[5] > 1900 ) {
+		$time[5] -= 1900;
+	    } elsif ( $time[5] < 57 ) {
+		$time[5] += 100;
+	    }
+	    $time[4] -= 1;
+	    eval {
+		$opt->{$key} = timegm( @time );
+		1;
+	    } or croak "Error - Illegal date '$str'";
+	}
+
 	$found++;
     }
 
-    if ($found) {
-	if ($found == 1) {
+    if ( $found ) {
+
+	if ( $found == 1 ) {
 	    $opt->{start_epoch} ||= $opt->{end_epoch} - 86400;
 	    $opt->{end_epoch} ||= $opt->{start_epoch} + 86400;
 	}
+
 	$opt->{start_epoch} <= $opt->{end_epoch} or croak <<'EOD';
 Error - End epoch must not be before start epoch.
 EOD
-	unless ($ctl->{perldate}) {
-	    foreach my $key (qw{start_epoch end_epoch}) {
-		$opt->{$key} = [gmtime ($opt->{$key})];
-	    }
+
+	foreach my $key ( qw{ start_epoch end_epoch } ) {
+
+	    my @time = reverse( ( gmtime $opt->{$key} )[ 0 .. 5 ] );
+	    $time[0] += 1900;
+	    $time[1] += 1;
+	    $opt->{"_$key"} = \@time;
+
 	}
     }
 
@@ -4184,6 +4184,7 @@ sub _parse_search_args {
     }
 
     my $opt = $args[0];
+    _parse_retrieve_dates( $opt );
 
     $opt->{status} ||= 'all';
     $legal_search_status{$opt->{status}} or croak <<"EOD";
