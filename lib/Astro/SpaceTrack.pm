@@ -2066,8 +2066,10 @@ sub _retrieve_v2 {
 		if ( $opt->{json} ) {
 		    $with_name
 			and $body->{SATNAME} = $info->{SATNAME};
-		    $opt->{rcs}
-			and $body->{RCSVALUE} = $info->{RCSVALUE};
+		    if ( $opt->{rcs} ) {
+			$body->{RCSSOURCE} = $info->{RCSSOURCE};
+			$body->{RCSVALUE} = $info->{RCSVALUE};
+		    }
 		} else {
 		    my @line_0;
 		    $with_name
