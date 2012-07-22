@@ -1,8 +1,26 @@
+0.060_07	2012-07-21	T. R. Wyant
+  Further deprecate celestrak( 'sts' ) and spaceflight( 'shuttle' ) so
+    that they give a warning every time they are used. I jumped the gun
+    a bit, but this is a development release.
+  If both -json and -rcs are in effect, return RCSSOURCE as well as
+    RCSVALUE.
+  Have the attribute_names() method take account of the fact that the
+    'cookie_expires' attribute does not exist if the space_track_version
+    attribute is set to 2.
+  Ignore the -sort and -descending retrieve() options when using the
+    Space Track REST interface. As things now stand, I have to force the
+    equivalent of -sort=epoch -descending when retrieve()-ing multiple
+    OIDs to get sane results.
+  Add a -json retrieve() option, valid only if the REST interface is in
+    use. This also works with celestrak() and file() if the
+    space_track_version attribute is 2, but with celestrak() the usual
+    restrictions on retrieve() options apply.
+  Retrieve TLEs for multiple OIDs in a single call to the Space Track
+    REST interface.
+
 0.060_06	2012-07-12	T. R. Wyant
   Require HTTP::Status 6.03, because I can't forebear to use the
     "teapot" status for testing purposes.
-
-------------------------------------------------------------------------
 
 0.060_05	2012-07-11	T. R. Wyant
   Expose spacetrack_query_v2(), which is our lowest-level interface to
