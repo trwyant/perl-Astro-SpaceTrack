@@ -48,9 +48,9 @@ C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
 argument, because of the end of the Space Shuttle program on July 21
 2011.
 
-With the first release on or after July 22 2012, all uses of
-C<celestrak()> C<'sts'> or C<spaceflight()> C<'SHUTTLE'> will generate a
-deprecation warning.
+With the first release on or after January 22 2013, all uses of
+C<celestrak()> C<'sts'> or C<spaceflight()> C<'SHUTTLE'> will generate
+an exception.
 
 Six further months later, the deprecated functionality will be removed.
 This means (probably) you will get a C<404> error when you try to use
@@ -3510,10 +3510,10 @@ sub _check_cookie_generic {
 
     my %deprecate = (
 	celestrak => {
-	    sts	=> 1,
+	    sts	=> 2,
 	},
 	spaceflight => {
-	    shuttle	=> 1,
+	    shuttle	=> 2,
 	},
     );
 
