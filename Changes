@@ -1,3 +1,11 @@
+0.060_08	2012-07-23	T. R. Wyant
+  Expose the name of the Space Track session cookie as an attribute.
+    This is one of those attributes which have distinct values for each
+    value of space_track_version.
+  Have the parser for the retrieve() -start_epoch and -end_epoch options
+    accept time of day as well as just date. Pass time of day to the
+    server when using the Space Track REST interface.
+
 0.060_07	2012-07-21	T. R. Wyant
   Further deprecate celestrak( 'sts' ) and spaceflight( 'shuttle' ) so
     that they give a warning every time they are used. I jumped the gun
