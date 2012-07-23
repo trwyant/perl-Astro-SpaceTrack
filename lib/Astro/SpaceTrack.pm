@@ -388,7 +388,7 @@ sub new {
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
 	verbose => undef,	# Verbose error messages for catalogs.
-	verify_hostname => 1,	# Verify host names by default.
+	verify_hostname => 0,	# Don't verify host names by default.
 	webcmd => undef,	# Command to get web help.
 	with_name => undef,	# True to retrieve three-line element sets.
     };
@@ -4579,7 +4579,12 @@ If you set this false, you can not verify that hosts using C<https:> are
 who they say they are, but it also lets you work around invalid
 certificates. Currently only the Space Track web site uses C<https:>.
 
-The default is true (i.e. 1).
+B<Note> that the default has changed. The default in version 0.060_08
+and earlier was true, to mimic earlier behaviour. But on second thought,
+the software should work by default, which it does not (at least as of
+mid-July 2012). Hence the change.
+
+The default is false (i.e. 0).
 
 =item webcmd (string)
 
