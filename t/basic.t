@@ -42,6 +42,7 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     addendum
     banner
     cookie_expires
+    cookie_name
     direct
     domain_space_track
     dump_headers

@@ -294,6 +294,7 @@ my %mutator = (	# Mutators for the various attributes.
     addendum => \&_mutate_attrib,		# Addendum to banner text.
     banner => \&_mutate_attrib,
     cookie_expires => \&_mutate_spacetrack_interface,
+    cookie_name => \&_mutate_spacetrack_interface,
     direct => \&_mutate_attrib,
     domain_space_track => \&_mutate_spacetrack_interface,
     dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
@@ -317,6 +318,7 @@ my %mutator = (	# Mutators for the various attributes.
 
 my %accessor = (
     cookie_expires	=> \&_access_spacetrack_interface,
+    cookie_name		=> \&_access_spacetrack_interface,
     domain_space_track	=> \&_access_spacetrack_interface,
     session_cookie	=> \&_access_spacetrack_interface,
 );
@@ -4461,6 +4463,15 @@ matches the cookie.
 The object maintains a separate copy of this attribute for each possible
 value of C<space_track_version>. Not all versions of the interface have
 expiring cookies.
+
+=item cookie_name (string)
+
+This attribute specifies the name of the session cookie. You should not
+need to change this in normal circumstances, but if Space Track changes
+the name of the session cookie you can use this to get you going again.
+
+The object maintains a separate copy of this attribute for each possible
+value of C<space_track_version>.
 
 =item direct (boolean)
 
