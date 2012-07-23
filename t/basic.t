@@ -51,6 +51,7 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     iridium_status_format
     max_range
     password
+    pretty
     scheme_space_track
     session_cookie
     space_track_version

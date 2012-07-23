@@ -303,6 +303,7 @@ my %mutator = (	# Mutators for the various attributes.
     iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
     password => \&_mutate_authen,
+    pretty => \&_mutate_attrib,
     scheme_space_track => \&_mutate_attrib,
     session_cookie => \&_mutate_spacetrack_interface,
     space_track_version => \&_mutate_space_track_version,
@@ -361,6 +362,7 @@ sub new {
 	iridium_status_format => 'mccants',	# For historical reasons.
 	max_range => 500,	# Sanity limit on range size.
 	password => undef,	# Login password.
+	pretty => 0,		# Pretty-format content
 	scheme_space_track => 'https',
 	_space_track_interface	=> [
 	    undef,
@@ -1872,6 +1874,7 @@ sub _retrieve_v2 {
 	and $content = '';
     $content
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
+
     $resp->content( $content );
     $self->_convert_content( $resp );
     $self->_add_pragmata( $resp,
@@ -2008,8 +2011,12 @@ sub _retrieve_v2 {
 
 	foreach my $search_for ( map { $xfrm->( $_ ) } @args ) {
 
-	    my $rslt = $self->__search_rest_raw( %{ $rest_args }, $pred,
-		$search_for );
+	    my $rslt;
+	    {
+		local $self->{pretty} = 0;
+		$rslt = $self->__search_rest_raw( %{ $rest_args },
+		    $pred, $search_for );
+	    }
 
 	    $rslt->is_success()
 		or return $rslt;
@@ -2031,8 +2038,11 @@ sub _retrieve_v2 {
 	    $opt->{format} = 'json';
 	    $rest_args = $self->_convert_retrieve_options_to_rest( $opt );
 
-	    $rslt = $self->_retrieve_v2( $opt,
-		map { $_->{NORAD_CAT_ID} } @found );
+	    {
+		local $self->{pretty} = 0;
+		$rslt = $self->_retrieve_v2( $opt,
+		    map { $_->{NORAD_CAT_ID} } @found );
+	    }
 	    $rslt->is_success()
 		or return $rslt;
 	    my %search_info = map { $_->{NORAD_CAT_ID} => $_ } @found;
@@ -2063,7 +2073,11 @@ EOD
 	    }
 
 	    $opt->{json}
-		and $content = JSON::encode_json( $bodies );
+		and $content = JSON::to_json( $bodies, {
+		    utf8	=> 1,
+		    pretty	=> $self->{pretty},
+		    canonical	=> $self->{pretty},
+		} );
 
 	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
@@ -2076,7 +2090,11 @@ EOD
 
 	    my $content;
 	    if ( $opt->{json} ) {
-		$content = JSON::encode_json( \@found );
+		$content = JSON::to_json( \@found, {
+			utf8		=> 1,
+			pretty		=> $self->{pretty},
+			canonical	=> $self->{pretty},
+		    } );
 	    } else {
 		foreach my $datum (
 		    \%headings,
@@ -2110,27 +2128,6 @@ EOD
 
 	return ( $rslt, \@table );
 
-=begin comment
-
-	# Search arguments
-
-	'rcs!' => '(append --rcs radar_cross_section to name)',
-	'tle!' => '(return TLE data from search (defaults true))',
-	'status=s' => q{('onorbit', 'decayed', or 'all')},
-	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
-
-	# Retrieve arguments
-
-	descending => '(direction of sort)',
-	'end_epoch=s' => 'date',
-	last5 => '(ignored if -start_epoch or -end_epoch specified)',
-	'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
-	'start_epoch=s' => 'date',
-
-=end comment
-
-=cut
-
 	# Note - if we're doing the tab output, the names and order are:
 	# Catalog Number: NORAD_CAT_ID
 	# Common Name: SATNAME
@@ -2144,66 +2141,6 @@ EOD
 	# Apogee: APOGEE
 	# Perigee: PERIGEE
 	# RCS: RCSVALUE
-
-=begin comment
-
-	exists $opt->{tle} or $opt->{tle} = 1;
-
-	@args or return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_OBJ_NAME);
-
-	my %rest_args;
-
-
-	my %id;
-	my $resp;
-
-	$resp = $self->_search_generic_tabulate( \%id, $poster, $opt, @args )
-	    and return $resp;
-
-	if ( $opt->{tle} ) {
-	    my $with_name = $self->getv( 'with_name' );
-	    $resp = $self->retrieve ($opt, sort {$a <=> $b} keys %id);
-	    if ( $opt->{rcs} ) {
-		my $content = $resp->content();
-		my $replace = $with_name ? sub {
-		    my ( $newline, $oid ) = @_;
-		    return ( $id{$oid} && $id{$oid}[-1] ) ?
-			sprintf( " --rcs %s\n1%6d", $id{$oid}[-1], $oid ) :
-			sprintf( "\n1%6d", $oid );
-		} : sub {
-		    my ( $newline, $oid ) = @_;
-		    return ( $id{$oid} && $id{$oid}[-1] ) ?
-			sprintf( "%s--rcs %s\n1%6d", $newline,
-			    $id{$oid}[-1], $oid ) :
-			sprintf( "%s1%6d", $newline, $oid );
-		};
-		$content =~ s{ ( \A | \n ) 1 \s* ( \d+ ) }
-		    { $replace->( $1 || '', $2 ) }smxge;
-		$resp->content( $content );
-	    }
-	} else {
-	    my $content;
-	    foreach my $oid ( sort { $a <=> $b } keys %id ) {
-		$content .= join( "\t", @{ $id{$oid} } ) . "\n";
-	    }
-	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
-	    $self->_add_pragmata($resp,
-		'spacetrack-type' => 'search',
-		'spacetrack-source' => 'spacetrack',
-	    );
-	}
-	wantarray or return $resp;
-	my @table;
-	foreach my $oid ( sort { $a <=> $b } keys %id ) {
-	    push @table, [
-		map { ( defined $_ && $_ ne '' ) ? $_ : undef }
-		@{ $id{$oid} } ];
-	}
-	return ($resp, \@table);
-
-=end comment
-
-=cut
 
     }
 
@@ -3358,7 +3295,29 @@ sub spacetrack_query_v2 {
 ##  warn "Debug - $url/$cgi";
     my $resp = $self->_get_agent()->get( $url );
     $self->_dump_headers( $resp );
+    if ( $self->{pretty} &&
+	_find_rest_arg_value( \@args, format => 'json' ) eq 'json'
+    ) {
+	$resp->content(
+	    JSON::to_json(
+		JSON::from_json( $resp->content() ), {
+		    utf8		=> 1,
+		    pretty		=> 1,
+		    canonical	=> 1,
+		},
+	    )
+	);
+    }
     return $resp;
+}
+
+sub _find_rest_arg_value {
+    my ( $args, $name, $default ) = @_;
+    for ( my $inx = $#$args - 1; $inx >= 0; $inx -= 2 ) {
+	$args->[$inx] eq $name
+	    and return $args->[$inx + 1];
+    }
+    return $default;
 }
 
 
@@ -4533,6 +4492,16 @@ The default is 500.
 This attribute specifies the Space-Track password.
 
 The default is an empty string.
+
+=item pretty (boolean)
+
+This attribute specifies whether the content of the returned
+L<HTTP::Response|HTTP::Response> is to be pretty-formatted. Currently
+this only applies to Space Track data returned in C<JSON> format.
+Pretty-formatting the C<JSON> is extra overhead, so unless you intend to
+read the C<JSON> yourself this should probably be false.
+
+The default is C<0> (i.e. false).
 
 =item scheme_space_track (string)
 
