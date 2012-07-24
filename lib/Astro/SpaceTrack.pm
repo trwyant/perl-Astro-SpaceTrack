@@ -398,7 +398,7 @@ sub new {
 	$self->set (grep {defined $_} split '\s+', $ENV{SPACETRACK_OPT});
 
     $ENV{SPACETRACK_USER} and do {
-	my ($user, $pass) = split '/', $ENV{SPACETRACK_USER}, 2;
+	my ($user, $pass) = split qr{ [:/] }smx, $ENV{SPACETRACK_USER}, 2;
 	$self->set (username => $user, password => $pass);
     };
 
@@ -4628,9 +4628,11 @@ passed explicitly to the new () method take precedence over both.
 =head2 SPACETRACK_USER
 
 If environment variable SPACETRACK_USER is defined at the time an
-Astro::SpaceTrack object is instantiated, the username and password
-will be initialized from it. The value of the environment variable
-should be the username followed by a slash ("/") and the password.
+Astro::SpaceTrack object is instantiated, the username and password will
+be initialized from it. The value of the environment variable should be
+the username and password, separated by either a slash (C<'/'>) or a
+colon (C<':'>). That is, either C<'yehudi/menuhin'> or
+C<'yehudi:menuhin'> are accepted.
 
 An explicit username and/or password passed to the new () method
 overrides the environment variable, as does any subsequently-set
