@@ -839,14 +839,39 @@ sub not_defined ($$) {
 
 # Prompt the user. DO NOT call this if $ENV{AUTOMATED_TESTING} is set.
 
-sub prompt {
-    my @args = @_;
-    print STDERR @args;
-    # We're a test, and we're trying to be lightweight.
-    defined (my $input = <STDIN>)	## no critic (ProhibitExplicitStdin)
-	or return;
-    chomp $input;
-    return $input;
+{
+    my ( $set_read_mode, $readkey_loaded );
+
+    BEGIN {
+	eval {
+	    require Term::ReadKey;
+	    $set_read_mode = Term::ReadKey->can( 'ReadMode' );
+	    $readkey_loaded = 1;
+	    1;
+	} or $set_read_mode = sub {};
+    }
+
+    sub prompt {
+	my @args = @_;
+	my $opt = 'HASH' eq ref $args[0] ? shift @args : {};
+	$readkey_loaded
+	    or not $opt->{password}
+	    or push @args, '(ECHOED)';
+	print STDERR "@args: ";
+	# We're a test, and we're trying to be lightweight.
+	$opt->{password}
+	    and $set_read_mode->( 2 );
+	my $input = <STDIN>;	## no critic (ProhibitExplicitStdin)
+	if ( $opt->{password} ) {
+	    $set_read_mode->( 0 );
+	    $readkey_loaded
+		and print STDERR "\n";
+	}
+	defined $input
+	    and chomp $input;
+	return $input;
+    }
+
 }
 
 # Determine whether a given web site is to be skipped.
@@ -971,8 +996,8 @@ username will be skipped.
 
 EOD
 
-	my $user = prompt( 'Space-Track username: ' )
-	    and my $pass = prompt( 'Space-Track password: ' )
+	my $user = prompt( 'Space-Track username' )
+	    and my $pass = prompt( { password => 1 }, 'Space-Track password' )
 	    or return 'No Space-Track account provided.';
 	$spacetrack_auth = "$user/$pass";
 	return;
