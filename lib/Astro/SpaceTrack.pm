@@ -4233,6 +4233,7 @@ sub _search_generic {
     my $resp;
     $resp = $self->_search_generic_tabulate( \%id, $poster, $opt, @args )
 	and return $resp;
+    delete $id{0};	# Not interested in headings.
 
     exists $opt->{tle} or $opt->{tle} = 1;
     if ( $opt->{tle} ) {
@@ -4240,23 +4241,26 @@ sub _search_generic {
 	$resp = $self->_retrieve_v1 ($opt, sort {$a <=> $b} keys %id);
 	if ( $opt->{rcs} ) {
 	    my $content = $resp->content();
-	    my $replace = $with_name ? sub {
-		my ( $newline, $oid ) = @_;
-		return ( $id{$oid} && $id{$oid}[-1] ) ?
-		    sprintf( " --rcs %s\n1%6d", $id{$oid}[-1], $oid ) :
-		    sprintf( "\n1%6d", $oid );
-	    } : sub {
-		my ( $newline, $oid ) = @_;
-		return ( $id{$oid} && $id{$oid}[-1] ) ?
-		    sprintf( "%s--rcs %s\n1%6d", $newline,
-			$id{$oid}[-1], $oid ) :
-		    sprintf( "%s1%6d", $newline, $oid );
+
+	    substr $content, 0, 0, "\n";
+	    my $pattern = $with_name ? ' --rcs %s' : "\n--rcs %s";
+	    my $replace = sub {
+		my ( $oid ) = $1;
+		$oid = sprintf '%05d', $oid;
+		$id{$oid}[0]
+		    and $id{$oid}[-1]
+		    or return '';
+		return sprintf $pattern, $id{$oid}[-1];
 	    };
-	    $content =~ s{ ( \A | \n ) 1 \s* ( \d+ ) }
-		{ $replace->( $1 || '', $2 ) }smxge;
+	    $content =~ s{ (?= (?: \A | \n ) 1 \s* ( \d+ ) ) }
+		{ $replace->( $1 ) }smxge;
+	    $content =~ s/ \A \n //smx;
+
 	    $resp->content( $content );
 	}
+
     } else {
+
 	my $content;
 	foreach my $oid ( sort { $a <=> $b } keys %id ) {
 	    $content .= join( "\t", @{ $id{$oid} } ) . "\n";
@@ -4317,6 +4321,7 @@ sub _search_generic_tabulate {
 	}
 	foreach my $row (@data) {
 	    my $oid = $row->[0] or next;
+	    $oid = sprintf '%05d', $oid;
 	    $id->{$oid} and next;
 	    $id->{$oid} = $row;
 	}
