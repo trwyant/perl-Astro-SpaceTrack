@@ -1,3 +1,12 @@
+0.060_09	2012-07-24	T. R. Wyant
+  Fix problem associating RCS data with TLEs when using version 1 of the
+    Space Track interface and the OID in the search results is less than
+    five digits.
+  Change default value of verify_hostname attribute to false. And about
+    time.
+  Add attribute 'pretty' to reqest that JSON text (and potentially
+    others) be pretty-formatted.
+
 0.060_08	2012-07-23	T. R. Wyant
   Expose the name of the Space Track session cookie as an attribute.
     This is one of those attributes which have distinct values for each
