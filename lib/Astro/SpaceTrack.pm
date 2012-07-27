@@ -1901,6 +1901,7 @@ sub _retrieve_v2 {
 		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
 		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
 		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
+##	    $rest{EPOCH} =~ s/ \s+ 00:00:00 (?= \z | - ) //smxg;
 	} else {
 	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
 	}
@@ -3274,7 +3275,7 @@ sub spacetrack_query_v2 {
     # since Space Track does not decode it.
     my $url = $self->_make_space_track_base_url( 2 ) . '/' .
 	join '/', map {
-	    URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~-' )
+	    URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~:-' )
 	} @args;
 
     if ( my $resp = $self->_dump_request(

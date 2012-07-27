@@ -825,7 +825,7 @@ is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000%3A00%3A00--2009-04-02%2000%3A00%3A00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     },
 ;
@@ -840,7 +840,7 @@ is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000%3A00%3A00--2009-04-02%2000%3A00%3A00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     },
 ;
@@ -855,7 +855,7 @@ is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-31%2000%3A00%3A00--2009-04-01%2000%3A00%3A00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-31%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     },
 ;
@@ -870,7 +870,7 @@ is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-01%2000%3A00%3A00--2009-04-01%2000%3A00%3A00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-01%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     },
 ;
