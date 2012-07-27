@@ -1931,11 +1931,24 @@ sub _retrieve_v2 {
 	all	=> '',
     );
 
+=begin comment
+
     # TODO correctly implement exclusion. Not sure this works.
+    #
+    # The intent of Space Track at the moment (July 27 2012) is to
+    # provide an OBJECT_TYPE column which is synthesized from the
+    # SATNAME in the expected manner (to 'PAYLOAD', 'ROCKET BODY',
+    # 'DEBRIS', or 'UNKNOWN'), but this does not yet seem to actually
+    # duplicate the results from version 1 of the interface.
+
     my %exclude_query = (
 	rocket	=> '<>r/b,<>akm,<>pkm',
 	debris	=> '<>deb,<>debris,<>coolant,<>shroud,<>westford needles',
     );
+
+=end comment
+
+=cut
 
     sub _convert_search_options_to_rest {
 	my ( $self, $opt ) = @_;
