@@ -865,7 +865,7 @@ sub not_defined ($$) {
 	if ( $opt->{password} ) {
 	    $set_read_mode->( 0 );
 	    $readkey_loaded
-		and print STDERR "\n";
+		and print STDERR "\n\n";
 	}
 	defined $input
 	    and chomp $input;
