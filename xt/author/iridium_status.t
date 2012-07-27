@@ -21,35 +21,9 @@ my %known_inconsistent = (
     24906 => { kelso => 1 },	# Kelso: spare; others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
+    25262 => { sladen => 1 },	# Sladen: operational; others: spare.
+    25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 );
-#~14-Jan-2007 - McCants has 27450 (Iridium 97) in service,
-#		24967 (Iridium 36) spare. No change Kelso.
-# 21-Feb-2007 - Kelso has 27450 (Iridium 97) in service,
-#		24967 (Iridium 36) tumbling. No change McCants.
-# 06-Mar-2007 - McCants assumes Iridium 36 has failed.
-# 07-Aug-2008 - McCants has 24948 (Iridium 28) with possible control
-#		issues about July 19 2008, with 27375 (Iridium 95) moved
-#		about 14 seconds behind it. No change Kelso.
-# 23-Dec-2008 - McCants has 24948 (Iridium 28) uncontrolled, with 27375
-# 		(Iridium 98) replacing it.
-# 10-Feb-2009 - Iridium 33 (24946) hit Cosmos 2251 (22675).
-#               11-Feb-2009 - Sladen noted probably nonfunctional, though
-#                   he still carries it in his operational grid.
-#               12-Feb-2009 - McCants noted tumbling.
-#               18-Feb-2009 - Kelso noted tumbling.
-#               09-Mar-2009 - Sladen & Kelso note Iridium 91 in service.
-#               22-May-2009 - Mike McCants notes Iridium 91 in service.
-# 03-Nov-2010 - Apparant failure of Iridium 23 (24906); replaced by Iridium 11
-#               (25578).
-#               13-Nov-2010 - McCants & Sladen noted.
-#               15-Dec-2010 - Kelso noted, but listed 24906 as spare.
-# 29-Aug-2011 - McCants notes Iridium 23 (24906) as partial failure(?),
-#               but stable. Sladen simply notes it as not failed.
-#               McCants and Sladen note Iridium 26 (24903) as apparently
-#               failed. The date may be off by one, as I was unable to
-#               run the tests on the 28th due to a power outage caused
-#               by hurricane Irene.
-#               30-Aug-2011 Kelso marks Iriidum 26 tumbling
 
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
@@ -339,8 +313,8 @@ EOD
  25171   Iridium 54     [+]      Plane 5
  25172   Iridium 50     [+]      Plane 5
  25173   Iridium 53     [+]      Plane 5
- 25262   Iridium 51     [S]      Plane 4
- 25263   Iridium 61     [+]      Plane 4
+ 25262   Iridium 51     [+]      Plane 4
+ 25263   Iridium 61     [S]      Plane 4
  25272   Iridium 55     [+]      Plane 3
  25273   Iridium 57     [+]      Plane 3
  25274   Iridium 58     [+]      Plane 3
