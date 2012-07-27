@@ -1,3 +1,14 @@
+0.060_10	2012-07-27	T. R. Wyant
+  Add ':' to the list of 'safe' characters when URI-escaping arguments
+    to the Space Track REST interface. Percent-encoded colons seemed to
+    stop working some time between 13:15 and 19:15 GMT on July 27 2012.
+    Un-encoded colons go through fine.
+  Accept ':' as well as '/' as punctuation between username and password
+    in environment variable SPACETRACK_USER.
+  Have t/query.t try to load Term::ReadKey. If successful, it uses it to
+    turn off password echoing. If not successful, it adds '(ECHOED)' to
+    the prompt.
+
 0.060_09	2012-07-24	T. R. Wyant
   Fix problem associating RCS data with TLEs when using version 1 of the
     Space Track interface and the OID in the search results is less than
