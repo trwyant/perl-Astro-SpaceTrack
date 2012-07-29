@@ -34,4 +34,5 @@ xt/author/pod.t
 xt/author/pod_coverage.t
 xt/author/pod_spelling.t
 xt/author/spacetrack_datasets.t
+xt/author/spacetrack_modeldef_v2.t
 META.json
