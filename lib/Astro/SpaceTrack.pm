@@ -2774,9 +2774,9 @@ sub set {	## no critic (ProhibitAmbiguousNames)
 
 This method implements a simple shell. Any public method name except
 'new' or 'shell' is a command, and its arguments if any are parameters.
-We use Text::ParseWords to parse the line, and blank lines or lines
-beginning with a hash mark ('#') are ignored. Input is via
-Term::ReadLine if that is available. If not, we do the best we can.
+We use L<Text::ParseWords|Text::ParseWords> to parse the line, and blank
+lines or lines beginning with a hash mark ('#') are ignored. Input is
+via Term::ReadLine if that is available. If not, we do the best we can.
 
 We also recognize 'bye' and 'exit' as commands, which terminate the
 method. In addition, 'show' is recognized as a synonym for 'get', and
@@ -2795,6 +2795,11 @@ on the line. For example,
 
 sends the "Special Interest Satellites" to file special.txt. Line
 terminations in the file should be appropriate to your OS.
+
+Redirections will not be recognized as such if quoted or escaped. That
+is, both C<< >foo >> and C<< >'foo' >> (without the double quotes) are
+redirections to file F<foo>, but both "C<< '>foo' >>" and C<< \>foo >>
+are arguments whose value is C<< >foo >>.
 
 This method can also be called as a subroutine - i.e. as
 
@@ -2853,11 +2858,30 @@ EOD
 	$buffer =~ s/ \s+ \z //smx;
 	next unless $buffer;
 	next if $buffer =~ m/ \A [#] /smx;
-	my @cmdarg = parse_line ('\s+', 0, $buffer);
+
+	# Break the buffer up into tokens, but leave quotes and escapes
+	# in place, so that (e.g.) '\>foo' is seen as an argument, not a
+	# redirection.
+
+	my @cmdarg = parse_line( '\s+', 1, $buffer );
+
+	# Pull off any redirections.
+
 	my $redir = '';
-	@cmdarg = map {m/ \A > /smx ? do {$redir = $_; ()} :
+	@cmdarg = map {
+	    m/ \A > /smx ? do {$redir = $_; ()} :
 	    $redir =~ m/ \A >+ \z /smx ? do {$redir .= $_; ()} :
-	    $_} @cmdarg;
+	    $_
+	} @cmdarg;
+
+	# Rerun everything through parse_line again, but with the $keep
+	# argument false. This should not create any more tokens, it
+	# should just un-quote and un-escape the data.
+
+	@cmdarg = map { parse_line( qr{ \s+ }, 0, $_ ) } @cmdarg;
+	$redir ne ''
+	    and ( $redir ) = parse_line ( qr{ \s+ }, 0, $redir );
+
 	$redir =~ s/ \A (>+) ~ /$1$ENV{HOME}/smx;
 	my $verb = lc shift @cmdarg;
 	last if $verb eq 'exit' || $verb eq 'bye';
