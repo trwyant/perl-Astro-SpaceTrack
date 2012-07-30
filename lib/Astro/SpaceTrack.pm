@@ -273,21 +273,54 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 ##	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
 	},
     },
-    spacetrack => {
-	md5 => {name => 'MD5 checksums', number => 0, special => 1},
-	full => {name => 'Full catalog', number => 1},
-	geosynchronous => {name => 'Geosynchronous satellites', number => 3},
-	navigation => {name => 'Navigation satellites', number => 5},
-	weather => {name => 'Weather satellites', number => 7},
-	iridium => {name => 'Iridium satellites', number => 9},
-	orbcomm => {name => 'OrbComm satellites', number => 11},
-	globalstar => {name => 'Globalstar satellites', number => 13},
-	intelsat => {name => 'Intelsat satellites', number => 15},
-	inmarsat => {name => 'Inmarsat satellites', number => 17},
-	amateur => {name => 'Amateur Radio satellites', number => 19},
-	visible => {name => 'Visible satellites', number => 21},
-	special => {name => 'Special satellites', number => 23},
-    },
+    spacetrack => [	# Numbered by space_track_version
+	undef,
+	{
+	    md5 => {name => 'MD5 checksums', number => 0, special => 1},
+	    full => {name => 'Full catalog', number => 1},
+	    geosynchronous => {
+		name => 'Geosynchronous satellites',
+		number => 3
+	    },
+	    navigation => {name => 'Navigation satellites', number => 5},
+	    weather => {name => 'Weather satellites', number => 7},
+	    iridium => {name => 'Iridium satellites', number => 9},
+	    orbcomm => {name => 'OrbComm satellites', number => 11},
+	    globalstar => {name => 'Globalstar satellites', number => 13},
+	    intelsat => {name => 'Intelsat satellites', number => 15},
+	    inmarsat => {name => 'Inmarsat satellites', number => 17},
+	    amateur => {name => 'Amateur Radio satellites', number => 19},
+	    visible => {name => 'Visible satellites', number => 21},
+	    special => {name => 'Special satellites', number => 23},
+	},
+	{
+#	    full => {
+#		name => 'Full catalog',
+#		number => 1,
+#		query => [],
+#	    },
+#	    geosynchronous => {
+#		name => 'Geosynchronous satellites',
+#		number => 3,
+#		# Note that the query equivalent to v1 is
+#		#   MEAN_MOTION 0.99--1.01
+#		#   ECCENTRICITY <0.01
+#		# but the query below is what the v2 interface actually
+#		# uses.
+#		query => [ qw{
+#		    PERIOD	1430--1450
+#		} ],
+#	    },
+#	    iridium => {
+#		name => 'Iridium satellites',
+#		number => 9,
+#		query => [ qw{
+#		    SATNAME	~~IRIDIUM
+#		    OBJECT_TYPE	PAYLOAD
+#		} ],
+#	    },
+	},
+    ],
 );
 
 my %mutator = (	# Mutators for the various attributes.
@@ -1635,11 +1668,14 @@ sub logout {
 =item $resp = $st->names (source)
 
 This method retrieves the names of the catalogs for the given source,
-either 'celestrak', 'spacetrack', or 'iridium_status', in the content of
-the given HTTP::Response object. In list context, you also get a
-reference to a list of two-element lists; each inner list contains the
-description and the catalog name, in that order (suitable for inserting
-into a Tk Optionmenu).
+either C<'celestrak'>, C<'iridium_status'>, C<'spaceflight'>, or
+C<'spacetrack'>, in the content of the given HTTP::Response object. In
+list context, you also get a reference to a list of two-element lists;
+each inner list contains the description and the catalog name, in that
+order (suitable for inserting into a Tk Optionmenu).
+
+In the case of C<'spacetrack'>, the return depends on the value of the
+C<space_track_version> attribute.
 
 No Space Track username and password are required to use this method,
 since all it is doing is returning data kept by this module.
@@ -1653,6 +1689,8 @@ sub names {
     $catalogs{$name} or return HTTP::Response (
 	    HTTP_NOT_FOUND, "Data source '$name' not found.");
     my $src = $catalogs{$name};
+    $name eq 'spacetrack'
+	and $src = $src->[ $self->getv( 'space_track_version' ) ];
     my @list;
     foreach my $cat (sort keys %$src) {
 	push @list, defined ($src->{$cat}{number}) ?
@@ -3203,7 +3241,7 @@ sub _spacetrack_v1 {
     my ( $self, $catnum ) = @_;
     delete $self->{_pragmata};
     $catnum =~ m/ \D /smx and do {
-	my $info = $catalogs{spacetrack}{$catnum} or
+	my $info = $catalogs{spacetrack}[1]{$catnum} or
 	    return $self->_no_such_catalog (spacetrack => $catnum);
 	$catnum = $info->{number};
 	$self->{with_name} && $catnum++ unless $info->{special};
@@ -3267,9 +3305,86 @@ Requested file  doesn't exist");history.go(-1);
     return $resp;
 }
 
-sub _spacetrack_v2 {
-    # TODO figure out how to make this work.
-    croak 'Bulk data downloads not supported by REST API';
+{
+
+    my @catnum_to_name = (
+	undef,
+	[ full			=> 0 ],
+	[ full			=> 1 ],
+	[ geosynchronous	=> 0 ],
+	[ geosynchronous	=> 1 ],
+	undef,
+	undef,
+	undef,
+	undef,
+	[ iridium		=> 0 ],
+	[ iridium		=> 1 ],
+    );
+
+    sub _spacetrack_v2 {
+	my ( $self, $catalog ) = @_;
+
+	# TODO figure out how to make this work.
+	croak 'Bulk data downloads not supported by REST API';
+
+	# The following code works well enough, but is rather slow, and
+	# only covers those cases where there is a query that will fetch
+	# the data.
+	#
+	# There also may be a limit on how many bodies one can retrieve
+	# at a time.
+
+=begin comment
+
+	my ( $catname, $with_name ) = $catalog =~ m/ \D /smx ?
+	( $catalog, $self->getv( 'with_name' ) ) :
+	@{ $catnum_to_name[ $catalog ] || [] };
+
+	defined $catname
+	    and my $info = $catalogs{spacetrack}[2]{$catname}
+	    or return $self->_no_such_catalog( spacetrack => $catalog );
+
+	my $rslt = $self->spacetrack_query_v2(
+	    basicspacedata	=> 'query',
+	    class		=> 'satcat',
+	    CURRENT		=> 'Y',
+	    DECAY		=> 'null-val',
+	    predicates		=> 'NORAD_CAT_ID,SATNAME',
+	    format		=> 'json',
+	    @{ $info->{query} },
+	);
+
+	$rslt->is_success()
+	    or return $rslt;
+
+	my %body_name = map { $_->{NORAD_CAT_ID} => $_->{SATNAME} } @{
+	    JSON::from_json( $rslt->content() ) };
+
+	$rslt = $self->_retrieve_v2( { format => 'json' }, keys %body_name );
+	$rslt->is_success()
+	    or return $rslt;
+
+	my $content = '';
+	my $data = JSON::from_json( $rslt->content() );
+
+	foreach my $tle (
+	    sort { $a->{NORAD_CAT_ID} <=> $b->{NORAD_CAT_ID} } @{ $data }
+	) {
+	    $with_name
+		and $content .= "$body_name{$tle->{NORAD_CAT_ID}}\n";
+	    $content .= "$tle->{TLE_LINE1}\n$tle->{TLE_LINE2}\n";
+	}
+
+	$rslt->content( $content );
+	return $rslt;
+
+=end comment
+
+=cut
+
+	# https://beta.space-track.org/basicspacedata/query/class/satcat/DECAY/null-val/CURRENT/Y/orderby/NORAD_CAT_ID%20desc/predicates/INTLDES,SATNAME,NORAD_CAT_ID,COUNTRY,PERIOD,INCLINATION,APOGEE,PERIGEE,RCSVALUE,LAUNCH,COMMENT/format/html
+    }
+
 }
 
 =for html <a name="spacetrack_query_v2"></a>
