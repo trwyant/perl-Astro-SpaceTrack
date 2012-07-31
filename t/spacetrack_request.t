@@ -740,7 +740,7 @@ $st->set( space_track_version => 2 );
 
 $base_url = $st->_make_space_track_base_url();
 
-is_resp qw{retrieve 25544}, {
+is_resp qw{retrieve 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -752,10 +752,10 @@ is_resp qw{retrieve 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -sort catnum 25544}, {
+is_resp qw{retrieve -sort catnum 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -767,10 +767,10 @@ is_resp qw{retrieve -sort catnum 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -sort epoch 25544}, {
+is_resp qw{retrieve -sort epoch 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -782,10 +782,10 @@ is_resp qw{retrieve -sort epoch 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -descending 25544}, {
+is_resp qw{retrieve -descending 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -797,10 +797,10 @@ is_resp qw{retrieve -descending 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -last5 25544}, {
+is_resp qw{retrieve -last5 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -812,10 +812,10 @@ is_resp qw{retrieve -last5 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/5",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
+is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -827,10 +827,10 @@ is_resp qw{retrieve -start_epoch 2009-04-01 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
+is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -842,10 +842,10 @@ is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
+is_resp qw{retrieve -end_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -857,10 +857,10 @@ is_resp qw{retrieve -end_epoch 2009-04-01 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-31%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
-    },
+    } ],
 ;
 
-is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
+is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -872,13 +872,53 @@ is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-01%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
 	version => 2,
+    } ],
+;
+
+note <<'EOD'
+The point of the following test is to ensure that the request is being
+properly broken into two pieces, and that the joining of the JSON in the
+responses is being handled properly.
+EOD
+
+is_resp retrieve => 1 .. 66, [
+    {
+	args => [
+	    basicspacedata	=> 'query',
+	    class		=> 'tle',
+	    NORAD_CAT_ID	=> join( ',', 1 .. 64 ),
+	    format		=> 'tle',
+	    orderby		=> 'EPOCH desc',
+	    sublimit		=> 1,
+	],
+	method	=> 'GET',
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/"
+	    . join( ',', 1 .. 64 )
+	    . '/format/tle/orderby/EPOCH%20desc/sublimit/1',
+	version	=> 2
     },
+    {
+	args => [
+	    basicspacedata	=> 'query',
+	    class		=> 'tle',
+	    NORAD_CAT_ID	=> join( ',', 65 .. 66 ),
+	    format		=> 'tle',
+	    orderby		=> 'EPOCH desc',
+	    sublimit		=> 1,
+	],
+	method	=> 'GET',
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/"
+	    . join( ',', 65 .. 66 )
+	    . '/format/tle/orderby/EPOCH%20desc/sublimit/1',
+	version	=> 2
+    },
+],
 ;
 
 is_resp qw{set with_name 1}, 'OK';
 
 # TODO NASA-format TLEs not supported via REST interface.
-is_resp qw{retrieve 25544}, {
+is_resp qw{retrieve 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
 	    class	=> 'tle',
@@ -890,7 +930,7 @@ is_resp qw{retrieve 25544}, {
 	method => 'GET',
 	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version => 2,
-    },
+    } ],
 ;
 
 is_resp qw{search_date 2009-04-01}, {

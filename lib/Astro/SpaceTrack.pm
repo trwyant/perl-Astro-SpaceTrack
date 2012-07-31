@@ -1897,23 +1897,44 @@ sub _retrieve_v2 {
 	or $rest->{format} = 'tle';
     $rest->{orderby} = 'EPOCH desc';
 
-    my $resp = $self->spacetrack_query_v2(
-	basicspacedata	=> 'query',
-	class		=> 'tle',
-	NORAD_CAT_ID	=> join( ',', @args ),
-	map { $_ => $rest->{$_} } sort keys %{ $rest },
-    );
-    $resp->is_success()
-	or return $resp;
-    my $content = $resp->content;
-    $content =~ m/ function [.] key-exists /smxi
-	and $content = '';
-    $content eq '[]'
-	and $content = '';
+    my $content;
+    my $no_execute = $self->getv( 'dump_headers' ) & DUMP_NO_EXECUTE;
+    my $joiner = (
+	$rest->{format} eq 'json' || $no_execute
+    ) ? \&_append_data_json : \&_append_data_tle;
+
+    while ( @args ) {
+
+	my @this_time = splice @args, 0, 64;
+
+	my $resp = $self->spacetrack_query_v2(
+	    basicspacedata	=> 'query',
+	    class		=> 'tle',
+	    NORAD_CAT_ID	=> join( ',', @this_time ),
+	    map { $_ => $rest->{$_} } sort keys %{ $rest },
+	);
+
+	$resp->is_success()
+	    or $resp->code() == HTTP_I_AM_A_TEAPOT
+	    or return $resp;
+
+	my $data = $resp->content();
+	$data =~ m/ function [.] key-exists /smxi
+	    and $data = '';
+	$joiner->( $content, $data );
+
+    }
+
     $content
+	and $content ne '[]'
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
 
-    $resp->content( $content );
+    $no_execute
+	and return HTTP::Response->new(
+	    HTTP_I_AM_A_TEAPOT, undef, undef, $content );
+
+    my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef,
+	$content );
     $self->_convert_content( $resp );
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'orbit',
@@ -2982,6 +3003,8 @@ EOD
 	    my $status = $rslt->status_line;
 	    chomp $status;
 	    warn $status, "\n";
+	    $rslt->code() == HTTP_I_AM_A_TEAPOT
+		and print { $out } $rslt->content(), "\n";
 	}
     }
     $interactive
@@ -3493,6 +3516,37 @@ sub _add_pragmata {
 	$self->{_pragmata}{$name} = $value;
 	$resp->push_header(pragma => "$name = $value");
     }
+    return;
+}
+
+# Subroutine _append_data_json() appends all subsequent arguments to its
+# first argument, which is assumed to be either undef or a JSON array.
+# Subsequent arguments are assumed to be either JSON arrays or JSON
+# hashes. It returns nothing. The first argument MUST NOT be something
+# unmodifiable.
+
+sub _append_data_json {
+    my ( undef, @arg ) = @_;
+    foreach ( @arg ) {
+	if ( m/ \A \s* [{] .* [}] \s* \z /smx ) {
+	    s/ [{] /[{/smx;
+	    s/ [}] (?= \s* \z ) /}]/smx;
+	}
+	if ( defined $_[0] ) {
+	    s/ [[] //smx;
+	    $_[0] =~ s/ []] (?= \s* \z ) /,/smx;
+	}
+	$_[0] .= $_;
+    }
+    return;
+}
+
+# Subroutine _append_data_tle() appends all subsequent arguments to its
+# first argument. It returns nothing. The first argument MUST NOT be
+# something unmodifiable.
+
+sub _append_data_tle {
+    $_[0] .= join '', @_[ 1 .. $#_ ];
     return;
 }
 
