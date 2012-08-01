@@ -1,3 +1,16 @@
+0.060_11	2012-07-31	T. R. Wyant
+  Have the REST version of retrieve() issue multiple queries if the
+    number of OIDs is over 50.
+  Add the ability to handle OID ranges to the REST versions of
+    retrieve() and search_oid().
+  Have the output of names( 'spacetrack' ) depend on the value of the
+    space_track_version attribute.
+  Have the shell() method extract redirections from the command line
+    before un-quoting and un-escaping the data, so that we have a way to
+    force something that looks like a redirection to be taken as an
+    argument.
+
+
 0.060_10	2012-07-27	T. R. Wyant
   Add ':' to the list of 'safe' characters when URI-escaping arguments
     to the Space Track REST interface. Percent-encoded colons seemed to
