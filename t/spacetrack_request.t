@@ -875,7 +875,7 @@ is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, [ {
     } ],
 ;
 
-note <<'EOD'
+note <<'EOD';
 The point of the following test is to ensure that the request is being
 properly broken into two pieces, and that the joining of the JSON in the
 responses is being handled properly.
@@ -886,30 +886,26 @@ is_resp retrieve => 1 .. 66, [
 	args => [
 	    basicspacedata	=> 'query',
 	    class		=> 'tle',
-	    NORAD_CAT_ID	=> join( ',', 1 .. 64 ),
+	    NORAD_CAT_ID	=> '1--50',
 	    format		=> 'tle',
 	    orderby		=> 'EPOCH desc',
 	    sublimit		=> 1,
 	],
 	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/"
-	    . join( ',', 1 .. 64 )
-	    . '/format/tle/orderby/EPOCH%20desc/sublimit/1',
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/1--50/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version	=> 2
     },
     {
 	args => [
 	    basicspacedata	=> 'query',
 	    class		=> 'tle',
-	    NORAD_CAT_ID	=> join( ',', 65 .. 66 ),
+	    NORAD_CAT_ID	=> '51--66',
 	    format		=> 'tle',
 	    orderby		=> 'EPOCH desc',
 	    sublimit		=> 1,
 	],
 	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/"
-	    . join( ',', 65 .. 66 )
-	    . '/format/tle/orderby/EPOCH%20desc/sublimit/1',
+	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/51--66/format/tle/orderby/EPOCH%20desc/sublimit/1",
 	version	=> 2
     },
 ],

@@ -1820,34 +1820,19 @@ sub _retrieve_v1 {
     push @params, sort => $opt->{sort};
     push @params, descending => $opt->{descending} ? 'yes' : '';
 
-    @args = grep { m/ \A \d+ (?: - \d+)? \z /smx } @args;
+    @args = $self->_expand_oid_list( @args )
+	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
-    @args or return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_CAT_ID);
     my $content = '';
     local $_ = undef;
     my $resp;
-    while (@args) {
-	my @batch;
-	my $ids = 0;
-	while (@args && $ids < RETRIEVAL_SIZE) {
-	    $ids++;
-	    my ($lo, $hi) = split '-', shift @args;
-	    $lo > 0 or defined $hi or next;
-	    defined $hi and do {
-		( $lo, $hi ) = $self->_check_range( $lo, $hi );
-		$ids += $hi - $lo;
-		$ids > RETRIEVAL_SIZE and do {
-		    my $mid = $hi - $ids + RETRIEVAL_SIZE;
-		    unshift @args, "@{[$mid + 1]}-$hi";
-		    $hi = $mid;
-		};
-		$lo = "$lo-$hi" if $hi > $lo;
-	    };
-	    push @batch, $lo;
-	}
-	next unless @batch;
+    while ( @args ) {
+	my @batch = splice @args, 0, RETRIEVAL_SIZE;
 	$resp = $self->_post ('perl/id_query.pl',
-	    ids => "@batch",
+	    ids => _stringify_oid_list( {
+		    separator	=> ' ',
+		    range_operator	=> '-',
+		}, @batch ),
 	    @params,
 	    ascii => 'yes',		# or ''
 	    _sessionid => '',
@@ -1891,8 +1876,9 @@ sub _retrieve_v2 {
 
     # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
 
-    @args
+    @args = $self->_expand_oid_list( @args )
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
+
     defined $rest->{format}
 	or $rest->{format} = 'tle';
     $rest->{orderby} = 'EPOCH desc';
@@ -1905,12 +1891,16 @@ sub _retrieve_v2 {
 
     while ( @args ) {
 
-	my @this_time = splice @args, 0, 64;
+	my @batch = splice @args, 0, RETRIEVAL_SIZE;
 
 	my $resp = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
 	    class		=> 'tle',
-	    NORAD_CAT_ID	=> join( ',', @this_time ),
+	    NORAD_CAT_ID	=> _stringify_oid_list( {
+		    separator	=> ',',
+		    range_operator	=> '--',
+		}, @batch,
+	    ),
 	    map { $_ => $rest->{$_} } sort keys %{ $rest },
 	);
 
@@ -2075,6 +2065,23 @@ sub _retrieve_v2 {
 
 	@args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
 	my $opt = shift @args;
+
+	if ( $pred eq 'NORAD_CAT_ID' ) {
+
+	    @args = $self->_expand_oid_list( @args )
+		or return HTTP::Response->new(
+		    HTTP_PRECONDITION_FAILED, NO_CAT_ID );
+
+	    @args = (
+		_stringify_oid_list( {
+			separator	=> ',',
+			range_operator	=> '--',
+		    },
+		    @args
+		)
+	    );
+
+	}
 
 	my $want_tle = exists $opt->{tle} ? $opt->{tle} : 1;
 
@@ -2745,28 +2752,30 @@ sub _search_oid_v1 {
 	],
 	@args );
     my $opt = shift @args;
+
     exists $opt->{tle} or $opt->{tle} = 1;
-    my $ids = join ' ', @args;
-    return $self->_search_generic ( \&_search_oid_generic, $opt, $ids );
+
+    @args = $self->_expand_oid_list( @args )
+	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
+
+    return $self->_search_generic( sub {
+	    my ( $self, $ids, $opt ) = @_;
+	    return $self->_post (
+		'perl/satcat_id_query.pl',
+		_submitted => 1,
+		_sessionid => '',
+		ids => $ids,
+		desc => ( $opt->{descending} ? 'yes' : '' ),
+		_submit => 'Submit',
+	    );
+	},
+	$opt, "@args" );
 }
 
 sub _search_oid_v2 {	## no critic (RequireArgUnpacking)
+    my ( $self, @args ) = @_;
     splice @_, 1, 0, NORAD_CAT_ID => sub { return @_ };
     goto &_search_rest;
-}
-
-sub _search_oid_generic {
-    my ( $self, $ids, $opt ) = @_;
-    $ids =~ s{ ( \d+ ) \s* - \s* ( \d+ ) }
-	{ scalar $self->_expand_range( $1, $2 ) }smxeg;
-    return $self->_post (
-	'perl/satcat_id_query.pl',
-	_submitted => 1,
-	_sessionid => '',
-	ids => $ids,
-	desc => ( $opt->{descending} ? 'yes' : '' ),
-	_submit => 'Submit',
-    );
 }
 
 sub _check_range {
@@ -2782,14 +2791,6 @@ EOD
     };
     return ( $lo, $hi );
 }
-
-sub _expand_range {
-    my ( $self, @args ) = @_;
-    my ( $lo, $hi ) = $self->_check_range( @args )
-	or return wantarray ? () : '';
-    return wantarray ? ( $lo .. $hi ) : join ' ', $lo .. $hi;
-}
-
 
 =for html <a name="set"></a>
 
@@ -3761,6 +3762,32 @@ sub _dump_request {
     return;
 }
 
+# my @oids = $self->_expand_oid_list( @args );
+#
+# This subroutine expands the input into a list of OIDs. Commas are
+# recognized as separating an argument into multiple specifications.
+# Dashes are recognized as range operators, which are expanded. The
+# result is returned.
+
+sub _expand_oid_list {
+    my ( $self, @args ) = @_;
+
+    my @rslt;
+    foreach my $arg ( map { split qr{ , | \s+ }smx, $_ } @args ) {
+	if ( my ( $lo, $hi ) = $arg =~
+	    m/ \A \s* ( \d+ ) \s* - \s* ( \d+ ) \s* \z /smx
+	) {
+	    ( $lo, $hi ) = $self->_check_range( $lo, $hi )
+		and push @rslt, $lo .. $hi;
+	} elsif ( $arg =~ m/ \A \s* ( \d+ ) \s* \z /smx ) {
+	    push @rslt, $1;
+	} else {
+	    # TODO -- ignore? die? what?
+	}
+    }
+    return @rslt;
+}
+
 # Parse an international launch id, and format it for a Space-Track REST
 # query. The parsing is done by _parse_international_id(). The
 # formatting prefixes the 'contains' wildcard '~~' unless year, sequence
@@ -4580,6 +4607,64 @@ Error - Failed to open source file '$fn'.
         $!
 EOD
     return <$fh>;
+}
+
+# my $string = _stringify_oid_list( $opt, @oids );
+#
+# This subroutine sorts the @oids array, and stringifies it by
+# eliminating duplicates, combining any consecutive runs of OIDs into
+# ranges, and joining the result with commas. The string is returned.
+#
+# The $opt is a reference to a hash that specifies punctuation in the
+# stringified result. The keys used are
+#   separator -- The string used to separate OID specifications. The
+#       default is ','.
+#   range_operator -- The string used to specify a range. The default is
+#       '--'.
+#
+# Note that ranges containing only two OIDs (e.g. 5-6) will be expanded
+# as "5,6", not "5-6" (presuming $range_operator is '-').
+
+sub _stringify_oid_list {
+    my ( $opt, @args ) = @_;
+
+    my @rslt = ( -99 );	# Prime the pump
+
+    @args
+	or return @args;
+
+    my $separator = defined $opt->{separator} ? $opt->{separator} : ',';
+    my $range_operator = defined $opt->{range_operator} ?
+	$opt->{range_operator} : '--';
+
+    foreach my $arg ( sort { $a <=> $b } @args ) {
+	if ( 'ARRAY' eq ref $rslt[-1] ) {
+	    if ( $arg == $rslt[-1][1] + 1 ) {
+		$rslt[-1][1] = $arg;
+	    } else {
+		$arg > $rslt[-1][1]
+		    and push @rslt, $arg;
+	    }
+	} else {
+	    if ( $arg == $rslt[-1] + 1 ) {
+		$rslt[-1] = [ $rslt[-1], $arg ];
+	    } else {
+		$arg > $rslt[-1]
+		    and push @rslt, $arg;
+	    }
+	}
+    }
+
+    shift @rslt;	# Drop the pump priming.
+
+    return join( $separator,
+	map { ref $_ ?
+	    $_->[1] > $_->[0] + 1 ?
+		"$_->[0]$range_operator$_->[1]" :
+		@{ $_ } :
+	    $_
+	} @rslt
+    );
 }
 
 #	_trim replaces undefined arguments with '', trims all arguments
