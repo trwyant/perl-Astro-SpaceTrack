@@ -849,6 +849,8 @@ sub not_defined ($$) {
 	    $readkey_loaded = 1;
 	    1;
 	} or $set_read_mode = sub {};
+
+	STDERR->autoflush( 1 );
     }
 
     sub prompt {
