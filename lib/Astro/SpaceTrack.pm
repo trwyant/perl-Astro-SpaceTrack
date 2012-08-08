@@ -3331,6 +3331,8 @@ Requested file  doesn't exist");history.go(-1);
 
 {
 
+=begin comment
+
     my @catnum_to_name = (
 	undef,
 	[ full			=> 0 ],
@@ -3344,6 +3346,10 @@ Requested file  doesn't exist");history.go(-1);
 	[ iridium		=> 0 ],
 	[ iridium		=> 1 ],
     );
+
+=end comment
+
+=cut
 
     sub _spacetrack_v2 {
 	my ( $self, $catalog ) = @_;

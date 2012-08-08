@@ -25,11 +25,17 @@ my %known_inconsistent = (
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 );
 
+=begin comment
+
 my %status_map = (
     &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
     &Astro::SpaceTrack::BODY_STATUS_IS_SPARE => 'Spare',
     &Astro::SpaceTrack::BODY_STATUS_IS_TUMBLING => 'Tumbling',
 );
+
+=end comment
+
+=cut
 
 my $st = Astro::SpaceTrack->new ();
 
