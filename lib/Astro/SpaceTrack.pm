@@ -61,7 +61,9 @@ it.
 The Space Track web site is in the throes of implementing a new REST
 API, to replace the old screen-scraping API. This API is currently in
 beta. This module implements the REST API to the extent possible, but
-should probably not be used for production code at this point.
+since the REST API is beta, the C<Astro::SpaceTrack> interface to it may
+have to change without notice, and it should probably not be used for
+production code at this point.
 
 This module will use either the old (version 1) API or the new (version
 2) API, depending on the value of the C<space_track_version> attribute,
@@ -4471,10 +4473,10 @@ sub _search_generic {
     my $resp;
     $resp = $self->_search_generic_tabulate( \%id, $poster, $opt, @args )
 	and return $resp;
-    delete $id{0};	# Not interested in headings.
 
     exists $opt->{tle} or $opt->{tle} = 1;
     if ( $opt->{tle} ) {
+	delete $id{0};	# Not interested in headings.
 	my $with_name = $self->getv( 'with_name' );
 	$resp = $self->_retrieve_v1 ($opt, sort {$a <=> $b} keys %id);
 	if ( $opt->{rcs} ) {
