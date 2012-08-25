@@ -21,6 +21,10 @@ my $rslt;
 my $space_track_domain = 'www.space-track.org';
 my $st;
 
+# Things to search for.
+my $search_date = '2012-06-13';
+my $start_epoch = '2012/04/01';
+
 {
     site_check $space_track_domain;	# To make sure we have account
     local $ENV{SPACETRACK_USER} = spacetrack_account();
@@ -281,8 +285,8 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => '2006-07-04',
-	"Search for date '2006-07-04'";
+    is_success $st, search_date => $search_date,
+	"Search for date '$search_date'";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -292,8 +296,8 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => -rcs => '2006-07-04',
-	"Search for date '2006-07-04', retrieving radar cross-section";
+    is_success $st, search_date => -rcs => $search_date,
+	"Search for date '$search_date', retrieving radar cross-section";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -303,8 +307,8 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => -notle => '2006-07-04',
-	"Search for date '2006-07-04', but only retrieve search results";
+    is_success $st, search_date => -notle => $search_date,
+	"Search for date '$search_date', but only retrieve search results";
 
     is $st->content_type(), 'search', "Content type is 'search'";
 
@@ -314,8 +318,8 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, retrieve => -start_epoch => '2006/04/01', 25544,
-	'Retrieve historical ISS orbital elements';
+    is_success $st, retrieve => -start_epoch => $start_epoch, 25544,
+	"Retrieve ISS orbital elements for epoch $start_epoch";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -584,8 +588,8 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => '2006-07-04',
-	"Search for date '2006-07-04'";
+    is_success $st, search_date => $search_date,
+	"Search for date '$search_date'";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -595,8 +599,8 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => -rcs => '2006-07-04',
-	"Search for date '2006-07-04', retrieving radar cross-section";
+    is_success $st, search_date => -rcs => $search_date,
+	"Search for date '$search_date', retrieving radar cross-section";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -606,8 +610,8 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, search_date => -notle => '2006-07-04',
-	"Search for date '2006-07-04', but only retrieve search results";
+    is_success $st, search_date => -notle => $search_date,
+	"Search for date '$search_date', but only retrieve search results";
 
     is $st->content_type(), 'search', "Content type is 'search'";
 
@@ -617,8 +621,8 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, retrieve => -start_epoch => '2006/04/01', 25544,
-	'Retrieve historical ISS orbital elements';
+    is_success $st, retrieve => -start_epoch => $start_epoch, 25544,
+	"Retrieve ISS orbital elements for epoch $start_epoch";
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
