@@ -1,3 +1,17 @@
+0.062		2012-08-25	T. R. Wyant
+  Fix the joining of JSON data when one of the lists is empty.
+  Have the celestrak() and file() methods supply common names from their
+    sources if the with_name attribute is true and the
+    space_track_version attribute is 2. This functionality will be
+    retracted when (and if) the Space Track REST interface becomes
+    capable of supplying NASA-format TLEs.
+  Document the fact that Space Track has deprecated bulk data downloads,
+    and plans to remove them in October 2012. This will break the
+    spacetrack() method.
+  Use more recent datas for launch date and historical query tests in
+    t/query.t, since it seems that Space Track purged the version 2 TLE
+    database on August 24 2012.
+
 0.061		2012-08-15	T. R. Wyant
   Reinstate the headings returned by -notle searches done with
     space_track_version set to 1. These were lost in version 0.060_09.
