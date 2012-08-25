@@ -41,7 +41,7 @@ You should consult the above link for the full text of the user
 agreement before using this software to retrieve content from the Space
 Track web site.
 
-=head1 DEPRECATION NOTICE
+=head1 DEPRECATION NOTICE: SPACE SHUTTLE
 
 It is with a sense of regret that I announce the deprecation of the
 C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
@@ -55,6 +55,24 @@ an exception.
 Six further months later, the deprecated functionality will be removed.
 This means (probably) you will get a C<404> error when you try to use
 it.
+
+=head1 DEPRECATION NOTICE: SPACE TRACK BULK DATA
+
+Space Track announced August 24 2012 that the bulk data downloads
+provided by the spacetrack() method were deprecated, and would probably
+be eliminated in October 2012. Their rationale is that the new REST
+interface makes prepackaged data no longer necessary.
+
+I have not yet decided what to do about this, but if I do nothing, the
+spacetrack() method will break when the functionality is retracted. I
+have experimented with REST queries, but find them very slow. Three bulk
+downloads of the Iridium constellation took 1.5, 26.2, and 1.3 seconds.
+Acquiring the data from the REST database three times took 599.1, 180.8,
+and 52.2 seconds. Each REST data acquisition used three queries: the
+first to query the satcat data for objects named 'Iridium something',
+and the second and third to acquire the TLE data for the objects. The
+TLE data was broken into two queries because I have found that large
+queries result in HTTP server errors (code 500).
 
 =head1 SPACE TRACK REST API
 
@@ -97,7 +115,11 @@ incapable of returning the common name of the body when using version 2
 of the Space Track interface. I am informed that there is already a
 feature request for this, but that it has not yet been prioritized. In
 the meantime, if you B<really> want common names in your TLE data, you
-can get them via the C<search_oid()> method.
+can get them via the C<search_oid()> method. As a convenience hack, the
+celestrak() and file() methods (which use retrieve() under the hood)
+will fill in the names from the Celestrak or file data list, if the
+C<with_name> attribute is true. This hack will be retracted when (and
+if) the REST interface becomes capable of returning NASA-format TLEs.
 
 =item The C<spacetrack()> method (which returns predefined packages of
 TLEs) is unsupported when using version 2 of the Space Track interface,
@@ -222,6 +244,7 @@ use constant DUMP_REQUEST => 0x02;	# Request content
 use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
 use constant DUMP_COOKIE => 0x08;	# Dump cookies.
 use constant DUMP_HEADERS => 0x10;	# Dump headers.
+use constant DUMP_CONTENT => 0x20;	# Dump content
 
 use constant SPACE_TRACK_V2_OPTIONS => [
     'json!'	=> '(Return TLEs in JSON format)',
@@ -783,6 +806,14 @@ Before the end of the Space Shuttle program, data on the current mission
 deprecated, and will be removed in a future release. See the
 L</DEPRECATION NOTICE> for details.
 
+The Space Track REST interface is currently (August 25 2012) incapable
+of returning NASA-format TLEs (i.e. with satellite common name). As a
+convenience hack, this method will insert the names recorded in the
+Celestrak data set if the C<with_name> attribute is true and the
+C<space_track_version> attribute is 2. This hack will be retracted when
+(or maybe I should say if) the Space Track REST interface becomes
+capable of providing this data.
+
 If this method succeeds, the response will contain headers
 
  Pragma: spacetrack-type = orbit
@@ -1026,6 +1057,14 @@ The observing list file is (how convenient!) in the Celestrak format,
 with the first five characters of each line containing the object ID,
 and the rest containing a name of the object. Lines whose first five
 characters do not look like a right-justified number will be ignored.
+
+The Space Track REST interface is currently (August 25 2012) incapable
+of returning NASA-format TLEs (i.e. with satellite common name). As a
+convenience hack, this method will insert the names recorded in the
+observing list file if the C<with_name> attribute is true and the
+C<space_track_version> attribute is 2. This hack will be retracted when
+(or maybe I should say if) the Space Track REST interface becomes
+capable of providing this data.
 
 If this method succeeds, the response will contain headers
 
@@ -3535,6 +3574,8 @@ sub _add_pragmata {
 sub _append_data_json {
     my ( undef, @arg ) = @_;
     foreach ( @arg ) {
+	$_ eq '[]'
+	    and next;
 	if ( m/ \A \s* [{] .* [}] \s* \z /smx ) {
 	    s/ [{] /[{/smx;
 	    s/ [}] (?= \s* \z ) /}]/smx;
@@ -3726,18 +3767,28 @@ use Data::Dumper;
 
 sub _dump_headers {
     my ( $self, $resp ) = @_;
-    $self->{dump_headers} & DUMP_HEADERS
-	or return;
-    local $Data::Dumper::Terse = 1;
-    my $rqst = $resp->request;
-    $rqst = ref $rqst ? $rqst->as_string : "undef\n";
-    chomp $rqst;
-    warn "\nRequest:\n$rqst\nHeaders:\n",
-	$resp->headers->as_string, "\nCookies:\n";
-    $self->_get_agent()->cookie_jar->scan (sub {
-	_dump_cookie ("\n", @_);
-	});
-    warn "\n";
+
+    my $dump_headers = $self->{dump_headers};
+
+    if ( $dump_headers & DUMP_HEADERS ) {
+	local $Data::Dumper::Terse = 1;
+	my $rqst = $resp->request;
+	$rqst = ref $rqst ? $rqst->as_string : "undef\n";
+	chomp $rqst;
+	warn "\nRequest:\n$rqst\nHeaders:\n",
+	    $resp->headers->as_string, "\nCookies:\n";
+	$self->_get_agent()->cookie_jar->scan (sub {
+	    _dump_cookie ("\n", @_);
+	    });
+	warn "\n";
+    }
+
+    if ( $dump_headers & DUMP_CONTENT ) {
+	my $content = $resp->content();
+	$content =~ s/ (?<! \n ) \z /\n/smx;
+	warn "Content:\n$content";
+    }
+
     return;
 }
 
@@ -3975,11 +4026,18 @@ sub _handle_observing_list {
 	s/ \s+ \z //smx;
 	my ( $id ) = m/ \A ( [\s\d]{5} ) /smx or next;
 	$id =~ m/ \A \s* \d+ \z /smx or next;
+	my $name = substr $_, 5;
+	$name =~ s/ \A \s+ //smx;
 	push @catnum, $id;
-	push @data, [$id, substr $_, 5];
+	push @data, [ $id, $name ];
     }
     my $resp = $self->retrieve( $opt, sort {$a <=> $b} @catnum );
     if ( $resp->is_success ) {
+	$self->getv( 'with_name' )
+	    and $self->getv( 'space_track_version' ) == 2
+	    and _merge_names( $resp, {
+		    map { _normalize_oid( $_->[0] ) => $_->[1] } @data },
+	    );
 	unless ( $self->{_pragmata} ) {
 	    $self->_add_pragmata($resp,
 		'spacetrack-type' => 'orbit',
@@ -4009,6 +4067,45 @@ sub _make_space_track_base_url {
     my ( $self, $version ) = @_;
     return $self->{scheme_space_track} . '://' .
 	$self->_get_space_track_domain( $version );
+}
+
+#	_merge_names( $resp, $names );
+#
+#	This subroutine takes an HTTP response object and a reference to
+#	a hash of OID names, and merges those names into the response.
+#	If the response is JSON, the names go in the SATNAME key,
+#	overriding whatever was there before. If the response is TLE,
+#	the names before the "1" line, and any names that were there
+#	before get dropped.
+
+sub _merge_names {
+    my ( $resp, $name ) = @_;
+    my $content = $resp->content();
+    if ( $content =~ m/ \A [[]? [{] / ) {
+	my $data = JSON::decode_json( $content );
+	foreach my $body ( @{ $data } ) {
+	    my $oid = _normalize_oid( $body->{NORAD_CAT_ID} );
+	    $name->{$oid}
+		and $body->{SATNAME} = $name->{$oid};
+	}
+	$resp->content( JSON::encode_json( $data ) );
+    } else {
+	my $rslt;
+	foreach my $tle_line (
+	    split qr{ (?<= \n ) }smx, $content
+	) {
+	    if ( $tle_line =~ m/ \A ( [12] ) \s* ( \d+ ) /smx ) {
+		if ( $1 == 1 ) {
+		    my $oid = _normalize_oid( $2 );
+		    $name->{$oid}
+			and $rslt .= "$name->{$oid}\n";
+		}
+		$rslt .= $tle_line;
+	    }
+	}
+	$resp->content( $rslt );
+    }
+    return;
 }
 
 # mung_login_status() takes as its argument an HTTP::Response object. If
@@ -4158,6 +4255,15 @@ sub _no_such_catalog {
 	join '', "$lead Try one of:\n", $resp->content,
 	$no_such_trail{$source} || ''
     );
+}
+
+#	_normalize_oid takes an OID and normalizes it. This is supposed
+#	to be an opaque operation, but really it just adds 0 to force
+#	numification, and returns the result.
+
+sub _normalize_oid {
+    my ( $oid ) = @_;
+    return $oid + 0;
 }
 
 #	_parse_args parses options off an argument list. The first
