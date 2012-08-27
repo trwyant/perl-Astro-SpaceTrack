@@ -259,7 +259,7 @@ if ( $rslt->is_success() ) {
          "Field" : "INTLDES",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varbinary(11)"
+         "Type" : "varchar(8)"
       },
       {
          "Default" : "0000-00-00 00:00:00",
@@ -419,7 +419,7 @@ sub dump_json {
     my ( $fn, $data ) = @_;
     open my $fh, '>', $fn
 	or die "Unable to open $fn for output: $!\n";
-    print $fh, $json->encode( $data );
+    print { $fh } $json->encode( $data );
     close $fh;
     return;
 }
