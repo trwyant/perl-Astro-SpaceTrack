@@ -436,7 +436,11 @@ sub new {
 		session_cookie		=> undef,
 	    },
 	    {	# Interface version 2
-##		cookie_expires		=> 0,
+		# This interface does not seem to put an expiration time
+		# on the cookie. But the docs say it's only good for a
+		# couple hours, so we need this so we can fudge
+		# something in when the time comes.
+		cookie_expires		=> 0,
 		cookie_name		=> 'chocolatechip',
 		domain_space_track	=> 'beta.space-track.org',
 		session_cookie		=> undef,
@@ -3623,6 +3627,13 @@ sub _record_cookie_generic {
 	    ( $cookie, $expires ) = @_[2, 8];
 	    return;
 	} );
+
+    # I don't get an expiration time back from the version 2 interface.
+    # But the docs say the cookie is only good for about two hours, so
+    # to be on the safe side I fudge in an hour.
+    $version == 2
+	and not defined $expires
+	and $expires = time + 3600;
 
     if ( defined $cookie ) {
 	$interface_info->{session_cookie} = $cookie;
