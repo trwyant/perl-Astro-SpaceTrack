@@ -1090,7 +1090,7 @@ is_resp qw{search_id 98}, {
 	args => [
 	    basicspacedata	=> 'query',
 	    CURRENT	=> 'Y',
-	    INTLDES	=> '~~1998',
+	    INTLDES	=> '~~1998-',
 	    class	=> 'satcat',
 	    format	=> 'json',
 	    orderby	=> 'NORAD_CAT_ID asc',
