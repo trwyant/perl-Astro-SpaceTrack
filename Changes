@@ -1,3 +1,11 @@
+0.063		2012-08-29	T. R. Wyant
+  Imposed Space Track REST cookie expiration of an hour. The cookie
+    appears to come with no expiration, but the docs say it's only good
+    for about 2 hours.
+  Followed change to representation if International Launch Designator
+    (INTLDES) in Space Track REST class tle. It was yyyy-lllp, but is
+    now yylllp, just like Space Track version 1.
+
 0.062		2012-08-25	T. R. Wyant
   Fix the joining of JSON data when one of the lists is empty.
   Have the celestrak() and file() methods supply common names from their
