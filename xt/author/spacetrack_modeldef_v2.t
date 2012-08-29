@@ -13,9 +13,13 @@ $ENV{SPACETRACK_USER}
     or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
 
 my $st = Astro::SpaceTrack->new();
+my $rslt = $st->spacetrack_query_v2();
+$rslt->is_success()
+    or plan skip_all => 'Space Track inaccessable: ' . $rslt->status_line();
+
 my $json = JSON->new()->pretty()->canonical()->utf8();
 
-my $rslt = $st->spacetrack_query_v2( qw{
+$rslt = $st->spacetrack_query_v2( qw{
     basicspacedata modeldef class satcat
     } );
 
