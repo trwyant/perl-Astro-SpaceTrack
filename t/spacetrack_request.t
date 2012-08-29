@@ -1097,7 +1097,7 @@ is_resp qw{search_id 98}, {
 	    predicates	=> 'all',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
+	url => "$base_url/basicspacedata/query/CURRENT/Y/INTLDES/~~1998-/class/satcat/format/json/orderby/NORAD_CAT_ID%20asc/predicates/all",
 	version => 2,
     },
 ;
