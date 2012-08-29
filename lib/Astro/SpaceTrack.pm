@@ -63,16 +63,24 @@ provided by the spacetrack() method were deprecated, and would probably
 be eliminated in October 2012. Their rationale is that the new REST
 interface makes prepackaged data no longer necessary.
 
-I have not yet decided what to do about this, but if I do nothing, the
-spacetrack() method will break when the functionality is retracted. I
-have experimented with REST queries, but find them very slow. Three bulk
-downloads of the Iridium constellation took 1.5, 26.2, and 1.3 seconds.
-Acquiring the data from the REST database three times took 599.1, 180.8,
-and 52.2 seconds. Each REST data acquisition used three queries: the
-first to query the satcat data for objects named 'Iridium something',
-and the second and third to acquire the TLE data for the objects. The
-TLE data was broken into two queries because I have found that large
-queries result in HTTP server errors (code 500).
+I have not yet decided what to do about this, though I am leaning toward
+removing the functionality. Many of the bulk data sets can be trivially
+reproduced using C<search_name()>. The rest I have no way to implement
+other than as a predefined list of OIDs, and I have no real way to keep
+that list up to date.
+
+If I do nothing, the spacetrack() method will break when the
+functionality is retracted.
+
+I have experimented with REST queries, but find them very slow. Three
+bulk downloads of the Iridium constellation took 1.5, 26.2, and 1.3
+seconds.  Acquiring the data from the REST database three times (using
+the equivalent of C<search_name( 'iridium' )> took 599.1, 180.8, and
+52.2 seconds. Each REST data acquisition used three queries: the first
+to query the satcat data for objects named 'Iridium something', and the
+second and third to acquire the TLE data for the objects. The TLE data
+was broken into two queries because I have found that large queries
+result in HTTP server errors (code 500).
 
 =head1 SPACE TRACK REST API
 
