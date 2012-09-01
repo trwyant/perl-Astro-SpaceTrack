@@ -2006,15 +2006,15 @@ sub _retrieve_v2 {
     while ( @args ) {
 
 	my @batch = splice @args, 0, RETRIEVAL_SIZE;
+	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
+		separator	=> ',',
+		range_operator	=> '--',
+	    }, @batch );
 
 	my $resp = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
-	    NORAD_CAT_ID	=> _stringify_oid_list( {
-		    separator	=> ',',
-		    range_operator	=> '--',
-		}, @batch,
-	    ),
-	    map { $_ => $rest->{$_} } sort keys %{ $rest },
+	    map { $_ => $rest->{$_} } _sort_rest_arguments( keys %{
+		$rest } )
 	);
 
 	$resp->is_success()
@@ -2360,7 +2360,7 @@ sub __search_rest_raw {
 
     my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
-	map { $_ => $args{$_} } sort keys %args,
+	map { $_ => $args{$_} } _sort_rest_arguments( keys %args ),
     );
 #   $resp->content( $content );
 #   $self->_convert_content( $resp );
@@ -3505,10 +3505,10 @@ Requested file  doesn't exist");history.go(-1);
 	    my $rslt = $self->spacetrack_query_v2(
 		basicspacedata	=> 'query',
 		class		=> 'satcat',
+		format		=> 'json',
+		predicates		=> 'NORAD_CAT_ID,SATNAME',
 		CURRENT		=> 'Y',
 		DECAY		=> 'null-val',
-		predicates		=> 'NORAD_CAT_ID,SATNAME',
-		format		=> 'json',
 		@{ $query },
 	    );
 
@@ -4830,6 +4830,29 @@ sub _search_generic_tabulate {
 =end comment
 
 =cut
+
+#	@keys = _sort_rest_arguments( keys %rest_args );
+#
+#	This subroutine sorts the argument names in the desired order.
+#	A better way to do this may be to use Unicode::Collate, which
+#	has been core since 5.7.3.
+
+sub _sort_rest_arguments {
+    return ( map { $_->[0] } sort { $a->[1] cmp $b->[1] } map { [ $_,
+	_swap_upper_and_lower( $_ ) ] } @_ );
+}
+
+#	$swapped = _swap_upper_and_lower( $original );
+#
+#	This subroutine swapps upper and lower case in its argument,
+#	using the transliteration operator. It should be used only by
+#	_sort_rest_arguments().
+
+sub _swap_upper_and_lower {
+    my ( $arg ) = @_;
+    $arg =~ tr/A-Za-z/a-zA-Z/;
+    return $arg;
+}
 
 #	_source takes a filename, and returns the contents of the file
 #	as a list. It dies if anything goes wrong.
