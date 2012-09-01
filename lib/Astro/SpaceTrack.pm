@@ -2782,7 +2782,7 @@ sub _search_name_v1 {
 }
 
 sub _search_name_v2 {	## no critic (RequireArgUnpacking)
-    splice @_, 1, 0, SATNAME => sub { return ( map { "~~$_" } @_ ) };
+    splice @_, 1, 0, SATNAME => sub { return "~~$_[0]" };
     goto &_search_rest;
 }
 
@@ -2898,7 +2898,7 @@ sub _search_oid_v1 {
 
 sub _search_oid_v2 {	## no critic (RequireArgUnpacking)
     my ( $self, @args ) = @_;
-    splice @_, 1, 0, NORAD_CAT_ID => sub { return @_ };
+    splice @_, 1, 0, NORAD_CAT_ID => sub { return $_[0] };
     goto &_search_rest;
 }
 
