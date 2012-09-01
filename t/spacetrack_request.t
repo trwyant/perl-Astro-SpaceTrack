@@ -743,14 +743,14 @@ $base_url = $st->_make_space_track_base_url();
 is_resp qw{retrieve 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> 1,
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -758,14 +758,14 @@ is_resp qw{retrieve 25544}, [ {
 is_resp qw{retrieve -sort catnum 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> 1,
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -773,14 +773,14 @@ is_resp qw{retrieve -sort catnum 25544}, [ {
 is_resp qw{retrieve -sort epoch 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> 1,
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -788,14 +788,14 @@ is_resp qw{retrieve -sort epoch 25544}, [ {
 is_resp qw{retrieve -descending 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> 1,
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -803,14 +803,14 @@ is_resp qw{retrieve -descending 25544}, [ {
 is_resp qw{retrieve -last5 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> '1--5',
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 5,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/5",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1--5/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -818,14 +818,14 @@ is_resp qw{retrieve -last5 25544}, [ {
 is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    EPOCH	=> '2009-04-01 00:00:00--2009-04-02 00:00:00',
+	    class	=> 'tle',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/class/tle/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -833,14 +833,14 @@ is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
 is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    EPOCH	=> '2009-04-01 00:00:00--2009-04-02 00:00:00',
+	    class	=> 'tle',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/class/tle/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -848,14 +848,14 @@ is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, [ {
 is_resp qw{retrieve -end_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    EPOCH	=> '2009-03-31 00:00:00--2009-04-01 00:00:00',
+	    class	=> 'tle',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-31%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/EPOCH/2009-03-31%2000:00:00--2009-04-01%2000:00:00/class/tle/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -863,14 +863,14 @@ is_resp qw{retrieve -end_epoch 2009-04-01 25544}, [ {
 is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
 	    EPOCH	=> '2009-03-01 00:00:00--2009-04-01 00:00:00',
+	    class	=> 'tle',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/EPOCH/2009-03-01%2000:00:00--2009-04-01%2000:00:00/format/tle/orderby/EPOCH%20desc",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/EPOCH/2009-03-01%2000:00:00--2009-04-01%2000:00:00/class/tle/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;
@@ -885,27 +885,27 @@ is_resp retrieve => 1 .. 66, [
     {
 	args => [
 	    basicspacedata	=> 'query',
-	    class		=> 'tle',
 	    NORAD_CAT_ID	=> '1--50',
+	    ORDINAL		=> 1,
+	    class		=> 'tle_latest',
 	    format		=> 'tle',
 	    orderby		=> 'EPOCH desc',
-	    sublimit		=> 1,
 	],
 	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/1--50/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/1--50/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version	=> 2
     },
     {
 	args => [
 	    basicspacedata	=> 'query',
-	    class		=> 'tle',
 	    NORAD_CAT_ID	=> '51--66',
+	    ORDINAL		=> 1,
+	    class		=> 'tle_latest',
 	    format		=> 'tle',
 	    orderby		=> 'EPOCH desc',
-	    sublimit		=> 1,
 	],
 	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/51--66/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/51--66/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version	=> 2
     },
 ],
@@ -917,14 +917,14 @@ is_resp qw{set with_name 1}, 'OK';
 is_resp qw{retrieve 25544}, [ {
 	args => [
 	    basicspacedata	=> 'query',
-	    class	=> 'tle',
 	    NORAD_CAT_ID => 25544,
+	    ORDINAL	=> 1,
+	    class	=> 'tle_latest',
 	    format	=> 'tle',
 	    orderby	=> 'EPOCH desc',
-	    sublimit	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/EPOCH%20desc/sublimit/1",
+	url => "$base_url/basicspacedata/query/NORAD_CAT_ID/25544/ORDINAL/1/class/tle_latest/format/tle/orderby/EPOCH%20desc",
 	version => 2,
     } ],
 ;

@@ -256,6 +256,8 @@ use constant DUMP_HEADERS => 0x10;	# Dump headers.
 use constant DUMP_CONTENT => 0x20;	# Dump content
 
 use constant SPACE_TRACK_V2_OPTIONS => [
+    'since_file=i'
+    		=> '(Return only results added after the given file number)',
     'json!'	=> '(Return TLEs in JSON format)',
 ];
 
@@ -1863,6 +1865,10 @@ The legal options are:
    Ignored if start_epoch or end_epoch specified.
  -start_epoch date
    specifies the start epoch for the desired data.
+ -since_file number
+   specifies that only data since the given Space Track
+   file number be retrieved (space_track_version == 2
+   only!)
  -sort type
    specifies how to sort the data. Legal types are
    'catnum' and 'epoch', with 'catnum' the default.
@@ -2003,7 +2009,6 @@ sub _retrieve_v2 {
 
 	my $resp = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
-	    class		=> 'tle',
 	    NORAD_CAT_ID	=> _stringify_oid_list( {
 		    separator	=> ',',
 		    range_operator	=> '--',
@@ -2051,7 +2056,8 @@ sub _retrieve_v2 {
 
     sub _convert_retrieve_options_to_rest {
 	my ( $self, $opt ) = @_;
-	my %rest;
+
+	my %rest = ( class	=> 'tle_latest' );
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
 	    $rest{EPOCH} = sprintf
@@ -2059,6 +2065,7 @@ sub _retrieve_v2 {
 		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
 		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
 ##	    $rest{EPOCH} =~ s/ \s+ 00:00:00 (?= \z | - ) //smxg;
+		$rest{class} = 'tle';
 	} else {
 	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
 	}
@@ -2070,9 +2077,21 @@ sub _retrieve_v2 {
 	$opt->{json}
 	    and $rest{format} = 'json';
 
+	if ( $opt->{since_file} ) {
+	    $rest{FILE} = ">$opt->{since_file}";
+	    $rest{class} = 'tle';
+	}
+
 	foreach my $name ( qw{ class format } ) {
 	    defined $opt->{$name}
 		and $rest{$name} = $opt->{$name};
+	}
+
+	if ( $rest{class} eq 'tle_latest' ) {
+	    if ( defined $rest{sublimit} && $rest{sublimit} <= 5 ) {
+		my $limit = delete $rest{sublimit};
+		$rest{ORDINAL} = $limit > 1 ? "1--$limit" : $limit;
+	    }
 	}
 
 	return \%rest;
@@ -2207,7 +2226,7 @@ sub _retrieve_v2 {
 	    my $with_name = $self->{with_name};
 
 	    $opt->{format} = 'json';
-	    $rest_args = $self->_convert_retrieve_options_to_rest( $opt );
+##	    $rest_args = $self->_convert_retrieve_options_to_rest( $opt );
 
 	    {
 		local $self->{pretty} = 0;
@@ -3936,21 +3955,25 @@ sub _expand_oid_list {
 # formatting prefixes the 'contains' wildcard '~~' unless year, sequence
 # and part are all present.
 
-sub _format_international_id_rest {
-    my ( $intl_id, $class ) = @_;
-    my @parts = _parse_international_id( $intl_id );
-    my $yt;
-    if ( 'tle' eq $class ) {
-	$parts[0] %= 100;
-	$yt = '%02d';
-    } else {
-	$yt = '%04d-';
+{
+    my %two_digit_year_class = map { $_ => 1 } qw{ tle tle_latest };
+
+    sub _format_international_id_rest {
+	my ( $intl_id, $class ) = @_;
+	my @parts = _parse_international_id( $intl_id );
+	my $yt;
+	if ( $two_digit_year_class{$class} ) {
+	    $parts[0] %= 100;
+	    $yt = '%02d';
+	} else {
+	    $yt = '%04d-';
+	}
+	@parts >= 3
+	    and return sprintf "$yt%03d%s", @parts;
+	@parts >= 2
+	    and return sprintf "~~$yt%03d", @parts;
+	return sprintf "~~$yt", $parts[0];
     }
-    @parts >= 3
-	and return sprintf "$yt%03d%s", @parts;
-    @parts >= 2
-	and return sprintf "~~$yt%03d", @parts;
-    return sprintf "~~$yt", $parts[0];
 }
 
 # Parse a launch date, and format it for a Space-Track REST query. The
