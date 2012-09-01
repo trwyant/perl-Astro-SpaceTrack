@@ -144,6 +144,13 @@ depending on the interface used. A known example is 'Westford Needles',
 which are debris under version 1 of the interface, but payload under
 version 2.
 
+=item The C<-status> search option defaults to 'onorbit' under version 2
+of the interface. The default under version 1 is still 'all'. This
+change was made because I believe that is what the user generally wants,
+and because the database underlying version 2 of the interface is
+optimized for this sort of data. Basically, I believe that if you want a
+slow query you should have to ask for one specifically.
+
 =item The C<-sort> and C<-descending> retrieval options are ignored. The
 issue is that unless you do the equivalent of C<-sort=epoch -descending>
 the new interface gives you the oldest data on record, not the newest.
@@ -260,6 +267,13 @@ use constant SPACE_TRACK_V2_OPTIONS => [
     		=> '(Return only results added after the given file number)',
     'json!'	=> '(Return TLEs in JSON format)',
 ];
+
+# TODO get rid of this hack once the version 1 interface is retired. The
+# reason for the hack is that I want to have the default status to be
+# 'onorbit' under the REST interface, but do not want to change the
+# default under the version 1 interface.
+
+our $DEFAULT_SPACE_TRACK_STATUS = 'all';
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
@@ -2082,6 +2096,10 @@ sub _retrieve_v2 {
 	    $rest{class} = 'tle';
 	}
 
+	if ( $opt->{status} && $opt->{status} ne 'onorbit' ) {
+	    $rest{class} = 'tle';
+	}
+
 	foreach my $name ( qw{ class format } ) {
 	    defined $opt->{$name}
 		and $rest{$name} = $opt->{$name};
@@ -2169,7 +2187,10 @@ sub _retrieve_v2 {
 	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
-	@args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
+	{
+	    local $DEFAULT_SPACE_TRACK_STATUS = 'onorbit';
+	    @args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
+	}
 	my $opt = shift @args;
 
 	if ( $pred eq 'NORAD_CAT_ID' ) {
@@ -2417,11 +2438,12 @@ options may be specified:
  -status
    specifies the desired status of the returned body
    (or bodies). Must be 'onorbit', 'decayed', or 'all'.
-   The default is 'all'. Note that this option
-   represents status at the time the search was done;
-   you can not combine it with the retrieve() date
-   options to find bodies onorbit as of a given date
-   in the past.
+   The default is 'all' under version 1 of the Space
+   Track interface, and 'onorbit' under version 2. Note
+   that this option represents status at the time the
+   search was done; you can not combine it with the
+   retrieve() date options to find bodies onorbit as of
+   a given date in the past.
  -tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
@@ -4609,7 +4631,8 @@ sub _parse_search_args {
     my $opt = $args[0];
     _parse_retrieve_dates( $opt );
 
-    $opt->{status} ||= 'all';
+    $opt->{status} ||= $DEFAULT_SPACE_TRACK_STATUS;
+
     $legal_search_status{$opt->{status}} or croak <<"EOD";
 Error - Illegal status '$opt->{status}'. You must specify one of
         @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
