@@ -112,7 +112,7 @@ exception as soon after the decommissioning of the old web site as I can
 manage.
 
 Version 2 of the interface differs from version 1 in the following ways
-that are known to me at this time. All are due to limitations in the
+that are known to me at this time. All are due to differences in the
 functionality provided by version 2 of the interface, unless explicitly
 stated otherwise.
 
@@ -131,10 +131,10 @@ if) the REST interface becomes capable of returning NASA-format TLEs.
 
 =item The C<spacetrack()> method (which returns predefined packages of
 TLEs) is unsupported when using version 2 of the Space Track interface,
-and throws an exception. There is a place holder for this function on
-the Space Track web site, for whatever that is worth. Some of these data
-sets (e.g. Iridium satellites) could be simulated with canned queries;
-but when I tried it the queries seemed prohibitively slow.
+and throws an exception. This functionality is deprecated on the Space
+Track web site, and will be removed October 2012. See
+L<DEPRECATION NOTICE: SPACE TRACK BULK DATA|/DEPRECATION NOTICE: SPACE TRACK BULK DATA>
+above for details.
 
 =item It appears that the idea of what kind of thing an orbiting body is
 (payload, rocket body, debris, etc) is being reworked for version 2 of
@@ -148,8 +148,17 @@ version 2.
 of the interface. The default under version 1 is still 'all'. This
 change was made because I believe that is what the user generally wants,
 and because the database underlying version 2 of the interface is
-optimized for this sort of data. Basically, I believe that if you want a
-slow query you should have to ask for one specifically.
+optimized for this sort of query (see below). Basically, I believe that
+if you want a slow query you should have to ask for one specifically.
+
+=item Version 2 of the interface has two separate sources of TLE data.
+The C<tle_current> source is optimized for speed, but contains only
+current data. The C<tle> source contains all TLEs back to Sputnik, but
+is slower. The high-level interfaces attempt to select the correct
+source based on the options given them. Options C<-start_epoch>,
+C<-end_epoch> and C<-since_file> cause the C<tle> source do be used, as
+does any value for C<-status> other than C<-status=onorbit>. Otherwise,
+the C<tle_current> source is used.
 
 =item The C<-sort> and C<-descending> retrieval options are ignored. The
 issue is that unless you do the equivalent of C<-sort=epoch -descending>
