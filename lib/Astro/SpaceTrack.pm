@@ -2271,8 +2271,10 @@ sub _retrieve_v2 {
 		} else {
 		    my @line_0;
 		    $with_name
+			and defined $info->{SATNAME}
 			and push @line_0, $info->{SATNAME};
 		    $opt->{rcs}
+			and defined $info->{RCSVALUE}
 			and push @line_0, "--rcs $info->{RCSVALUE}";
 		    @line_0
 			and $content .= join( ' ', @line_0 ) . "\n";
