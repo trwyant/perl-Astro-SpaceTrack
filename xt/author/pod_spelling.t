@@ -24,6 +24,7 @@ amsat
 antisatellite
 API
 Celestrak
+Celestrak's
 China's
 com
 dataset
@@ -32,7 +33,12 @@ exportable
 fallback
 filename
 Fengyun
+globalstar
+inmarsat
+glonass
+HTTPS
 IDs
+intelsat
 ISP
 ISS
 JSON
@@ -44,10 +50,12 @@ McCants
 mccants
 merchantability
 multimonth
+navstar
 NORAD
 OID
 OIDs
 Optionmenu
+orbcomm
 redirections
 SATCAT
 Sladen
@@ -57,6 +65,7 @@ STDERR
 STDOUT
 SpaceTrack
 SpaceTrackTk
+vesselsats
 Wyant
 ZZZ
 attrib

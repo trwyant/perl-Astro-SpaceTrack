@@ -7,6 +7,7 @@ use Test::More 0.96;	# For subtest
 
 use Astro::SpaceTrack;
 
+sub is_error (@);
 sub is_not_success (@);
 sub is_success (@);
 sub not_defined ($$);
@@ -66,8 +67,8 @@ subtest 'Celestrak access', sub {
 
     is $st->content_source(), 'celestrak', "Content source is 'celestrak'";
 
-    is_not_success $st, celestrak => 'fubar',
-	'Direct-fetch non-existent Celestrak catalog';
+    is_error $st, celestrak => 'fubar',
+	404, 'Direct-fetch non-existent Celestrak catalog';
 
 };
 
@@ -114,7 +115,26 @@ subtest 'Space Track access - v1 interface', sub {
 	    'Result interface should be undef'
 	or diag 'content_interface is ', $st->content_interface( $rslt );
 
-    is_success $st, spacetrack => 'special', 'Fetch a catalog entry';
+    {
+
+	my $warning;
+
+	local $SIG{__WARN__} = sub { $warning = $_[0] };
+
+	is_error $st, spacetrack => 'fubar',
+	    404, 'Fetch a non-existent catalog entry';
+
+	like $warning, qr{\ACatalog 'fubar' will not be supported\b}sm,
+	    q{Attempt to fetch 'fubar' generated a warning};
+
+	$warning = undef;
+
+	is_success $st, spacetrack => 'special', 'Fetch a catalog entry';
+
+	like $warning, qr{\ACatalog 'special' will not be supported\b}sm,
+	    q{Attempt to fetch 'special' generated a warning};
+
+    }
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 
@@ -423,9 +443,19 @@ subtest 'Space Track access - v2 interface', sub {
 	    'Result interface should be undef'
 	or diag 'content_interface is ', $st->content_interface( $rslt );
 
-    throws_exception $st, spacetrack => 'special',
-	qr{Bulk data downloads not supported},
+    is_error $st, spacetrack => 'fubar',
+	404, 'Fetch a non-existent catalog entry';
+
+    is_success $st, spacetrack => 'iridium',
 	'Fetch a catalog entry';
+
+    is $st->content_type(), 'orbit', "Content type is 'orbit'";
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
 
     is_success $st, retrieve => 25544, 'Retrieve ISS orbital elements';
 
@@ -808,6 +838,18 @@ done_testing;
 
 sub most_recent_http_response {
     return $rslt;
+}
+
+sub is_error (@) {		## no critic (RequireArgUnpacking)
+    my ( $obj, $method, @args ) = @_;
+    my ( $code, $name ) = splice @args, -2, 2;
+    $rslt = eval { $obj->$method( @args ) };
+    $rslt or do {
+	@_ = ( "$name threw exception: $@" );
+	goto \&fail;
+    };
+    @_ = ( $rslt->code() == $code, $name );
+    goto &ok;
 }
 
 sub is_not_success (@) {	## no critic (RequireArgUnpacking)

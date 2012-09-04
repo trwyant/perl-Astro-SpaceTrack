@@ -9,6 +9,7 @@ use Astro::SpaceTrack;
 use HTTP::Status qw{ HTTP_I_AM_A_TEAPOT };
 
 sub is_resp (@);
+sub warning_like (@);
 sub year();
 
 my $loader = Astro::SpaceTrack->__get_loader() or do {
@@ -713,7 +714,7 @@ is_resp qw{spacetrack iridium}, {
     },
 ;
 
-is_resp qw{spacetrack 10}, {
+is_resp { allow_warning => 1 }, qw{spacetrack 10}, {
 	args => {
 	    ID => 10,
 	},
@@ -722,6 +723,9 @@ is_resp qw{spacetrack 10}, {
 	version => 1,
     },
 ;
+
+warning_like qr{\ACatalog '10' will not be supported},
+    q{spacetrack( 10 ) should warn};
 
 is_resp qw{box_score}, {
 	args => {
@@ -1451,11 +1455,32 @@ is_resp qw{box_score}, {
 
 done_testing;
 
+my $warning;
+
+sub warning_like (@) {
+    splice @_, 0, 0, $warning;
+    goto &like;
+}
+
 sub is_resp (@) {	## no critic (RequireArgUnpacking)
-    my ($method, @args) = @_;
+    my @args = @_;
+    my $opt = 'HASH' eq ref $args[0] ? shift @args : {};
+    my $method = shift @args;
     my $query = pop @args;
     my $name = "\$st->$method(" . join( ', ', map {"'$_'"} @args ) . ')';
-    my $resp = $st->$method( @args );
+    my $resp;
+    {
+	$warning = undef;
+	local $SIG{__WARN__} = sub { $warning = $_[0] };
+	$resp = $st->$method( @args );
+	not defined $warning
+	    or $opt->{allow_warning}
+	    or do {
+	    $warning =~ s{\bat t/spacetrack_request.t\b.*}{}sm;
+	    @_ = qq{$name. Unexpected warning "$warning"};
+	    goto &fail;
+	};
+    }
     my ($got);
 
     if ( $resp && $resp->isa('HTTP::Response') ) {
