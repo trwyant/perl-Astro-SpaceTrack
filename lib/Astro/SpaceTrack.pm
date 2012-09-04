@@ -1215,7 +1215,7 @@ sub get {
     my ( $self, $name ) = @_;
     delete $self->{_pragmata};
     my $value = $self->getv( $name );
-    my $resp = HTTP::Response->new( HTTP_OK, undef, undef, $value );
+    my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef, $value );
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'get',
     );
@@ -2988,7 +2988,12 @@ sub set {	## no critic (ProhibitAmbiguousNames)
 	my $value = shift @args;
 	$mutator{$name}->($self, $name, $value);
     }
-    return HTTP::Response->new (HTTP_OK, undef, undef, COPACETIC);
+    my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef, COPACETIC );
+    $self->_add_pragmata( $resp,
+	'spacetrack-type' => 'set',
+    );
+    $self->_dump_headers( $resp );
+    return $resp;
 }
 
 
@@ -3007,6 +3012,20 @@ method. In addition, 'show' is recognized as a synonym for 'get', and
 'get' (or 'show') without arguments is special-cased to list all
 attribute names and their values. Attributes listed without a value have
 the undefined value.
+
+There are also a couple meta-commands, that in effect wrap other
+commands. These are specified before the command, and can (depending on
+the meta-command) have effect either right before the command is
+executed, right after it is executed, or both. If more than one
+meta-command is specified, the before-actions take place in the order
+specified, and the after-actions in the reverse of the order specified.
+
+The 'time' meta-command times the command, and writes the timing to
+standard error before any output from the command is written.
+
+The 'olist' meta-command turns TLE data into an observing list. This
+meta-command is experimental, and may change function or be retracted.
+It is unsupported when applied to commands that do not return TLE data.
 
 For commands that produce output, we allow a sort of pseudo-redirection
 of the output to a file, using the syntax ">filename" or ">>filename".
@@ -3039,6 +3058,56 @@ Unlike most of the other methods, this one returns nothing.
 =cut
 
 my $rdln;
+my %known_meta = (
+    olist	=> {
+	after	=> sub {
+	    my ( $self, $context, $rslt ) = @_;
+
+	    'ARRAY' eq ref $rslt
+		and return;
+	    $rslt->is_success()
+		and 'orbit' eq ( $self->content_type( $rslt ) || '' )
+		or return;
+
+	    my $content = $rslt->content();
+	    $content =~ m/ \A [[]? [{] /smx
+		and return;
+
+	    my ( @name, @lines );
+
+	    foreach ( split qr{ \n }smx, $content ) {
+		if ( m/ \A 1 \s+ ( \d+ ) /smx ) {
+		    push @lines, join ' ', $1, @name;
+		    @name = ();
+		} elsif ( m/ \A 2 \s+ \d+ /smx || m/ \A \s* [#] /smx ) {
+		} else {
+		    push @name, $_;
+		}
+	    }
+
+	    $rslt->content( join '', map { "$_\n" } @lines );
+	    return;
+	},
+    },
+    time	=> {
+	before	=> sub {
+	    my ( $self, $context ) = @_;
+	    eval {
+		require Time::HiRes;
+		$context->{start_time} = Time::HiRes::time();
+		1;
+	    } or warn 'No timings available. Can not load Time::HiRes';
+	    return;
+	},
+	after	=> sub {
+	    my ( $self, $context, $rslt ) = @_;
+	    $context->{start_time}
+		and warn sprintf "Elapsed time: %.2f seconds\n",
+		    Time::HiRes::time() - $context->{start_time};
+	    return;
+	}
+    },
+);
 
 sub shell {
     my @args = @_;
@@ -3109,14 +3178,21 @@ EOD
 	$redir =~ s/ \A (>+) ~ /$1$ENV{HOME}/smx;
 	my $verb = lc shift @cmdarg;
 
-	my $start_time;
-	if ( $verb eq 'time' ) {
-	    $verb = lc shift @cmdarg;
-	    eval {
-		require Time::HiRes;
-		$start_time = 1;
-		1;
-	    } or warn "Can not time command; Time::HiRes not available\n";
+	my %meta_command = (
+	    before	=> [],
+	    after	=> [],
+	);
+
+	while ( my $def = $known_meta{$verb} ) {
+	    my %context;
+	    foreach my $key ( qw{ before after } ) {
+		$def->{$key}
+		    or next;
+		push @{ $meta_command{$key} }, sub {
+		    return $def->{$key}->( $self, \%context, @_ );
+		};
+	    }
+	    $verb = shift @cmdarg;
 	}
 
 	last if $verb eq 'exit' || $verb eq 'bye';
@@ -3152,8 +3228,9 @@ EOD
 	}
 	my $rslt;
 
-	$start_time
-	    and $start_time = Time::HiRes::time();
+	foreach my $pseudo ( @{ $meta_command{before} } ) {
+	    $pseudo->();
+	}
 
 	if ($verb eq 'get' && @cmdarg == 0) {
 	    $rslt = [];
@@ -3171,9 +3248,9 @@ EOD
 	    };
 	}
 
-	$start_time
-	    and warn sprintf "Elapsed time: %.2f seconds\n",
-		Time::HiRes::time() - $start_time;
+	foreach my $pseudo ( reverse @{ $meta_command{after} } ) {
+	    $pseudo->( $rslt );
+	}
 
 	if (ref $rslt eq 'ARRAY') {
 	    foreach (@$rslt) {print { $out } "$_\n"}
