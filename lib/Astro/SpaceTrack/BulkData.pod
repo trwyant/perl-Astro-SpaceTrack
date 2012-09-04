@@ -155,7 +155,7 @@ This is case (1) above, with query C</SATNAME/~~INTELSAT>.
 The corresponding Celestrak list is substantially different, missing
 many satellites named 'Intelsat', and adding others (notably, but not
 limited to, the 'Galaxy' satellites). Space Track has 89 satellites in
-this list, Celestrak has 64, and 45 appear in both lists.
+this list, Celestrak has 64, and 44 appear in both lists.
 
 =head2 inmarsat - Inmarsat satellites
 

@@ -358,11 +358,12 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    full => {
 		name	=> 'Full catalog',
 #		number	=> 1,
-		query	=> undef,
+		satcat	=> {},
+		no_name	=> {},
 	    },
 	    payloads	=> {
 		name	=> 'All payloads',
-		query	=> {
+		satcat	=> {
 		    OBJECT_TYPE	=> 'PAYLOAD',
 		},
 	    },
@@ -375,13 +376,15 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		#   MEAN_MOTION 0.99--1.01
 		#   ECCENTRICITY <0.01
 		# but none of these is available in class 'satcat'.
-		query	=> {
-#		    ECCENTRICITY	=> '<0.01',
-#		    PERIOD		=> '1430--1450',
-		    # The below is equivalent to the v1 mean motion.
-		    PERIOD		=> '1425.6--1454.4',
+		no_name	=> {
+		    ECCENTRICITY	=> '<0.01',
+		    MEAN_MOTION		=> '0.99--1.01',
+		},
+		satcat	=> {
 		    # The v1 data set includes debris and rocket bodies
 #		    OBJECT_TYPE		=> 'PAYLOAD',
+		    # The below is equivalent to the v1 mean motion.
+		    PERIOD		=> '1425.6--1454.4',
 		},
 		tle	=> {	# Further restrictions on tle query
 		    ECCENTRICITY	=> '<0.01',
@@ -390,7 +393,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    iridium => {
 		name	=> 'Iridium satellites',
 #		number	=> 9,
-		query	=> {
+		satcat	=> {
 		    OBJECT_TYPE	=> 'PAYLOAD',
 		    SATNAME	=> '~~IRIDIUM',
 		},
@@ -398,7 +401,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    orbcomm	=> {
 		name	=> 'OrbComm satellites',
 #		number	=> 11,
-		query	=> [
+		satcat	=> [
 		    {
 			OBJECT_TYPE	=> 'PAYLOAD',
 			SATNAME		=> '~~ORBCOMM',
@@ -412,7 +415,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    globalstar => {
 		name	=> 'Globalstar satellites',
 #		number	=> 13,
-		query	=> {
+		satcat	=> {
 		    OBJECT_TYPE => 'PAYLOAD',
 		    SATNAME	=> '~~GLOBALSTAR',
 		},
@@ -420,7 +423,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    intelsat => {
 		name	=> 'Intelsat satellites',
 #		number	=> 15,
-		query	=> {
+		satcat	=> {
 		    OBJECT_TYPE => 'PAYLOAD',
 		    SATNAME	=> '~~INTELSAT',
 		},
@@ -428,7 +431,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    inmarsat => {
 		name	=> 'Inmarsat satellites',
 #		number	=> 17,
-		query	=> {
+		satcat	=> {
 		    OBJECT_TYPE => 'PAYLOAD',
 		    SATNAME	=> '~~INMARSAT',
 		},
@@ -3105,6 +3108,17 @@ EOD
 
 	$redir =~ s/ \A (>+) ~ /$1$ENV{HOME}/smx;
 	my $verb = lc shift @cmdarg;
+
+	my $start_time;
+	if ( $verb eq 'time' ) {
+	    $verb = lc shift @cmdarg;
+	    eval {
+		require Time::HiRes;
+		$start_time = 1;
+		1;
+	    } or warn "Can not time command; Time::HiRes not available\n";
+	}
+
 	last if $verb eq 'exit' || $verb eq 'bye';
 	$verb eq 'show' and $verb = 'get';
 	$verb eq 'source' and do {
@@ -3137,6 +3151,10 @@ EOD
 	    $out = $stdout;
 	}
 	my $rslt;
+
+	$start_time
+	    and $start_time = Time::HiRes::time();
+
 	if ($verb eq 'get' && @cmdarg == 0) {
 	    $rslt = [];
 	    foreach my $name ($self->attribute_names ()) {
@@ -3152,6 +3170,11 @@ EOD
 		next;
 	    };
 	}
+
+	$start_time
+	    and warn sprintf "Elapsed time: %.2f seconds\n",
+		Time::HiRes::time() - $start_time;
+
 	if (ref $rslt eq 'ARRAY') {
 	    foreach (@$rslt) {print { $out } "$_\n"}
 	} elsif ($rslt->is_success) {
@@ -3554,12 +3577,9 @@ Requested file  doesn't exist");history.go(-1);
 
     sub _unpack_query {
 	my ( $arg ) = @_;
-	defined $arg
-	    or return {};
-	my $code;
-	$code = $unpack_query{ref $arg}
-	    and return $code->( $arg );
-	confess "Programming error - unexpected query definition $arg";
+	my $code = $unpack_query{ref $arg}
+	    or confess "Programming error - unexpected query $arg";
+	return $code->( $arg );
     }
 
 }
@@ -3573,10 +3593,13 @@ sub _spacetrack_v2 {
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
 	or return $self->_no_such_catalog( spacetrack => 2, $catalog );
 
-    my %body_name;
-    my $ref = ref $info->{query};
+    $info->{no_name}
+	and not $with_name
+	and return $self->_spacetrack_v2_no_name( $info );
 
-    foreach my $query ( _unpack_query( $info->{query} ) ) {
+    my %body_name;
+
+    foreach my $query ( _unpack_query( $info->{satcat} ) ) {
 
 	my $rslt = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
@@ -3585,8 +3608,8 @@ sub _spacetrack_v2 {
 	    predicates	=> 'NORAD_CAT_ID,SATNAME',
 	    CURRENT		=> 'Y',
 	    DECAY		=> 'null-val',
-	    map { $_ => $query->{$_} } _sort_rest_arguments( keys %{
-		$query } ),
+	    map { $_ => $query->{$_} } _sort_rest_arguments(
+		keys %{ $query } ),
 	);
 
 	$rslt->is_success()
@@ -3622,6 +3645,34 @@ sub _spacetrack_v2 {
     $rslt->content( $content );
     return $rslt;
 
+}
+
+sub _spacetrack_v2_no_name {
+    my ( $self, $info ) = @_;
+
+    my $query = $info->{no_name};
+
+    my $rslt = $self->spacetrack_query_v2(
+	basicspacedata	=> 'query',
+	class		=> 'tle_latest',
+	format		=> 'json',
+	orderby		=> 'NORAD_CAT_ID asc',
+	predicates	=> 'all',
+	ORDINAL		=> 1,
+	map { $_ => $query->{$_} } _sort_rest_arguments( keys %{
+	    $query } ),
+    );
+
+    $rslt->is_success()
+	or return $rslt;
+
+    my @data = @{ JSON::from_json( $rslt->content() ) };
+
+    my $content = join '', map {;
+	( "$_->{TLE_LINE1}\n", "$_->{TLE_LINE2}\n" )
+    } @data;
+
+    return HTTP::Response->new( HTTP_OK, COPACETIC, undef, $content );
 }
 
 =for html <a name="spacetrack_query_v2"></a>
