@@ -3024,8 +3024,11 @@ The 'time' meta-command times the command, and writes the timing to
 standard error before any output from the command is written.
 
 The 'olist' meta-command turns TLE data into an observing list. This
-meta-command is experimental, and may change function or be retracted.
-It is unsupported when applied to commands that do not return TLE data.
+only affects results with C<spacetrack-type> of C<'orbit'>. If the
+content is affected, the C<spacetrack-type> will be changed to
+C<'observing-list'>. This meta-command is experimental, and may change
+function or be retracted.  It is unsupported when applied to commands
+that do not return TLE data.
 
 For commands that produce output, we allow a sort of pseudo-redirection
 of the output to a file, using the syntax ">filename" or ">>filename".
@@ -3070,22 +3073,49 @@ my %known_meta = (
 		or return;
 
 	    my $content = $rslt->content();
-	    $content =~ m/ \A [[]? [{] /smx
-		and return;
+	    my @lines;
 
-	    my ( @name, @lines );
+	    if ( $content =~ m/ \A [[]? [{] /smx ) {
+		my $data = JSON::from_json( $content );
+		foreach my $datum ( @{ $data } ) {
+		    push @lines, [ sprintf '%05d', $datum->{NORAD_CAT_ID} ];
+		    defined $datum->{SATNAME}
+			and push @{ $lines[-1] }, $datum->{SATNAME};
+		}
+	    } else {
 
-	    foreach ( split qr{ \n }smx, $content ) {
-		if ( m/ \A 1 \s+ ( \d+ ) /smx ) {
-		    push @lines, join ' ', $1, @name;
-		    @name = ();
-		} elsif ( m/ \A 2 \s+ \d+ /smx || m/ \A \s* [#] /smx ) {
-		} else {
-		    push @name, $_;
+		my @name;
+
+		foreach ( split qr{ \n }smx, $content ) {
+		    if ( m/ \A 1 \s+ ( \d+ ) /smx ) {
+			splice @name, 1;
+			push @lines, [ sprintf( '%05d', $1 ), @name ];
+			@name = ();
+		    } elsif ( m/ \A 2 \s+ \d+ /smx || m/ \A \s* [#] /smx ) {
+		    } else {
+			push @name, $_;
+		    }
 		}
 	    }
 
+	    foreach ( $rslt->header( pragma => undef ) ) {
+		my ( $name, $value ) = split qr{ \s* = \s* }smx, $_, 2;
+		'spacetrack-type' eq $name
+		    and $value = 'observing_list';
+		$self->_add_pragmata( $rslt, $name, $value );
+	    }
+
 	    $rslt->content( join '', map { "$_\n" } @lines );
+
+	    {
+		local $" = '';	# Make "@a" equivalent to join '', @a.
+		$rslt->content( join '',
+		    map { "@$_\n" }
+		    sort { $a->[0] <=> $b->[0] }
+		    @lines
+		);
+	    }
+	    $self->_dump_headers( $rslt );
 	    return;
 	},
     },
@@ -4399,7 +4429,7 @@ sub _make_space_track_base_url {
 sub _merge_names {
     my ( $resp, $name ) = @_;
     my $content = $resp->content();
-    if ( $content =~ m/ \A [[]? [{] / ) {
+    if ( $content =~ m/ \A [[]? [{] /smx ) {
 	my $data = JSON::decode_json( $content );
 	foreach my $body ( @{ $data } ) {
 	    my $oid = _normalize_oid( $body->{NORAD_CAT_ID} );
