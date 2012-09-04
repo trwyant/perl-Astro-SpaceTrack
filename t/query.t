@@ -446,7 +446,7 @@ subtest 'Space Track access - v2 interface', sub {
     is_error $st, spacetrack => 'fubar',
 	404, 'Fetch a non-existent catalog entry';
 
-    is_success $st, spacetrack => 'iridium',
+    is_success $st, spacetrack => 'inmarsat',
 	'Fetch a catalog entry';
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
