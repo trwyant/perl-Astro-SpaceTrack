@@ -215,7 +215,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.063';
+our $VERSION = '0.064';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (

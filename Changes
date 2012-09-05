@@ -1,3 +1,20 @@
+0.064		2012-09-05	T. R. Wyant
+  Add REST support for as many of the spacetrack() bulk data sets as I
+    can figure out. The analysis is in Astro::SpaceTrack::BulkData.
+  The default -status for a REST query is now 'onorbit'. The default for
+    version 1 queries remains 'all'.
+  Space Track REST queries now use the 'tle_latest' class unless
+    historical data are needed, as indicated by use of -start_epoch,
+    -end_epoch, -since_file, or some -status other than 'onorbit'.
+  Add 'time' and 'olist' meta-commands to the shell() method. The latter
+    is experimental, and may go away.
+  Eliminate superfluous REST queries issued by search_name() and
+    search_oid(). These were introduced in 0.060_07.
+  Suppress appending of '--rcs' to the common name by the REST interface
+    when RCSVALUE is null.
+  Fix problem with merging names from an observing list into JSON REST
+    data.
+
 0.063		2012-08-29	T. R. Wyant
   Imposed Space Track REST cookie expiration of an hour. The cookie
     appears to come with no expiration, but the docs say it's only good
