@@ -24,6 +24,10 @@ or
  SpaceTrack> celestrak visual >visual.txt
  SpaceTrack> exit
 
+In practice, it is probably not useful to retrieve data from any source
+more often than once every four hours, and in fact daily usually
+suffices.
+
 =head1 LEGAL NOTICE
 
 The following two paragraphs are quoted from the Space Track web site.
@@ -183,9 +187,6 @@ method for the details.
 Other methods (amsat(), spaceflight() ...) have been added to access
 other repositories of orbital data, and in general these do not require
 a Space Track username and password.
-
-Beginning with version 0.017, there is provision for retrieval of
-historical data.
 
 Nothing is exported by default, but the shell method/subroutine
 and the BODY_STATUS constants (see L</iridium_status>) can be
