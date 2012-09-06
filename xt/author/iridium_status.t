@@ -21,7 +21,7 @@ my %known_inconsistent = (
     24906 => { kelso => 1 },	# Kelso: spare; others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
-    25262 => { sladen => 1 },	# Sladen: operational; others: spare.
+    25262 => { kelso => 1 },	# Kelso: spare; others: operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 );
 
@@ -129,7 +129,7 @@ foreach (["Mike McCants' Iridium status",
  25171   Iridium 54              Celestrak
  25172   Iridium 50              Celestrak
  25173   Iridium 53              Celestrak
- 25262   Iridium 51     ?        Spare
+ 25262   Iridium 51              Moved next to Iridium 7 in July, 2012
  25263   Iridium 61              Celestrak
  25272   Iridium 55              Celestrak
  25273   Iridium 57              Celestrak
