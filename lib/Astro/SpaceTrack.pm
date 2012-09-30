@@ -215,7 +215,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.064';
+our $VERSION = '0.064_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -5400,8 +5400,8 @@ the default was true, to mimic earlier behavior. In version 0.060_09
 this was changed to false, in the belief that the code should work out
 of the box (which it did not when verify_hostname was true, at least as
 of mid-July 2012). But on September 30 2012 Space Track announced that
-they had their SSL certificates set up, so in [%% next_version %%] the
-default became false again.
+they had their SSL certificates set up, so in 0.064_01 the default
+became false again.
 
 The default is true (i.e. 1).
 

@@ -1,3 +1,10 @@
+0.064_01	2012-09-30	T. R. Wyant
+  Change attribute verify_hostname's default value to true again, since
+    Space Track says they have their act together.
+  Correct documented name of class used to retrieve current TLE data
+    using the Space Track REST interface. It's 'tle_latest', not
+    'tle_current'.
+
 0.064		2012-09-05	T. R. Wyant
   Add REST support for as many of the spacetrack() bulk data sets as I
     can figure out. The analysis is in Astro::SpaceTrack::BulkData.
