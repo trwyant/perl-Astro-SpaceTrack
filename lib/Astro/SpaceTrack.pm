@@ -75,7 +75,7 @@ REST interface, since I have no way to maintain the OID list.
 I decided to try to replicate what I could because of recent
 improvements in the performance of REST class C<'tle'> (I write this
 September 3 2012), as well as the provision of a source of TLE data
-(REST class C<'tle_current'>) groomed and optimized for the retrieval of
+(REST class C<'tle_latest'>) groomed and optimized for the retrieval of
 current data.
 
 See the documentation for the C<spacetrack()> method for a list of what
@@ -153,13 +153,13 @@ optimized for this sort of query (see below). Basically, I believe that
 if you want a slow query you should have to ask for one specifically.
 
 =item Version 2 of the interface has two separate sources of TLE data.
-The C<tle_current> source is optimized for speed, but contains only
+The C<tle_latest> source is optimized for speed, but contains only
 current data. The C<tle> source contains all TLEs back to Sputnik, but
 is slower. The high-level interfaces attempt to select the correct
 source based on the options given them. Options C<-start_epoch>,
 C<-end_epoch> and C<-since_file> cause the C<tle> source do be used, as
 does any value for C<-status> other than C<-status=onorbit>. Otherwise,
-the C<tle_current> source is used.
+the C<tle_latest> source is used.
 
 =item The C<-sort> and C<-descending> retrieval options are ignored. The
 issue is that unless you do the equivalent of C<-sort=epoch -descending>
@@ -543,7 +543,7 @@ sub new {
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
 	verbose => undef,	# Verbose error messages for catalogs.
-	verify_hostname => 0,	# Don't verify host names by default.
+	verify_hostname => 1,	# Verify host names by default.
 	webcmd => undef,	# Command to get web help.
 	with_name => undef,	# True to retrieve three-line element sets.
     };
@@ -5395,12 +5395,15 @@ If you set this false, you can not verify that hosts using C<https:> are
 who they say they are, but it also lets you work around invalid
 certificates. Currently only the Space Track web site uses C<https:>.
 
-B<Note> that the default has changed. The default in version 0.060_08
-and earlier was true, to mimic earlier behaviour. But on second thought,
-the software should work by default, which it does not (at least as of
-mid-July 2012). Hence the change.
+B<Note> that the default has changed. In version 0.060_08 and earlier,
+the default was true, to mimic earlier behavior. In version 0.060_09
+this was changed to false, in the belief that the code should work out
+of the box (which it did not when verify_hostname was true, at least as
+of mid-July 2012). But on September 30 2012 Space Track announced that
+they had their SSL certificates set up, so in [%% next_version %%] the
+default became false again.
 
-The default is false (i.e. 0).
+The default is true (i.e. 1).
 
 =item webcmd (string)
 

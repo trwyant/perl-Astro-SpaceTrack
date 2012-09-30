@@ -15,7 +15,7 @@ sub site_check ($);
 sub skip_site (@);
 sub throws_exception (@);
 
-use constant VERIFY_HOSTNAME => 0;
+use constant VERIFY_HOSTNAME => 1;
 
 my $desired_content_interface = 1;
 my $rslt;
