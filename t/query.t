@@ -673,6 +673,32 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
+    is_success $st, spacetrack_query_v2 => qw{ basicspacedata query
+	class tle_latest NORAD_CAT_ID 25544 },
+	'Get ISS data via general query';
+
+    is $st->content_type(), 'orbit',
+	"Content type is 'orbit'";
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
+
+    is_success $st, spacetrack_query_v2 => qw{ basicspacedata modeldef
+	class tle_latest },
+	'Get tle_latest model definition';
+
+    is $st->content_type(), 'modeldef',
+	"Content type is 'modeldef'";
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
+
 };
 
 subtest 'Space Track access via Celestrak - v2 interface', sub {

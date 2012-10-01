@@ -1077,8 +1077,11 @@ following values are supported:
          box score.
  'get': The content is a parameter value.
  'help': The content is help text.
+ 'iridium_status': The content is Iridium status.
+ 'modeldef': The content is a REST model definition.
  'orbit': The content is NORAD data sets.
  'search': The content is Space Track search results.
+ 'set': The content is the result of a 'set' operation.
  undef: No spacetrack-type pragma was specified. The
         content is something else (typically 'OK').
 
@@ -3814,50 +3817,103 @@ call:
      } );
  );
 
+If this method is called directly from outside the C<Astro::SpaceTrack>
+name space, pragmata will be added to the results based on the
+arguments, as follows:
+
+For C<< basicspacedata => 'modeldef' >>
+
+ Pragma: spacetrack-type = modeldef
+ Pragma: spacetrack-source = spacetrack
+ Pragma: spacetrack-interface = 2
+
+For C<< basicspacedata => 'query' >> and C<< class => 'tle' >> or
+C<'tle_latest'>,
+
+ Pragma: spacetrack-type = orbit
+ Pragma: spacetrack-source = spacetrack
+ Pragma: spacetrack-interface = 2
+
 =cut
 
-sub spacetrack_query_v2 {
-    my ( $self, @args ) = @_;
+{
 
-    # Note that we need to add the comma to URI::Escape's RFC3986 list,
-    # since Space Track does not decode it.
-    my $url = $self->_make_space_track_base_url( 2 ) . '/' .
-	join '/', map {
-	    URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~:-' )
-	} @args;
+    my %tle_class = map { $_ => 1 } qw{ tle tle_latest };
 
-    if ( my $resp = $self->_dump_request(
-	    args	=> \@args,
-	    method	=> 'GET',
-	    url		=> $url,
-	    version	=> 2,
-	) ) {
+    sub spacetrack_query_v2 {
+	my ( $self, @args ) = @_;
+
+	# Note that we need to add the comma to URI::Escape's RFC3986 list,
+	# since Space Track does not decode it.
+	my $url = $self->_make_space_track_base_url( 2 ) . '/' .
+	    join '/', map {
+		URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~:-' )
+	    } @args;
+
+	if ( my $resp = $self->_dump_request(
+		args	=> \@args,
+		method	=> 'GET',
+		url		=> $url,
+		version	=> 2,
+	    ) ) {
+	    return $resp;
+	}
+
+	$self->_check_cookie_generic( 2 )
+	    or do {
+	    my $resp = $self->_login_v2();
+	    $resp->is_success()
+		or return $resp;
+	};
+##	warn "Debug - $url/$cgi";
+	my $resp = $self->_get_agent()->get( $url );
+
+	if ( $resp->is_success() ) {
+
+	    if ( $self->{pretty} &&
+		_find_rest_arg_value( \@args, format => 'json' ) eq 'json'
+	    ) {
+		$resp->content(
+		    JSON::to_json(
+			JSON::from_json( $resp->content() ), {
+			    utf8		=> 1,
+			    pretty		=> 1,
+			    canonical	=> 1,
+			},
+		    )
+		);
+	    }
+
+	    if ( __PACKAGE__ ne caller ) {
+
+		my $kind = _find_rest_arg_value( \@args,
+		    basicspacedata => '' );
+		my $class = _find_rest_arg_value( \@args,
+		    class => '' );
+
+		if ( 'modeldef' eq $kind ) {
+
+		    $self->_add_pragmata( $resp,
+			'spacetrack-type' => 'modeldef',
+			'spacetrack-source' => 'spacetrack',
+			'spacetrack-interface' => 2,
+		    );
+
+		} elsif ( 'query' eq $kind && $tle_class{$class} ) {
+
+		    $self->_add_pragmata( $resp,
+			'spacetrack-type' => 'orbit',
+			'spacetrack-source' => 'spacetrack',
+			'spacetrack-interface' => 2,
+		    );
+
+		}
+	    }
+	}
+
+	$self->_dump_headers( $resp );
 	return $resp;
     }
-
-    $self->_check_cookie_generic( 2 )
-	or do {
-	my $resp = $self->_login_v2();
-	$resp->is_success()
-	    or return $resp;
-    };
-##  warn "Debug - $url/$cgi";
-    my $resp = $self->_get_agent()->get( $url );
-    $self->_dump_headers( $resp );
-    if ( $resp->is_success() && $self->{pretty} &&
-	_find_rest_arg_value( \@args, format => 'json' ) eq 'json'
-    ) {
-	$resp->content(
-	    JSON::to_json(
-		JSON::from_json( $resp->content() ), {
-		    utf8		=> 1,
-		    pretty		=> 1,
-		    canonical	=> 1,
-		},
-	    )
-	);
-    }
-    return $resp;
 }
 
 sub _find_rest_arg_value {
@@ -3884,8 +3940,7 @@ sub _find_rest_arg_value {
 sub _add_pragmata {
     my ($self, $resp, @args) = @_;
     while (@args) {
-	my $name = shift @args;
-	my $value = shift @args;
+	my ( $name, $value ) = splice @args, 0, 2;
 	$self->{_pragmata}{$name} = $value;
 	$resp->push_header(pragma => "$name = $value");
     }
