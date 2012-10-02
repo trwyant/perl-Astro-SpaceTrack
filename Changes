@@ -1,3 +1,17 @@
+0.064_02	2012-10-02	T. R. Wyant
+  Make use of the new TLE_LINE0 field in the tle and tle_latest classes
+    to have the version 2 retrieve() method return common names.
+  INCOMPATIBLE CHANGE: In JSON output, the object name is now in field
+    OBJECT_NAME. Previously there was no object name in the tle data,
+    and I was hammering it into field SATNAME, since that is where it
+    was in the satcat data.
+  Give spacetrack_query_v2() the ability to add header pragmas if it
+    discovers it was called from outside the Astro::SpaceTrack name
+    space.  It adds 'spacetrack-type = modeldef' if the query is
+    'basicspacedata => "modeldef"', and 'spacetrack-type = orbit' if the
+    query is 'basicspacedata => "query", class => 'tle'" or '... class
+    => "tle_latest"'.
+
 0.064_01	2012-09-30	T. R. Wyant
   Change attribute verify_hostname's default value to true again, since
     Space Track says they have their act together.

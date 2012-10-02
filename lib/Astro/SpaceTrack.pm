@@ -122,7 +122,7 @@ stated otherwise.
 =item In version 0.064_01 and before, the retrieve() method (which
 retrieves TLEs for given OIDs) was incapable of returning the common
 name of the body when using version 2 of the Space Track interface.
-Beginning with [%% next_version %%] this restriction is removed. The
+Beginning with 0.064_02 this restriction is removed. The
 celestrak() and file() methods still prefer the object name from the
 observing list to the object name supplied by Space Track.
 
@@ -211,7 +211,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.064_01';
+our $VERSION = '0.064_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
