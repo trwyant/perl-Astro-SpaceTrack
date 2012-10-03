@@ -355,8 +355,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    full => {
 		name	=> 'Full catalog',
 #		number	=> 1,
-		satcat	=> {},
-		no_name	=> {},
 	    },
 	    payloads	=> {
 		name	=> 'All payloads',
@@ -372,19 +370,9 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		# The v1 definition is
 		#   MEAN_MOTION 0.99--1.01
 		#   ECCENTRICITY <0.01
-		# but none of these is available in class 'satcat'.
-		no_name	=> {
+		tle	=> {
 		    ECCENTRICITY	=> '<0.01',
 		    MEAN_MOTION		=> '0.99--1.01',
-		},
-		satcat	=> {
-		    # The v1 data set includes debris and rocket bodies
-#		    OBJECT_TYPE		=> 'PAYLOAD',
-		    # The below is equivalent to the v1 mean motion.
-		    PERIOD		=> '1425.6--1454.4',
-		},
-		tle	=> {	# Further restrictions on tle query
-		    ECCENTRICITY	=> '<0.01',
 		},
 	    },
 	    iridium => {
@@ -3725,43 +3713,69 @@ sub _spacetrack_v2 {
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
 	or return $self->_no_such_catalog( spacetrack => 2, $catalog );
 
-    $info->{no_name}
-	and not $with_name
-	and return $self->_spacetrack_v2_no_name( $info );
+    my $rslt;
 
-    my %oid;
+    if ( $info->{satcat} ) {
 
-    foreach my $query ( _unpack_query( $info->{satcat} ) ) {
+	my %oid;
 
-	my $rslt = $self->spacetrack_query_v2(
+	foreach my $query ( _unpack_query( $info->{satcat} ) ) {
+
+	    $rslt = $self->spacetrack_query_v2(
+		basicspacedata	=> 'query',
+		class		=> 'satcat',
+		format		=> 'json',
+		predicates	=> 'NORAD_CAT_ID',
+		CURRENT		=> 'Y',
+		DECAY		=> 'null-val',
+		map { $_ => $query->{$_} } _sort_rest_arguments(
+		    keys %{ $query } ),
+	    );
+
+	    $rslt->is_success()
+		or return $rslt;
+
+	    my $data = JSON::from_json( $rslt->content() );
+
+	    foreach my $body ( @{ JSON::from_json( $rslt->content() ) } ) {
+		$oid{ $body->{NORAD_CAT_ID} + 0 } = 1;
+	    }
+
+	}
+
+	my %retrieve_opt = ( format	=> 'json' );
+	$info->{tle}
+	    and @retrieve_opt{ keys %{ $info->{tle} } } =
+		values %{ $info->{tle} };
+
+	$rslt = $self->_retrieve_v2( \%retrieve_opt, keys %oid );
+
+	$rslt->is_success()
+	    or return $rslt;
+
+    } else {
+
+	$rslt = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
-	    class		=> 'satcat',
+	    class		=> 'tle_latest',
 	    format		=> 'json',
-	    predicates	=> 'NORAD_CAT_ID,SATNAME',
-	    CURRENT		=> 'Y',
-	    DECAY		=> 'null-val',
-	    map { $_ => $query->{$_} } _sort_rest_arguments(
-		keys %{ $query } ),
+	    orderby		=> 'NORAD_CAT_ID asc',
+	    predicates	=> 'all',
+	    ORDINAL		=> 1,
+	    map { $_ => $info->{tle}->{$_} } _sort_rest_arguments( keys %{
+		$info->{tle} || {} } ),
 	);
 
 	$rslt->is_success()
 	    or return $rslt;
 
-	my $data = JSON::from_json( $rslt->content() );
-
-	foreach my $body ( @{ JSON::from_json( $rslt->content() ) } ) {
-	    $oid{ $body->{NORAD_CAT_ID} + 0 } = 1;
-	}
+	$self->_add_pragmata( $rslt,
+	    'spacetrack-type' => 'orbit',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 2,
+	);
 
     }
-
-    my %retrieve_opt = ( format	=> 'json' );
-    $info->{tle}
-	and @retrieve_opt{ keys %{ $info->{tle} } } =
-	    values %{ $info->{tle} };
-    my $rslt = $self->_retrieve_v2( \%retrieve_opt, keys %oid );
-    $rslt->is_success()
-	or return $rslt;
 
     my $content = '';
     my $data = JSON::from_json( $rslt->content() );
@@ -3777,34 +3791,6 @@ sub _spacetrack_v2 {
     $rslt->content( $content );
     return $rslt;
 
-}
-
-sub _spacetrack_v2_no_name {
-    my ( $self, $info ) = @_;
-
-    my $query = $info->{no_name};
-
-    my $rslt = $self->spacetrack_query_v2(
-	basicspacedata	=> 'query',
-	class		=> 'tle_latest',
-	format		=> 'json',
-	orderby		=> 'NORAD_CAT_ID asc',
-	predicates	=> 'all',
-	ORDINAL		=> 1,
-	map { $_ => $query->{$_} } _sort_rest_arguments( keys %{
-	    $query } ),
-    );
-
-    $rslt->is_success()
-	or return $rslt;
-
-    my @data = @{ JSON::from_json( $rslt->content() ) };
-
-    my $content = join '', map {;
-	( "$_->{TLE_LINE1}\n", "$_->{TLE_LINE2}\n" )
-    } @data;
-
-    return HTTP::Response->new( HTTP_OK, COPACETIC, undef, $content );
 }
 
 =for html <a name="spacetrack_query_v2"></a>
