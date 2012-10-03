@@ -2027,8 +2027,7 @@ sub _retrieve_v2 {
 
 	my $resp = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
-	    map { $_ => $rest->{$_} } _sort_rest_arguments( keys %{
-		$rest } )
+	    _sort_rest_arguments( $rest )
 	);
 
 	$resp->is_success()
@@ -2391,7 +2390,7 @@ sub __search_rest_raw {
 
     my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
-	map { $_ => $args{$_} } _sort_rest_arguments( keys %args ),
+	_sort_rest_arguments( \%args ),
     );
 #   $resp->content( $content );
 #   $self->_convert_content( $resp );
@@ -3710,8 +3709,7 @@ sub _spacetrack_v2 {
 		predicates	=> 'NORAD_CAT_ID',
 		CURRENT		=> 'Y',
 		DECAY		=> 'null-val',
-		map { $_ => $query->{$_} } _sort_rest_arguments(
-		    keys %{ $query } ),
+		_sort_rest_arguments( $query ),
 	    );
 
 	    $rslt->is_success()
@@ -3743,8 +3741,7 @@ sub _spacetrack_v2 {
 	    format		=> $format,
 	    orderby		=> 'NORAD_CAT_ID asc',
 	    ORDINAL		=> 1,
-	    map { $_ => $info->{tle}->{$_} } _sort_rest_arguments( keys %{
-		$info->{tle} || {} } ),
+	    _sort_rest_arguments( $info->{tle} ),
 	);
 
 	$rslt->is_success()
@@ -5118,22 +5115,49 @@ sub _search_generic_tabulate {
 
 =cut
 
-#	@keys = _sort_rest_arguments( keys %rest_args );
+#	@keys = _sort_rest_arguments( \%rest_args );
 #
 #	This subroutine sorts the argument names in the desired order.
 #	A better way to do this may be to use Unicode::Collate, which
 #	has been core since 5.7.3.
 
-sub _sort_rest_arguments {
-    return ( map { $_->[0] } sort { $a->[1] cmp $b->[1] } map { [ $_,
-	_swap_upper_and_lower( $_ ) ] } @_ );
+{
+
+    my %special = map { $_ => 1 } qw{ basicspacedata extendedspacedata };
+
+    sub _sort_rest_arguments {
+	my ( $rest_args ) = @_;
+
+	'HASH' eq ref $rest_args
+	    or return;
+
+	my @rslt;
+
+	foreach my $key ( keys %special ) {
+	    @rslt
+		and croak "You may not specify both '$rslt[0]' and '$key'";
+	    defined $rest_args->{$key}
+		and push @rslt, $key, $rest_args->{$key};
+	}
+
+
+	push @rslt, map { ( $_->[0], $rest_args->{$_->[0]} ) }
+	    sort { $a->[1] cmp $b->[1] }
+	    # Oh, for 5.14 and tr///r
+	    map { [ $_, _swap_upper_and_lower( $_ ) ] }
+	    grep { ! $special{$_} }
+	    keys %{ $rest_args };
+
+	return @rslt;
+    }
 }
 
 #	$swapped = _swap_upper_and_lower( $original );
 #
 #	This subroutine swapps upper and lower case in its argument,
 #	using the transliteration operator. It should be used only by
-#	_sort_rest_arguments().
+#	_sort_rest_arguments(). This can go away in favor of tr///r when
+#	(if!) the minimum version becomes 5.14.
 
 sub _swap_upper_and_lower {
     my ( $arg ) = @_;
