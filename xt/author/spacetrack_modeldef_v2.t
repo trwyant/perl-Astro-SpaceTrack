@@ -399,7 +399,7 @@ if ( $rslt->is_success() ) {
          "Field" : "TLE_LINE0",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "char(25)"
+         "Type" : "varchar(27)"
       },
       {
          "Default" : "",
