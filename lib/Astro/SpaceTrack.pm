@@ -354,7 +354,14 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	{	# Interface version 2 (REST)
 	    full => {
 		name	=> 'Full catalog',
+		# We have to go through satcat to eliminate bodies that
+		# are not on orbit, since tle_latest includes bodies
+		# decayed in the last two years or so
+		satcat	=> {},
 #		number	=> 1,
+	    },
+	    full_fast => {
+		name	=> 'Full catalog, with some objects no longer in orbit',
 	    },
 	    payloads	=> {
 		name	=> 'All payloads',
@@ -365,11 +372,24 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    geosynchronous => {
 		name	=> 'Geosynchronous satellites',
 #		number	=> 3,
+		# We have to go through satcat to eliminate bodies that
+		# are not on orbit, since tle_latest includes bodies
+		# decayed in the last two years or so
+		satcat	=> {
+		    PERIOD	=> '1425.6--1454.4'
+		},
 		# Note that the v2 interface specimen query is
 		#   PERIOD 1430--1450.
 		# The v1 definition is
 		#   MEAN_MOTION 0.99--1.01
 		#   ECCENTRICITY <0.01
+		tle	=> {
+		    ECCENTRICITY	=> '<0.01',
+#		    MEAN_MOTION		=> '0.99--1.01',
+		},
+	    },
+	    geosynchronous_fast => {
+		name	=> 'Geosynchronous satellites, with some bodies no longer in orbit',
 		tle	=> {
 		    ECCENTRICITY	=> '<0.01',
 		    MEAN_MOTION		=> '0.99--1.01',
@@ -3538,13 +3558,22 @@ Under C<space_track_version == 2>, the following catalogs are available:
 
     Name            Description
     full            Full catalog
+    full_fast       Full catalog, faster but less
+                        accurate query
     payloads        All payloads
     geosynchronous  Geosynchronous bodies
+    geosynchronous_fast Geosynchronous bodies, faster
+                        but less accurate query
     iridium         Iridium satellites
     orbcomm         OrbComm satellites
     globalstar      Globalstar satellites
     intelsat        Intelsat satellites
     inmarsat        Inmarsat satellites
+
+The C<*_fast> queries are, as of this writing, much faster than their
+not-fast variants. But they gain speed by omitting a check on whether or
+not the body is still in orbit. These queries are not supported, and may
+be retracted without notice if the speed difference becomes tolerable.
 
 Retrieval by number is unsupported under version 2 of the interface.
 When retrieving a bulk catalog by name, the value of the C<with_names>
@@ -3728,7 +3757,8 @@ sub _spacetrack_v2 {
 	    and @retrieve_opt{ keys %{ $info->{tle} } } =
 		values %{ $info->{tle} };
 
-	$rslt = $self->_retrieve_v2( \%retrieve_opt, keys %oid );
+	$rslt = $self->_retrieve_v2( \%retrieve_opt,
+	    sort { $a <=> $b } keys %oid );
 
 	$rslt->is_success()
 	    or return $rslt;
