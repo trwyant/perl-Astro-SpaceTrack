@@ -1394,37 +1394,44 @@ is_resp qw{search_name -exclude debris -exclude rocket ISS}, {
     },
 ;
 
-=begin comment
-
-# TODO Not supported by Space Track v2 interface
 is_resp qw{spacetrack iridium}, {
 	args => [
 	    basicspacedata	=> 'query',
+	    class		=> 'satcat',
+	    format		=> 'json',
+	    predicates		=> 'NORAD_CAT_ID',
+	    CURRENT		=> 'Y',
+	    DECAY		=> 'null-val',
+	    OBJECT_TYPE		=> 'PAYLOAD',
+	    SATNAME		=> '~~IRIDIUM',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/satcat/format/json/predicates/NORAD_CAT_ID/CURRENT/Y/DECAY/null-val/OBJECT_TYPE/PAYLOAD/SATNAME/~~IRIDIUM",
 	version => 2,
     },
 ;
-
-=end comment
-
-=cut
 
 is_resp qw{set with_name 0}, 'OK';
 
-=begin comment
 
-# TODO Not supported by Space Track v2 interface
 is_resp qw{spacetrack iridium}, {
 	args => [
 	    basicspacedata	=> 'query',
+	    class		=> 'satcat',
+	    format		=> 'json',
+	    predicates		=> 'NORAD_CAT_ID',
+	    CURRENT		=> 'Y',
+	    DECAY		=> 'null-val',
+	    OBJECT_TYPE		=> 'PAYLOAD',
+	    SATNAME		=> '~~IRIDIUM',
 	],
 	method => 'GET',
-	url => $base_url,
+	url => "$base_url/basicspacedata/query/class/satcat/format/json/predicates/NORAD_CAT_ID/CURRENT/Y/DECAY/null-val/OBJECT_TYPE/PAYLOAD/SATNAME/~~IRIDIUM",
 	version => 2,
     },
 ;
+
+=begin comment
 
 # TODO Not supported by Space Track v2 interface
 is_resp qw{spacetrack 10}, {
