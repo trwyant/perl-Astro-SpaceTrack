@@ -2008,27 +2008,7 @@ sub _retrieve_v2 {
     @args = $self->_expand_oid_list( @args )
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
-    defined $rest->{format}
-	or $rest->{format} = 'tle';
-
     my $no_execute = $self->getv( 'dump_headers' ) & DUMP_NO_EXECUTE;
-
-    my $converter;
-    if ( $rest->{format} eq 'tle' && $self->{with_name} ) {
-	$rest->{format} = 'json';
-	$no_execute
-	    or $converter = sub {
-	    my $items = JSON::from_json( $_[0] );
-	    my $rslt = '';
-	    foreach my $datum (
-		ref $items eq 'ARRAY' ? @{ $items } : $items
-	    ) {
-		$rslt .= join '', map { $datum->{"TLE_LINE$_"} . "\n" }
-		    0 .. 2;
-	    }
-	    return $rslt;
-	};
-    }
 
     $rest->{orderby} = 'EPOCH desc';
 
@@ -2065,10 +2045,6 @@ sub _retrieve_v2 {
     $content
 	and $content ne '[]'
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
-
-    $converter
-	and $content
-	and $content = $converter->( $content );
 
     $no_execute
 	and return HTTP::Response->new(
@@ -2131,6 +2107,13 @@ sub _retrieve_v2 {
 	    defined $opt->{$name}
 		and $rest{$name} = $opt->{$name};
 	}
+
+	defined $rest{format}
+	    or $rest{format} = 'tle';
+
+	$rest{format} eq 'tle'
+	    and $self->{with_name}
+	    and $rest{format} = '3le';
 
 	if ( $rest{class} eq 'tle_latest' ) {
 	    if ( defined $rest{sublimit} && $rest{sublimit} <= 5 ) {
@@ -2274,7 +2257,6 @@ sub _retrieve_v2 {
 	    my $with_name = $self->{with_name};
 
 	    $opt->{format} = 'json';
-##	    $rest_args = $self->_convert_retrieve_options_to_rest( $opt );
 
 	    {
 		local $self->{pretty} = 0;
@@ -3707,7 +3689,7 @@ Requested file  doesn't exist");history.go(-1);
 sub _spacetrack_v2 {
     my ( $self, $catalog ) = @_;
 
-    my $with_name = $self->getv( 'with_name' );
+    my $format = $self->getv( 'with_name' ) ? '3le' : 'tle';
 
     defined $catalog
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
@@ -3743,7 +3725,7 @@ sub _spacetrack_v2 {
 
 	}
 
-	my %retrieve_opt = ( format	=> 'json' );
+	my %retrieve_opt = ( format	=> $format );
 	$info->{tle}
 	    and @retrieve_opt{ keys %{ $info->{tle} } } =
 		values %{ $info->{tle} };
@@ -3758,9 +3740,8 @@ sub _spacetrack_v2 {
 	$rslt = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
 	    class		=> 'tle_latest',
-	    format		=> 'json',
+	    format		=> $format,
 	    orderby		=> 'NORAD_CAT_ID asc',
-	    predicates	=> 'all',
 	    ORDINAL		=> 1,
 	    map { $_ => $info->{tle}->{$_} } _sort_rest_arguments( keys %{
 		$info->{tle} || {} } ),
@@ -3777,18 +3758,6 @@ sub _spacetrack_v2 {
 
     }
 
-    my $content = '';
-    my $data = JSON::from_json( $rslt->content() );
-
-    foreach my $tle (
-	sort { $a->{NORAD_CAT_ID} <=> $b->{NORAD_CAT_ID} } @{ $data }
-    ) {
-	$with_name
-	    and $content .= "$tle->{TLE_LINE0}\n";
-	$content .= "$tle->{TLE_LINE1}\n$tle->{TLE_LINE2}\n";
-    }
-
-    $rslt->content( $content );
     return $rslt;
 
 }
