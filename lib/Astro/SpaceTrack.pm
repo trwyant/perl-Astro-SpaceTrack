@@ -2134,6 +2134,10 @@ sub _retrieve_v2 {
 	    and $self->{with_name}
 	    and $rest{format} = '3le';
 
+	$rest{format} eq '3le'
+	    and not defined $rest{predicates}
+	    and $rest{predicates} = 'OBJECT_NAME,TLE_LINE1,TLE_LINE2';
+
 	if ( $rest{class} eq 'tle_latest' ) {
 	    if ( defined $rest{sublimit} && $rest{sublimit} <= 5 ) {
 		my $limit = delete $rest{sublimit};
@@ -3765,11 +3769,18 @@ sub _spacetrack_v2 {
 
     } else {
 
+	my @predicates;
+	'3le' eq $format
+	    and @predicates = (
+	    predicates	=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
+	);
+
 	$rslt = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
 	    class		=> 'tle_latest',
 	    format		=> $format,
 	    orderby		=> 'NORAD_CAT_ID asc',
+	    @predicates,
 	    ORDINAL		=> 1,
 	    _sort_rest_arguments( $info->{tle} ),
 	);

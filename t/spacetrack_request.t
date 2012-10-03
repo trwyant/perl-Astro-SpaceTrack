@@ -925,11 +925,12 @@ is_resp qw{retrieve 25544}, [ {
 	    class	=> 'tle_latest',
 	    format	=> '3le',
 	    orderby	=> 'EPOCH desc',
+	    predicates	=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
 	    NORAD_CAT_ID => 25544,
 	    ORDINAL	=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle_latest/format/3le/orderby/EPOCH%20desc/NORAD_CAT_ID/25544/ORDINAL/1",
+	url => "$base_url/basicspacedata/query/class/tle_latest/format/3le/orderby/EPOCH%20desc/predicates/OBJECT_NAME,TLE_LINE1,TLE_LINE2/NORAD_CAT_ID/25544/ORDINAL/1",
 	version => 2,
     } ],
 ;
