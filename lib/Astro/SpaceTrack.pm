@@ -782,7 +782,7 @@ sub _box_score_v1 {
 	$resp->is_success()
 	    or return $resp;
 
-	my $data = JSON::decode_json( $resp->content() );
+	my $data = $self->_get_json_object()->decode( $resp->content() );
 
 	my $content;
 	foreach my $row ( @head ) {
@@ -2257,7 +2257,7 @@ sub _retrieve_v2 {
 	    $rslt->is_success()
 		or return $rslt;
 
-	    my $data = JSON::decode_json( $rslt->content() );
+	    my $data = $self->_get_json_object()->decode( $rslt->content() );
 
 ##	    $self->_simulate_rest_exclude( $opt, $data );
 
@@ -2281,7 +2281,7 @@ sub _retrieve_v2 {
 	    $rslt->is_success()
 		or return $rslt;
 	    my %search_info = map { $_->{NORAD_CAT_ID} => $_ } @found;
-	    my $bodies = JSON::decode_json( $rslt->content() );
+	    my $bodies = $self->_get_json_object()->decode( $rslt->content() );
 	    my $content;
 	    foreach my $body ( @{ $bodies } ) {
 		my $info = $search_info{$body->{NORAD_CAT_ID}};
@@ -2309,11 +2309,7 @@ EOD
 	    }
 
 	    $opt->{json}
-		and $content = JSON::to_json( $bodies, {
-		    utf8	=> 1,
-		    pretty	=> $self->{pretty},
-		    canonical	=> $self->{pretty},
-		} );
+		and $content = $self->_get_json_object()->encode( $bodies );
 
 	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
 	    $self->_add_pragmata( $rslt,
@@ -2326,11 +2322,7 @@ EOD
 
 	    my $content;
 	    if ( $opt->{json} ) {
-		$content = JSON::to_json( \@found, {
-			utf8		=> 1,
-			pretty		=> $self->{pretty},
-			canonical	=> $self->{pretty},
-		    } );
+		$content = $self->_get_json_object()->encode( \@found );
 	    } else {
 		foreach my $datum (
 		    \%headings,
@@ -3083,7 +3075,7 @@ my %known_meta = (
 	    my @lines;
 
 	    if ( $content =~ m/ \A [[]? [{] /smx ) {
-		my $data = JSON::from_json( $content );
+		my $data = $self->_get_json_object()->decode( $content );
 		foreach my $datum ( @{ $data } ) {
 		    push @lines, [
 			sprintf '%05d', $datum->{NORAD_CAT_ID},
@@ -3740,9 +3732,9 @@ sub _spacetrack_v2 {
 	    $rslt->is_success()
 		or return $rslt;
 
-	    my $data = JSON::from_json( $rslt->content() );
-
-	    foreach my $body ( @{ JSON::from_json( $rslt->content() ) } ) {
+	    foreach my $body ( @{
+		$self->_get_json_object()->decode( $rslt->content() )
+	    } ) {
 		$oid{ $body->{NORAD_CAT_ID} + 0 } = 1;
 	    }
 
@@ -3879,15 +3871,9 @@ C<'tle_latest'>,
 	    if ( $self->{pretty} &&
 		_find_rest_arg_value( \@args, format => 'json' ) eq 'json'
 	    ) {
-		$resp->content(
-		    JSON::to_json(
-			JSON::from_json( $resp->content() ), {
-			    utf8		=> 1,
-			    pretty		=> 1,
-			    canonical	=> 1,
-			},
-		    )
-		);
+		my $json = $self->_get_json_object();
+		$resp->content( $json->encode( $json->decode(
+			    $resp->content() ) ) );
 	    }
 
 	    if ( __PACKAGE__ ne caller ) {
@@ -4202,16 +4188,27 @@ sub _dump_request {
     $self->{dump_headers} & DUMP_REQUEST
 	or return;
 
-    my $dumper = _get_dumper( pretty => 1 ) or return;
-
-    my $yaml = $dumper->( \%args );
+    my $json = $self->_get_json_object( pretty => 1 )
+	or return;
 
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
-	HTTP_I_AM_A_TEAPOT, undef, undef, $yaml );
+	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( \%args )
+    );
 
-    warn $yaml;
+    warn $json->encode( \%args );
+
     return;
+}
+
+sub _get_json_object {
+    my ( $self, %arg ) = @_;
+    defined $arg{pretty}
+	or $arg{pretty} = $self->{pretty};
+    my $json = JSON->new()->utf8();
+    $arg{pretty}
+	and $json->pretty()->canonical();
+    return $json;
 }
 
 # my @oids = $self->_expand_oid_list( @args );
@@ -4385,19 +4382,6 @@ sub _get_space_track_domain {
 	or $version = $self->{space_track_version};
     return $self->{_space_track_interface}[$version]{domain_space_track};
 }
-	
-# _get_dumper() retrieves a dumper and returns a code reference to it.
-# The dumper will pretty-print if C<< ( pretty => 1 ) >> is passed as
-# argument and the dumper is capable of it.
-
-sub _get_dumper {
-    my %arg = @_;
-    my $json = JSON->new()->utf8( 1 );
-    $arg{pretty} and $json->pretty( 1 );
-    return sub {
-	return $json->encode( $_[0] );
-    }
-}
 
 # __get_loader() retrieves a loader. A code reference to it is returned.
 #
@@ -4492,7 +4476,8 @@ sub _merge_names {
     my ( $self, $resp, $name ) = @_;
     my $content = $resp->content();
     if ( $content =~ m/ \A \s* [[]? \s* [{] /smx ) {
-	my $data = JSON::decode_json( $content );
+	my $json = $self->_get_json_object();
+	my $data = $json->decode( $content );
 	foreach my $body ( @{ $data } ) {
 	    my $oid = _normalize_oid( $body->{NORAD_CAT_ID} );
 	    $name->{$oid}
@@ -4500,11 +4485,7 @@ sub _merge_names {
 	    $body->{OBJECT_NAME} = $name->{$oid};
 	    $body->{TLE_LINE0} = "0 $name->{$oid}";
 	}
-	$resp->content( JSON::to_json( $data, {
-		    utf8		=> 1,
-		    pretty		=> $self->{pretty},
-		    canonical	=> $self->{pretty},
-		} ) );
+	$resp->content( $json->encode( $data ) );
     } else {
 	my $rslt;
 	foreach my $tle_line (
