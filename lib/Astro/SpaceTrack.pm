@@ -2113,7 +2113,7 @@ sub _retrieve_v2 {
 
 	foreach my $name (
 	    qw{ class format },
-	    qw{ ECCENTRICITY FILE MEAN_MOTION },
+	    qw{ ECCENTRICITY FILE MEAN_MOTION OBJECT_NAME },
 	) {
 	    defined $opt->{$name}
 		and $rest{$name} = $opt->{$name};
@@ -3567,6 +3567,15 @@ Retrieval by number is unsupported under version 2 of the interface.
 When retrieving a bulk catalog by name, the value of the C<with_names>
 attribute determines whether you get common names.
 
+Under version 2 of the interface, the following options are supported:
+
+ -json
+   specifies the TLE be returned in JSON format
+
+If supported, options may be specified either in command-line style
+(that is, as C<< spacetrack( '-json', ... ) >>) or as a hash reference
+(that is, as C<< spacetrack( { json => 1 }, ... ) >>).
+
 Under either version of the interface, the method returns an
 L<HTTP::Response|HTTP::Response> object. If the operation succeeded, the
 content of the response will be the requested data, unzipped if you used
@@ -3703,13 +3712,23 @@ Requested file  doesn't exist");history.go(-1);
 }
 
 sub _spacetrack_v2 {
-    my ( $self, $catalog ) = @_;
+    my ( $self, @args ) = @_;
+
+    my ( $opt, $catalog ) = _parse_args(
+	SPACE_TRACK_V2_OPTIONS, @args );
 
     my $format = $self->getv( 'with_name' ) ? '3le' : 'tle';
 
     defined $catalog
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
 	or return $self->_no_such_catalog( spacetrack => 2, $catalog );
+
+    my %retrieve_opt = %{
+	$self->_convert_retrieve_options_to_rest( $opt )
+    };
+    $info->{tle}
+	and @retrieve_opt{ keys %{ $info->{tle} } } =
+	    values %{ $info->{tle} };
 
     my $rslt;
 
@@ -3740,11 +3759,6 @@ sub _spacetrack_v2 {
 
 	}
 
-	my %retrieve_opt = ( format	=> $format );
-	$info->{tle}
-	    and @retrieve_opt{ keys %{ $info->{tle} } } =
-		values %{ $info->{tle} };
-
 	$rslt = $self->_retrieve_v2( \%retrieve_opt,
 	    sort { $a <=> $b } keys %oid );
 
@@ -3753,20 +3767,9 @@ sub _spacetrack_v2 {
 
     } else {
 
-	my @predicates;
-	'3le' eq $format
-	    and @predicates = (
-	    predicates	=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
-	);
-
 	$rslt = $self->spacetrack_query_v2(
 	    basicspacedata	=> 'query',
-	    class		=> 'tle_latest',
-	    format		=> $format,
-	    orderby		=> 'NORAD_CAT_ID asc',
-	    @predicates,
-	    ORDINAL		=> 1,
-	    _sort_rest_arguments( $info->{tle} ),
+	    _sort_rest_arguments( \%retrieve_opt ),
 	);
 
 	$rslt->is_success()
@@ -4826,8 +4829,7 @@ EOD
 #	The return is the same hash reference that was passed in.
 
 sub _parse_retrieve_dates {
-    my ( $opt, $ctl ) = @_;
-    $ctl ||= {};
+    my ( $opt ) = @_;
 
     my $found;
     foreach my $key ( qw{ end_epoch start_epoch } ) {
