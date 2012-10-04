@@ -157,11 +157,6 @@ C<-end_epoch> and C<-since_file> cause the C<tle> source do be used, as
 does any value for C<-status> other than C<-status=onorbit>. Otherwise,
 the C<tle_latest> source is used.
 
-=item The C<-sort> and C<-descending> retrieval options are ignored. The
-issue is that unless you do the equivalent of C<-sort=epoch -descending>
-the new interface gives you the oldest data on record, not the newest.
-This may change as the Space Track code evolves.
-
 =back
 
 =head1 DESCRIPTION
@@ -2014,8 +2009,7 @@ sub _retrieve_v1 {
 sub _retrieve_v2 {
     my ( $self, @args ) = @_;
     delete $self->{_pragmata};
-    # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
-    # https://beta.space-track.org/basicspacedata/query/class/tle/format/tle/NORAD_CAT_ID/25544,36411,26871,27422/orderby/EPOCH%20desc/sublimit/1
+
     @args = _parse_retrieve_args(
 	SPACE_TRACK_V2_OPTIONS,
 	@args );
@@ -2023,14 +2017,12 @@ sub _retrieve_v2 {
 
     my $rest = $self->_convert_retrieve_options_to_rest( $opt );
 
-    # https://beta.space-track.org/basicspacedata/query/class/tle/NORAD_CAT_ID/25544/format/tle/orderby/FILE%20desc/limit/1
-
     @args = $self->_expand_oid_list( @args )
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
     my $no_execute = $self->getv( 'dump_headers' ) & DUMP_NO_EXECUTE;
 
-    $rest->{orderby} = 'EPOCH desc';
+##  $rest->{orderby} = 'EPOCH desc';
 
     my $content;
     my $joiner = (
