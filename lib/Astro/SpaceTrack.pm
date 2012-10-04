@@ -4453,7 +4453,7 @@ sub _handle_observing_list {
     if ( $resp->is_success ) {
 	$self->getv( 'with_name' )
 	    and $self->getv( 'space_track_version' ) == 2
-	    and _merge_names( $resp, {
+	    and $self->_merge_names( $resp, {
 		    map { _normalize_oid( $_->[0] ) => $_->[1] } @data },
 	    );
 	unless ( $self->{_pragmata} ) {
@@ -4497,16 +4497,22 @@ sub _make_space_track_base_url {
 #	before get dropped.
 
 sub _merge_names {
-    my ( $resp, $name ) = @_;
+    my ( $self, $resp, $name ) = @_;
     my $content = $resp->content();
-    if ( $content =~ m/ \A [[]? [{] /smx ) {
+    if ( $content =~ m/ \A \s* [[]? \s* [{] /smx ) {
 	my $data = JSON::decode_json( $content );
 	foreach my $body ( @{ $data } ) {
 	    my $oid = _normalize_oid( $body->{NORAD_CAT_ID} );
 	    $name->{$oid}
-		and $body->{OBJECT_NAME} = $name->{$oid};
+		or next;
+	    $body->{OBJECT_NAME} = $name->{$oid};
+	    $body->{TLE_LINE0} = "0 $name->{$oid}";
 	}
-	$resp->content( JSON::encode_json( $data ) );
+	$resp->content( JSON::to_json( $data, {
+		    utf8		=> 1,
+		    pretty		=> $self->{pretty},
+		    canonical	=> $self->{pretty},
+		} ) );
     } else {
 	my $rslt;
 	foreach my $tle_line (
