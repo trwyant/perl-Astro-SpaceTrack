@@ -44,6 +44,7 @@ sub requires {
 	'HTTP::Status'		=> 6.03,	# For the teapot status
 	'IO::File'		=> 0,
 	'JSON'			=> 0,	# For Space Track v2
+	'List::Util'		=> 0,	# For Space Track v2 FILE tracking
 	'LWP::UserAgent'	=> 0,
 	'LWP::Protocol::https'	=> 0,	# Space track needs as of 11-Apr-2011
 	'POSIX'			=> 0,
