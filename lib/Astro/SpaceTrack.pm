@@ -3981,6 +3981,10 @@ Options may be specified either in command-line style (that is, as
 C<< spacetrack( '-json', ... ) >>) or as a hash reference (that is, as
 C<< spacetrack( { json => 1 }, ... ) >>).
 
+B<Note> that there is no way to specify the C<-rcs> or C<-effective>
+options. If the file being updated contains these values, they will be
+lost as the individual OIDs are updated.
+
 =cut
 
 {
