@@ -2046,7 +2046,7 @@ sub _retrieve_v2 {
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
 		separator	=> ',',
-		range_operator	=> '--',
+##		range_operator	=> '--',
 	    }, @batch );
 
 	my $resp = $self->spacetrack_query_v2(
@@ -2240,7 +2240,7 @@ sub _retrieve_v2 {
 	    @args = (
 		_stringify_oid_list( {
 			separator	=> ',',
-			range_operator	=> '--',
+##			range_operator	=> '--',
 		    },
 		    @args
 		)
@@ -5383,8 +5383,8 @@ EOD
 # stringified result. The keys used are
 #   separator -- The string used to separate OID specifications. The
 #       default is ','.
-#   range_operator -- The string used to specify a range. The default is
-#       '--'.
+#   range_operator -- The string used to specify a range. If omitted,
+#       ranges will not be constructed.
 #
 # Note that ranges containing only two OIDs (e.g. 5-6) will be expanded
 # as "5,6", not "5-6" (presuming $range_operator is '-').
@@ -5398,37 +5398,41 @@ sub _stringify_oid_list {
 	or return @args;
 
     my $separator = defined $opt->{separator} ? $opt->{separator} : ',';
-    my $range_operator = defined $opt->{range_operator} ?
-	$opt->{range_operator} : '--';
+    my $range_operator = $opt->{range_operator};
 
-    foreach my $arg ( sort { $a <=> $b } @args ) {
-	if ( 'ARRAY' eq ref $rslt[-1] ) {
-	    if ( $arg == $rslt[-1][1] + 1 ) {
-		$rslt[-1][1] = $arg;
+    if ( defined $range_operator ) {
+	foreach my $arg ( sort { $a <=> $b } @args ) {
+	    if ( 'ARRAY' eq ref $rslt[-1] ) {
+		if ( $arg == $rslt[-1][1] + 1 ) {
+		    $rslt[-1][1] = $arg;
+		} else {
+		    $arg > $rslt[-1][1]
+			and push @rslt, $arg;
+		}
 	    } else {
-		$arg > $rslt[-1][1]
-		    and push @rslt, $arg;
-	    }
-	} else {
-	    if ( $arg == $rslt[-1] + 1 ) {
-		$rslt[-1] = [ $rslt[-1], $arg ];
-	    } else {
-		$arg > $rslt[-1]
-		    and push @rslt, $arg;
+		if ( $arg == $rslt[-1] + 1 ) {
+		    $rslt[-1] = [ $rslt[-1], $arg ];
+		} else {
+		    $arg > $rslt[-1]
+			and push @rslt, $arg;
+		}
 	    }
 	}
+	shift @rslt;	# Drop the pump priming.
+
+	return join( $separator,
+	    map { ref $_ ?
+		$_->[1] > $_->[0] + 1 ?
+		    "$_->[0]$range_operator$_->[1]" :
+		    @{ $_ } :
+		$_
+	    } @rslt
+	);
+
+    } else {
+	return join $separator, sort { $a <=> $b } @args;
     }
 
-    shift @rslt;	# Drop the pump priming.
-
-    return join( $separator,
-	map { ref $_ ?
-	    $_->[1] > $_->[0] + 1 ?
-		"$_->[0]$range_operator$_->[1]" :
-		@{ $_ } :
-	    $_
-	} @rslt
-    );
 }
 
 #	_trim replaces undefined arguments with '', trims all arguments
