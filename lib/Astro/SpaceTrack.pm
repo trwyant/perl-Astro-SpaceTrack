@@ -4602,11 +4602,19 @@ sub _handle_observing_list {
     }
     my $resp = $self->retrieve( $opt, sort {$a <=> $b} @catnum );
     if ( $resp->is_success ) {
+
+=begin comment
+
 	$self->getv( 'with_name' )
 	    and $self->getv( 'space_track_version' ) == 2
 	    and $self->_merge_names( $resp, {
 		    map { _normalize_oid( $_->[0] ) => $_->[1] } @data },
 	    );
+
+=end comment
+
+=cut
+
 	unless ( $self->{_pragmata} ) {
 	    $self->_add_pragmata($resp,
 		'spacetrack-type' => 'orbit',
@@ -4637,6 +4645,8 @@ sub _make_space_track_base_url {
     return $self->{scheme_space_track} . '://' .
 	$self->_get_space_track_domain( $version );
 }
+
+=begin comment
 
 #	_merge_names( $resp, $names );
 #
@@ -4680,8 +4690,12 @@ sub _merge_names {
     return;
 }
 
-# mung_login_status() takes as its argument an HTTP::Response object. If
-# the code is 500 and the message suggests a certificate problem, add
+=end comment
+
+=cut
+
+# _mung_login_status() takes as its argument an HTTP::Response object.
+# If the code is 500 and the message suggests a certificate problem, add
 # the suggestion that the user set verify_hostname false.
 
 sub _mung_login_status {
