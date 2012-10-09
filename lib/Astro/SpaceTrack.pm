@@ -237,6 +237,11 @@ use Text::ParseWords;
 use Time::Local;
 use URI::Escape qw{};
 
+# Number of OIDs to retrieve at once. This is a global variable so I can
+# play with it, but it is neither documented nor supported, and I
+# reserve the right to change it or delete it without notice.
+our $RETRIEVAL_SIZE = 200;
+
 use constant COPACETIC => 'OK';
 use constant BAD_SPACETRACK_RESPONSE =>
 	'Unable to parse SpaceTrack response';
@@ -1942,8 +1947,6 @@ added to the HTTP::Response object returned.
 
 =cut
 
-use constant RETRIEVAL_SIZE => 50;
-
 {
     my @dispatch = ( undef, \&_retrieve_v1, \&_retrieve_v2 );
 
@@ -1980,7 +1983,7 @@ sub _retrieve_v1 {
     local $_ = undef;
     my $resp;
     while ( @args ) {
-	my @batch = splice @args, 0, RETRIEVAL_SIZE;
+	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$resp = $self->_post ('perl/id_query.pl',
 	    ids => _stringify_oid_list( {
 		    separator	=> ' ',
@@ -2040,7 +2043,7 @@ sub _retrieve_v2 {
 
     while ( @args ) {
 
-	my @batch = splice @args, 0, RETRIEVAL_SIZE;
+	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
 		separator	=> ',',
 		range_operator	=> '--',

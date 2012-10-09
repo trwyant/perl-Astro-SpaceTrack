@@ -885,35 +885,40 @@ properly broken into two pieces, and that the joining of the JSON in the
 responses is being handled properly.
 EOD
 
-is_resp retrieve => 1 .. 66, [
-    {
-	args => [
-	    basicspacedata	=> 'query',
-	    class		=> 'tle_latest',
-	    format		=> 'tle',
-	    orderby		=> 'NORAD_CAT_ID asc',
-	    NORAD_CAT_ID	=> '1--50',
-	    ORDINAL		=> 1,
-	],
-	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/1--50/ORDINAL/1",
-	version	=> 2
-    },
-    {
-	args => [
-	    basicspacedata	=> 'query',
-	    class		=> 'tle_latest',
-	    format		=> 'tle',
-	    orderby		=> 'NORAD_CAT_ID asc',
-	    NORAD_CAT_ID	=> '51--66',
-	    ORDINAL		=> 1,
-	],
-	method	=> 'GET',
-	url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/51--66/ORDINAL/1",
-	version	=> 2
-    },
-],
-;
+{
+
+    local $Astro::SpaceTrack::RETRIEVAL_SIZE = 50;
+
+    is_resp retrieve => 1 .. 66, [
+	{
+	    args => [
+		basicspacedata	=> 'query',
+		class		=> 'tle_latest',
+		format		=> 'tle',
+		orderby		=> 'NORAD_CAT_ID asc',
+		NORAD_CAT_ID	=> '1--50',
+		ORDINAL		=> 1,
+	    ],
+	    method	=> 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/1--50/ORDINAL/1",
+	    version	=> 2
+	},
+	{
+	    args => [
+		basicspacedata	=> 'query',
+		class		=> 'tle_latest',
+		format		=> 'tle',
+		orderby		=> 'NORAD_CAT_ID asc',
+		NORAD_CAT_ID	=> '51--66',
+		ORDINAL		=> 1,
+	    ],
+	    method	=> 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/51--66/ORDINAL/1",
+	    version	=> 2
+	},
+    ],
+    ;
+}
 
 is_resp qw{set with_name 1}, 'OK';
 
