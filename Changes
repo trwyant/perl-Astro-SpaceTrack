@@ -1,3 +1,28 @@
+0.065		2012-10-09	T. R. Wyant
+  Retract the merging of names from observing lists (in celestrak() and
+    file()) in REST queries, since we can now get them direct from the
+    REST interface in all cases. This was introduced in 0.062, with the
+    statement that it was temporary.
+  Don't use OID ranges in REST queries, since they do not work in
+    combination with comma-separated lists.
+  Change the size of a retrieve() batch to 200, since larger queries
+    seem to be faster.
+  Add method update(). This works with the REST interface only, and
+    therefore ignores the space_track_version setting. It takes as its
+    argument the name of a JSON file containing TLE data, and updates it
+    using '/FILE/>...'. The return is whatever format you want.
+  Make the REST options work with the spacetrack() method.
+  Enable the -sort and -descending options on REST queries. These were
+    previously hard-wired (to -sort epoch -descending) because of
+    problems early in the beta, which seem to be solved.
+  Recode the REST versions of spacetrack( 'full' ) and spacetrack(
+    'geosynchronous' ) to go through class satcat to eliminate bodies
+    that have decayed. Provide 'full_fast' and 'geosynchronous_fast' for
+    those who like to live dangerously. The last two are considered
+    experimental, and may be retracted.
+  Get the object name from field OBJECT_NAME when using the Space Track
+    REST interface, in all cases.
+
 0.064_02	2012-10-02	T. R. Wyant
   Make use of the new TLE_LINE0 field in the tle and tle_latest classes
     to have the version 2 retrieve() method return common names.
