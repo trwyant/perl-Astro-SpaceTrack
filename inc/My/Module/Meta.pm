@@ -51,7 +51,8 @@ sub requires {
 	'Scalar::Util'		=> 1.07,	# for openhandle.
 	'Text::ParseWords'	=> 0,
 	'Time::Local'		=> 0,
-	'URI::Escape'		=> 0,	# For Space Track v2
+	'URI'			=> 0,
+#	'URI::Escape'		=> 0,	# For Space Track v2
 	'constant'		=> 0,
 	'strict'		=> 0,
 	'warnings'		=> 0,

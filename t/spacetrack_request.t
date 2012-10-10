@@ -697,7 +697,7 @@ is_resp qw{spacetrack iridium}, {
 	    ID => 10,
 	},
 	method => 'GET',
-	url => "$base_url/perl/dl.pl",
+	url => "$base_url/perl/dl.pl?ID=10",
 	version => 1,
     },
 ;
@@ -709,7 +709,7 @@ is_resp qw{spacetrack iridium}, {
 	    ID => 9,
 	},
 	method => 'GET',
-	url => "$base_url/perl/dl.pl",
+	url => "$base_url/perl/dl.pl?ID=9",
 	version => 1,
     },
 ;
@@ -719,7 +719,7 @@ is_resp { allow_warning => 1 }, qw{spacetrack 10}, {
 	    ID => 10,
 	},
 	method => 'GET',
-	url => "$base_url/perl/dl.pl",
+	url => "$base_url/perl/dl.pl?ID=10",
 	version => 1,
     },
 ;

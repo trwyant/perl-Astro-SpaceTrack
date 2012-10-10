@@ -235,7 +235,8 @@ use POSIX qw{strftime};
 use Scalar::Util 1.07 qw{ blessed openhandle };
 use Text::ParseWords;
 use Time::Local;
-use URI::Escape qw{};
+use URI qw{};
+# use URI::Escape qw{};
 
 # Number of OIDs to retrieve at once. This is a global variable so I can
 # play with it, but it is neither documented nor supported, and I
@@ -742,6 +743,13 @@ sub _box_score_v1 {
     my @data = @{$this_page[0]};
     $content = '';
     my $line = 0;
+
+    # The first line of headers turn out to have an empty cell at the
+    # end.
+    while ( ! defined $data[0][-1] || $data[0][-1] eq '' ) {
+	pop @{ $data[0] };
+    }
+
     foreach my $datum ( @data ) {
 	if ( $line++ == 1 ) {
 	    foreach ( @{ $datum } ) {
@@ -3857,17 +3865,25 @@ C<'tle_latest'>,
     sub spacetrack_query_v2 {
 	my ( $self, @args ) = @_;
 
-	# Note that we need to add the comma to URI::Escape's RFC3986 list,
-	# since Space Track does not decode it.
-	my $url = $self->_make_space_track_base_url( 2 ) . '/' .
-	    join '/', map {
-		URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~:-' )
-	    } @args;
+#	# Note that we need to add the comma to URI::Escape's RFC3986 list,
+#	# since Space Track does not decode it.
+#	my $url = join '/',
+#	    $self->_make_space_track_base_url( 2 ),
+#	    map {
+#		URI::Escape::uri_escape( $_, '^A-Za-z0-9.,_~:-' )
+#	    } @args;
+
+	my $uri = URI->new( $self->_make_space_track_base_url( 2 ) );
+	$uri->path_segments( @args );
+#	$url eq $uri->as_string()
+#	    or warn "'$url' ne '@{[ $uri->as_string() ]}'";
+#	$url = $uri->as_string();
 
 	if ( my $resp = $self->_dump_request(
 		args	=> \@args,
 		method	=> 'GET',
-		url		=> $url,
+#		url	=> $url,
+		url	=> $uri->as_string(),
 		version	=> 2,
 	    ) ) {
 	    return $resp;
@@ -3880,7 +3896,8 @@ C<'tle_latest'>,
 		or return $resp;
 	};
 ##	warn "Debug - $url/$cgi";
-	my $resp = $self->_get_agent()->get( $url );
+#	my $resp = $self->_get_agent()->get( $url );
+	my $resp = $self->_get_agent()->get( $uri );
 
 	if ( $resp->is_success() ) {
 
@@ -4469,26 +4486,31 @@ sub _format_launch_date_rest {
 sub _get {
     my ( $self, $path, %args ) = @_;
 
-    my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
+    my $uri = URI->new(
+	join '/', $self->_make_space_track_base_url( 1 ), $path );
+    $uri->query_form( \%args );
+
+#   my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
 
     if ( my $resp = $self->_dump_request(
 	    args	=> \%args,
 	    method	=> 'GET',
-	    url		=> $url,
+	    url		=> $uri->as_string(),
 	    version	=> 1,
 	) ) {
 	return $resp;
     }
 
-    my $cgi = '';
-    foreach my $name ( sort keys %args ) {
-	my $val = $args{$name};
-	defined $val
-	    or $val = '';
-	$cgi .= sprintf '&%s=%s', map { URI::Escape::uri_escape( $_ ) }
-	    $name, $val;
-    }
-    $cgi and substr( $cgi, 0, 1, '?' );
+#    my $cgi = '';
+#    foreach my $name ( sort keys %args ) {
+#	my $val = $args{$name};
+#	defined $val
+#	    or $val = '';
+#	$cgi .= sprintf '&%s=%s', map { URI::Escape::uri_escape( $_ ) }
+#	    $name, $val;
+#    }
+#    $cgi and substr( $cgi, 0, 1, '?' );
+
     {	# Single-iteration loop
 
 	$self->_check_cookie_generic( 1 )
@@ -4498,7 +4520,8 @@ sub _get {
 		or return $resp;
 	};
 
-	my $resp = $self->_get_agent()->get( $url . $cgi);
+#	my $resp = $self->_get_agent()->get( $url . $cgi);
+	my $resp = $self->_get_agent()->get( $uri );
 	$self->_dump_headers( $resp );
 	$resp->is_success()
 	    or return $resp;
