@@ -260,6 +260,14 @@ if ( $rslt->is_success() ) {
       {
          "Default" : "",
          "Extra" : "",
+         "Field" : "OBJECT_TYPE",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "varchar(11)"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
          "Field" : "CLASSIFICATION_TYPE",
          "Key" : "",
          "Null" : "NO",
@@ -482,6 +490,14 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "char(25)"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
+         "Field" : "OBJECT_TYPE",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "varchar(11)"
       },
       {
          "Default" : "",
