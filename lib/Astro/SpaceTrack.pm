@@ -704,6 +704,12 @@ Space Track web site. If it succeeds, the content will be the actual box
 score data, including headings and totals, with the fields
 tab-delimited.
 
+If the C<space_track_version> attribute is C<2>, this method takes
+option C<-json>, specified either command-style (i.e.
+C<< $st->box_score( '-json' ) >>) or as a hash reference (i.e.
+C<< $st->box_score( { json => 1 } ) >>). This causes the body of the
+response to be the JSON data as returned from Space Track.
+
 This method requires a Space Track username and password. It implicitly
 calls the C<login()> method if the session cookie is missing or expired.
 If C<login()> fails, you will get the HTTP::Response from C<login()>.
@@ -787,7 +793,12 @@ sub _box_score_v1 {
     );
 
     sub _box_score_v2 {
-	my ( $self ) = @_;
+	my ( $self, @args ) = @_;
+
+	( my $opt, @args ) = _parse_args(
+	    [
+		'json!'	=> 'Return data in JSON format',
+	    ], @args );
 
 	my $resp = $self->spacetrack_query_v2( qw{
 	    basicspacedata query class boxscore
@@ -796,19 +807,25 @@ sub _box_score_v1 {
 	$resp->is_success()
 	    or return $resp;
 
-	my $data = $self->_get_json_object()->decode( $resp->content() );
+	my $data;
 
-	my $content;
-	foreach my $row ( @head ) {
-	    $content .= join( "\t", @{ $row } ) . "\n";
-	}
-	foreach my $datum ( @{ $data } ) {
-	    $datum->{SPADOC_CD} eq 'ALL'
-		and $datum->{SPADOC_CD} = 'Total';
-	    $content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
+	if ( ! $opt->{json} ) {
+
+	    $data = $self->_get_json_object()->decode( $resp->content() );
+
+	    my $content;
+	    foreach my $row ( @head ) {
+		$content .= join( "\t", @{ $row } ) . "\n";
+	    }
+	    foreach my $datum ( @{ $data } ) {
+		$datum->{SPADOC_CD} eq 'ALL'
+		    and $datum->{SPADOC_CD} = 'Total';
+		$content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
+	    }
+
+	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	}
 
-	$resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'box_score',
 	    'spacetrack-source' => 'spacetrack',
@@ -822,6 +839,7 @@ sub _box_score_v1 {
 	foreach my $row ( @head ) {
 	    push @table, [ @{ $row } ];
 	}
+	$data ||= $self->_get_json_object()->decode( $resp->content() );
 	foreach my $datum ( @{ $data } ) {
 	    push @table, [ map { $datum->{$_} } @fields ];
 	}
