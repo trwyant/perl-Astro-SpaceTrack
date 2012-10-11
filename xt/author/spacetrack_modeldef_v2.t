@@ -673,6 +673,120 @@ EOD
     };
 }
 
+$rslt = $st->spacetrack_query_v2( qw{
+    basicspacedata modeldef class boxscore
+    } );
+
+ok $rslt->is_success(), 'Fetch modeldef for class boxscore';
+
+if ( $rslt->is_success() ) {
+
+    my $expect = $json->decode( <<'EOD' );
+{
+   "controller" : "basicspacedata",
+   "data" : [
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "COUNTRY",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "varchar(100)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "SPADOC_CD",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "varchar(6)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "ORBITAL_PAYLOAD_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "ORBITAL_ROCKET_BODY_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "ORBITAL_DEBRIS_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "ORBITAL_TOTAL_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "DECAYED_PAYLOAD_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "DECAYED_ROCKET_BODY_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "DECAYED_DEBRIS_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "DECAYED_TOTAL_COUNT",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "COUNTRY_TOTAL",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "bigint(21)"
+      }
+   ]
+}
+EOD
+    my $got = $json->decode( $rslt->content() );
+    is_deeply $got, $expect, 'Got expected modeldef for class boxscore'
+	or do {
+	diag <<'EOD';
+Writing modeldef we got and we expect to boxscore.got and boxscore.expect
+EOD
+	dump_json( 'boxscore.got', $got );
+	dump_json( 'boxscore.expect', $expect );
+    };
+}
+
 done_testing;
 
 1;
