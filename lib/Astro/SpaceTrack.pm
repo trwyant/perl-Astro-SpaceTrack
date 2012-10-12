@@ -731,16 +731,6 @@ There are no options or arguments.
     }
 }
 
-sub _box_score_v1 {
-    my ( $self ) = @_;
-
-    return $self->_scrape_table_v1(
-	'perl/boxscore.pl',
-	0,
-	'box_score',
-    );
-}
-
 {
 
     my @fields = qw{ SPADOC_CD
@@ -759,6 +749,41 @@ sub _box_score_v1 {
 	    'Grand Total',
 	],
     );
+
+    sub _box_score_v1 {
+	push @_, {
+	    fields	=> \@fields,
+	    fixup	=> \&_box_score_v1_fixup,
+	    num_head	=> 2,
+	    path	=> 'perl/boxscore.pl',
+	    table	=> 0,
+	    type	=> 'box_score',
+	};
+	goto &_scrape_table_v1;
+    }
+
+    sub _box_score_v1_fixup {
+	my ( $self, $ctxt, $obj ) = @_;
+	if ( ! $ctxt->{names} ) {
+	    my $rslt = $self->_country_names_v1( { json => 1 } );
+	    if ( $rslt->is_success() ) {
+		$ctxt->{names} = {
+		    map { $_->{SPADOC_CD} => $_->{COUNTRY} }
+			@{ $self->_get_json_object()->decode(
+			    $rslt->content() ) }
+		};
+		$ctxt->{names}{ALL} = 'ALL';
+	    } else {
+		$ctxt->{names} = {};
+	    }
+	}
+	$obj->{SPADOC_CD} eq 'Total'
+	    and $obj->{SPADOC_CD} = 'ALL';
+	$obj->{COUNTRY} = $ctxt->{names}{$obj->{SPADOC_CD}};
+	defined $obj->{COUNTRY}
+	    or $obj->{COUNTRY} = 'Unknown';
+	return;
+    }
 
     sub _box_score_v2 {
 	my ( $self, @args ) = @_;
@@ -4261,14 +4286,14 @@ sub _check_cookie_generic {
 }
 
 sub _country_names_v1 {
-    my ( $self ) = @_;
-
-    return $self->_scrape_table_v1(
-	'perl/cntry_key_pu.pl',
-	0,
-	'country_names',
-    );
-
+    push @_, {
+	fields	=> [ qw{ SPADOC_CD COUNTRY } ],
+	num_head	=> 1,
+	path	=> 'perl/cntry_key_pu.pl',
+	table	=> 0,
+	type	=> 'country_names',
+    };
+    goto &_scrape_table_v1;
 }
 
 {
@@ -4739,14 +4764,14 @@ sub _instance {
 }
 
 sub _launch_sites_v1 {
-    my ( $self ) = @_;
-
-    return $self->_scrape_table_v1(
-	'perl/launch_key_pu.pl',
-	0,
-	'launch_sites',
-    );
-
+    push @_, {
+	caller	=> '__launch_sites',
+	num_head	=> 1,
+	path	=> 'perl/launch_key_pu.pl',
+	table	=> 0,
+	type	=> 'launch_sites',
+    };
+    goto &_scrape_table_v1;
 }
 
 sub _launch_sites_v2 {
@@ -5284,17 +5309,50 @@ sub _post {
 
 # _scrape_table_v1 scrapes a table from a web page. It assumes the V1
 # interface. The arguments are:
-# * The invocant
-# * The path (relative to Space Track) to the page to scrape.
-# * The number of the table in the web page.
-# * The spacetrack-type to set in the response.
+# * The invocant;
+# * Possible command-type options, or a reference to an options hash;
+# * An arguments hash.
+# The recognized keys in the arguments hash are:
+#   {caller} --- Name of caller for error messages. Defaults to
+#		( caller 1 )[3].
+#   {fields} -- Reference to an array of JSON field names. Optional, but
+#		it is an error to specify -json unless this is present.
+#   {fixup} --- Reference to code to fix up the hash being constructed.
+#		Optional.
+#   {num_head} - The number of header rows in the table. Required.
+#		Usually 1.
+#   {path} ---- Path to desired web page, relative to base URL. Required.
+#   {table} --- The number of the table of interest. Required. Ususally 0.
+#   {type} ---- The value to put in pragma spacetrack-type. Required.
+#
+# The {fixup} code is passed three arguments: The invocant, a context
+# hash, and the hash to be fixed up. The context hash is an exercise in
+# imagination. It is initially empty, but the fixup code can modify it
+# as necessary. The hash to be fixed already has the values specified in
+# {fields}. The fixup code can do anything it wants to the hash to be
+# fixed. It should simply return.
 
 sub _scrape_table_v1 {
-    my ( $self, $path, $table, $type ) = @_;
+#   my ( $self, $path, $table, $type ) = @_;
+    my ( $self, @args ) = @_;
+
+    my $arg = pop @args;
+
+    ( my $opt, @args ) = _parse_args(
+	[
+	    'json!'	=> 'Return data in JSON format',
+	], @args );
+
+    $opt->{json}
+	and 'ARRAY' ne ref $arg->{fields}
+	and do {
+	my $caller = defined $arg->{caller} ? $arg->{caller} : ( caller 1 )[3];
+       	croak "${caller}() does not support -json";
+    };
 
     delete $self->{_pragmata};
 
-    my $resp = $self->_get( $path );
+    my $resp = $self->_get( $arg->{path} );
     $resp->is_success()
 	or return $resp;
 
@@ -5308,9 +5366,9 @@ sub _scrape_table_v1 {
 	or return HTTP::Response->new ( HTTP_INTERNAL_SERVER_ERROR,
 	BAD_SPACETRACK_RESPONSE, undef, $content);
 
-    my @data = @{ $this_page[ $table ] };
+    my @data = @{ $this_page[ $arg->{table} ] };
     $content = '';
-    my $line = 0;
+    my $line = 1;
 
     # The first line of headers turn out to have an empty cell at the
     # end.
@@ -5318,19 +5376,33 @@ sub _scrape_table_v1 {
 	pop @{ $data[0] };
     }
 
-    foreach my $datum ( @data ) {
-	if ( $line++ == 1 ) {
-	    foreach ( @{ $datum } ) {
-		s/ \s* [(] key [)] \s* \z //smxi;
-	    }
+    if ( $opt->{json} ) {
+	my @list;
+	my %ctxt;
+	foreach my $datum ( @data[ $arg->{num_head} .. $#data ] ) {
+	    my %obj;
+	    @obj{ @{ $arg->{fields} } } = @{ $datum };
+	    $arg->{fixup}
+		and $arg->{fixup}->( $self, \%ctxt, \%obj );
+	    push @list, \%obj;
 	}
-	$content .= join( "\t", @{ $datum } ) . "\n";
+	$content = $self->_get_json_object()->encode( \@list );
+    } else {
+	foreach my $datum ( @data ) {
+	    if ( $line++ == $arg->{num_head} ) {
+		foreach ( @{ $datum } ) {
+		    s/ \s* [(] key [)] \s* \z //smxi;
+		}
+	    }
+	    $content .= join( "\t", @{ $datum } ) . "\n";
+	}
     }
+
     $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
     $self->_add_pragmata($resp,
-	'spacetrack-type' => $type,
-	'spacetrack-source' => 'spacetrack',
-	'spacetrack-interface' => 1,
+	'spacetrack-type'	=> $arg->{type},
+	'spacetrack-source'	=> 'spacetrack',
+	'spacetrack-interface'	=> 1,
     );
     return wantarray ? ($resp, \@data) : $resp;
 
