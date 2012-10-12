@@ -359,6 +359,28 @@ subtest 'Space Track access - v1 interface', sub {
 
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
+
+    is_success $st, '__country_names', 'Retrieve country names';
+
+    is $st->content_type(), 'country_names',
+	q{Content type is 'country_names'};
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
+
+    is_success $st, '__launch_sites', 'Retrieve launch sites';
+
+    is $st->content_type(), 'launch_sites',
+	q{Content type is 'launch_sites'};
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
 };
 
 subtest 'Space Track access via Celestrak - v1 interface', sub {
@@ -413,7 +435,6 @@ subtest 'Space Track login - v2 interface', sub {
 	set_skip( $space_track_domain,
 	    'Space-Track login failed: ' . $rslt->status_line() );
     }
-
 };
 
 subtest 'Space Track access - v2 interface', sub {
@@ -698,6 +719,40 @@ subtest 'Space Track access - v2 interface', sub {
 
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
+
+    is_success $st, '__country_names', 'Retrieve country names';
+
+    is $st->content_type(), 'country_names',
+	q{Content type is 'country_names'};
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
+
+    # TODO Not supported yet
+
+=begin comment
+
+    is_success $st, '__launch_sites', 'Retrieve launch sites';
+
+    is $st->content_type(), 'launch_sites',
+	q{Content type is 'launch_sites'};
+
+    is $st->content_source(), 'spacetrack',
+	"Content source is 'spacetrack'";
+
+    is $st->content_interface(), $desired_content_interface,
+	"Content version is $desired_content_interface";
+
+=end comment
+
+=cut
+
+    throws_exception $st, '__launch_sites',
+	qr{\QLaunch site names are unavailable under the REST interface}smx,
+	'Retrieve launch sites should throw an exception';
 
 };
 

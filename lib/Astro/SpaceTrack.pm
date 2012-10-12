@@ -734,43 +734,11 @@ There are no options or arguments.
 sub _box_score_v1 {
     my ( $self ) = @_;
 
-    my $p = Astro::SpaceTrack::Parser->new ();
-
-    my $resp = $self->_get ( 'perl/boxscore.pl' );
-    $resp->is_success()
-	or return $resp;
-
-    my $content = $resp->content;
-    $content =~ s/ &nbsp; / /smxg;
-    my @this_page = @{$p->parse_string (table => $content)};
-    ref $this_page[0] eq 'ARRAY'
-	or return HTTP::Response->new ( HTTP_INTERNAL_SERVER_ERROR,
-	BAD_SPACETRACK_RESPONSE, undef, $content);
-    my @data = @{$this_page[0]};
-    $content = '';
-    my $line = 0;
-
-    # The first line of headers turn out to have an empty cell at the
-    # end.
-    while ( ! defined $data[0][-1] || $data[0][-1] eq '' ) {
-	pop @{ $data[0] };
-    }
-
-    foreach my $datum ( @data ) {
-	if ( $line++ == 1 ) {
-	    foreach ( @{ $datum } ) {
-		s/ \s* [(] key [)] \s* \z //smxi;
-	    }
-	}
-	$content .= join( "\t", @{ $datum } ) . "\n";
-    }
-    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
-    $self->_add_pragmata($resp,
-	'spacetrack-type' => 'box_score',
-	'spacetrack-source' => 'spacetrack',
-	'spacetrack-interface' => 1,
+    return $self->_scrape_table_v1(
+	'perl/boxscore.pl',
+	0,
+	'box_score',
     );
-    return wantarray ? ($resp, \@data) : $resp;
 }
 
 {
@@ -3883,6 +3851,8 @@ C<'tle_latest'>,
     sub spacetrack_query_v2 {
 	my ( $self, @args ) = @_;
 
+	delete $self->{_pragmata};
+
 #	# Note that we need to add the comma to URI::Escape's RFC3986 list,
 #	# since Space Track does not decode it.
 #	my $url = join '/',
@@ -4278,6 +4248,86 @@ sub _check_cookie_generic {
 	return;
     }
 }	# End local symbol block.
+
+# __country_names returns the list of country name abbreviations, and
+# their expansions.
+
+{
+    my @dispatch = ( undef, \&_country_names_v1, \&_country_names_v2 );
+
+    sub __country_names {
+	goto $dispatch[ $_[0]{space_track_version} ];
+    }
+}
+
+sub _country_names_v1 {
+    my ( $self ) = @_;
+
+    return $self->_scrape_table_v1(
+	'perl/cntry_key_pu.pl',
+	0,
+	'country_names',
+    );
+
+}
+
+{
+
+    my @headings = ( 'Abbreviation', 'Country/Organization' );
+
+    sub _country_names_v2 {
+
+	my ( $self, @args ) = @_;
+
+	( my $opt, @args ) = _parse_args(
+	    [
+		'json!'	=> 'Return data in JSON format',
+	    ], @args );
+
+	my $resp = $self->spacetrack_query_v2(
+	    basicspacedata	=> 'query',
+	    class		=> 'boxscore',
+	    format		=> 'json',
+	    predicates	=> 'COUNTRY,SPADOC_CD',
+	);
+	$resp->is_success()
+	    or return $resp;
+
+	my $data;
+
+	if ( ! $opt->{json} || wantarray ) {
+
+	    $data = $self->_get_json_object()->decode( $resp->content() );
+
+	    my %dict;
+	    foreach my $datum ( @{ $data } ) {
+		$dict{$datum->{SPADOC_CD}} = $datum->{COUNTRY};
+	    }
+
+	    $opt->{json}
+		or $resp->content(
+		    join '',
+		        join( "\t", @headings ) . "\n",
+			map { "$_\t$dict{$_}\n" } sort keys %dict
+		);
+
+	    wantarray
+		and $data = [
+		    [ @headings ],
+		    map { [ $_ => $dict{$_} ] } sort keys %dict
+		];
+	}
+
+	$self->_add_pragmata( $resp,
+	    'spacetrack-type'	=> 'country_names',
+	    'spacetrack-source'	=> 'spacetrack',
+	    'spacetrack-interface'	=> 2,
+	);
+
+	return wantarray ? ( $resp, $data ) : $resp;
+
+    }
+}
 
 #	$self->_deprecation_notice( $method, $argument );
 #
@@ -4675,6 +4725,36 @@ sub _instance {
     ref $object or return;
     blessed( $object ) or return;
     return $object->isa( $class );
+}
+
+# __launch_sites returns the list of launch site abbreviations, and
+# their expansions.
+
+{
+    my @dispatch = ( undef, \&_launch_sites_v1, \&_launch_sites_v2 );
+
+    sub __launch_sites {
+	goto $dispatch[ $_[0]{space_track_version} ];
+    }
+}
+
+sub _launch_sites_v1 {
+    my ( $self ) = @_;
+
+    return $self->_scrape_table_v1(
+	'perl/launch_key_pu.pl',
+	0,
+	'launch_sites',
+    );
+
+}
+
+sub _launch_sites_v2 {
+    my ( $self, @args ) = @_;
+
+    delete $self->{_pragmata};
+
+    croak 'Launch site names are unavailable under the REST interface';
 }
 
 # _make_space_track_base_url() makes the a base Space Track URL. You can
@@ -5200,6 +5280,60 @@ sub _post {
 	return $resp;
     }	# end of single-iteration loop
     return;	# Should never arrive here.
+}
+
+# _scrape_table_v1 scrapes a table from a web page. It assumes the V1
+# interface. The arguments are:
+# * The invocant
+# * The path (relative to Space Track) to the page to scrape.
+# * The number of the table in the web page.
+# * The spacetrack-type to set in the response.
+
+sub _scrape_table_v1 {
+    my ( $self, $path, $table, $type ) = @_;
+
+    delete $self->{_pragmata};
+
+    my $resp = $self->_get( $path );
+    $resp->is_success()
+	or return $resp;
+
+    my $content = $resp->content;
+    $content =~ s/ &nbsp; / /smxg;
+
+    my $p = Astro::SpaceTrack::Parser->new ();
+    my @this_page = @{$p->parse_string (table => $content)};
+
+    ref $this_page[0] eq 'ARRAY'
+	or return HTTP::Response->new ( HTTP_INTERNAL_SERVER_ERROR,
+	BAD_SPACETRACK_RESPONSE, undef, $content);
+
+    my @data = @{ $this_page[ $table ] };
+    $content = '';
+    my $line = 0;
+
+    # The first line of headers turn out to have an empty cell at the
+    # end.
+    while ( ! defined $data[0][-1] || $data[0][-1] eq '' ) {
+	pop @{ $data[0] };
+    }
+
+    foreach my $datum ( @data ) {
+	if ( $line++ == 1 ) {
+	    foreach ( @{ $datum } ) {
+		s/ \s* [(] key [)] \s* \z //smxi;
+	    }
+	}
+	$content .= join( "\t", @{ $datum } ) . "\n";
+    }
+    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => $type,
+	'spacetrack-source' => 'spacetrack',
+	'spacetrack-interface' => 1,
+    );
+    return wantarray ? ($resp, \@data) : $resp;
+
 }
 
 #	_search wraps the specific search functions. It is called
