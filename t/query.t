@@ -360,7 +360,7 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, '__country_names', 'Retrieve country names';
+    is_success $st, 'country_names', 'Retrieve country names';
 
     is $st->content_type(), 'country_names',
 	q{Content type is 'country_names'};
@@ -720,7 +720,7 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, '__country_names', 'Retrieve country names';
+    is_success $st, 'country_names', 'Retrieve country names';
 
     is $st->content_type(), 'country_names',
 	q{Content type is 'country_names'};

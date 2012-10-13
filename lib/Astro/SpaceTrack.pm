@@ -704,11 +704,11 @@ Space Track web site. If it succeeds, the content will be the actual box
 score data, including headings and totals, with the fields
 tab-delimited.
 
-If the C<space_track_version> attribute is C<2>, this method takes
-option C<-json>, specified either command-style (i.e.
-C<< $st->box_score( '-json' ) >>) or as a hash reference (i.e.
+This method takes option C<-json>, specified either command-style (i.e.
+C<< $st->box_score( '-json' ) >>) or as a hash reference (i.e. 
 C<< $st->box_score( { json => 1 } ) >>). This causes the body of the
-response to be the JSON data as returned from Space Track.
+response to be the JSON data as returned from Space Track. If
+C<space_track_version> is 1, equivalent JSON will be constructed.
 
 This method requires a Space Track username and password. It implicitly
 calls the C<login()> method if the session cookie is missing or expired.
@@ -719,7 +719,7 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = box_score
  Pragma: spacetrack-source = spacetrack
 
-There are no options or arguments.
+There are no arguments.
 
 =cut
 
@@ -752,36 +752,36 @@ There are no options or arguments.
 
     sub _box_score_v1 {
 	push @_, {
-	    fields	=> \@fields,
-	    fixup	=> \&_box_score_v1_fixup,
+	    encode	=> [],
+	    Names	=> $_[0]->_get_country_names_hash_ref(),
 	    num_head	=> 2,
 	    path	=> 'perl/boxscore.pl',
+	    processor	=> \&_box_score_v1_processor,
 	    table	=> 0,
 	    type	=> 'box_score',
+	    wantarray	=> 1,
 	};
 	goto &_scrape_table_v1;
     }
 
-    sub _box_score_v1_fixup {
-	my ( $self, $ctxt, $obj ) = @_;
-	if ( ! $ctxt->{names} ) {
-	    my $rslt = $self->_country_names_v1( { json => 1 } );
-	    if ( $rslt->is_success() ) {
-		$ctxt->{names} = {
-		    map { $_->{SPADOC_CD} => $_->{COUNTRY} }
-			@{ $self->_get_json_object()->decode(
-			    $rslt->content() ) }
-		};
-		$ctxt->{names}{ALL} = 'ALL';
-	    } else {
-		$ctxt->{names} = {};
-	    }
-	}
-	$obj->{SPADOC_CD} eq 'Total'
-	    and $obj->{SPADOC_CD} = 'ALL';
-	$obj->{COUNTRY} = $ctxt->{names}{$obj->{SPADOC_CD}};
-	defined $obj->{COUNTRY}
-	    or $obj->{COUNTRY} = 'Unknown';
+    sub _get_country_names_hash_ref {
+	my ( $self ) = @_;
+	my $rslt = $self->country_names( { json => 1 } );
+	return $rslt->is_success() ?
+	    $self->_get_json_object()->decode( $rslt->content() ) :
+	    {};
+    }
+
+    sub _box_score_v1_processor {
+	my ( $self, $ctxt, $datum ) = @_;
+	my %obj;
+	@obj{@fields} = @{ $datum };
+	$obj{SPADOC_CD} eq 'Total'
+	    and $obj{SPADOC_CD} = 'ALL';
+	$obj{COUNTRY} = $ctxt->{Names}{$obj{SPADOC_CD}};
+	defined $obj{COUNTRY}
+	    or $obj{COUNTRY} = 'Unknown';
+	push @{ $ctxt->{encode} }, \%obj;
 	return;
     }
 
@@ -1152,6 +1152,111 @@ sub content_interface {
 	m/ spacetrack-interface \s+ = \s+ (.+) /smxi and return $1;
     }
     return;
+}
+
+=item $resp = $st->country_names()
+
+This method returns the list of country abbreviations and names from
+the Space Track web site. If it succeeds, the content will be the
+abbreviations and names, including headings, with the fields
+tab-delimited.
+
+This method takes option C<-json>, specified either command-style
+(i.e. C<< $st->country_names( '-json' ) >>) or as a hash reference
+(i.e. C<< $st->country_names( { json => 1 } ) >>). This causes the
+body of the response to be the JSON representation of a hash whose
+keys are the country abbreviations, and whose values are the
+corresponding country names.
+
+This method requires a Space Track username and password. It
+implicitly calls the C<login()> method if the session cookie is
+missing or expired.  If C<login()> fails, you will get the
+HTTP::Response from C<login()>.
+
+If this method succeeds, the response will contain headers
+
+Pragma: spacetrack-type = box_score
+Pragma: spacetrack-source = spacetrack
+
+There are no arguments.
+
+=cut
+
+{
+    my @dispatch = ( undef, \&_country_names_v1, \&_country_names_v2 );
+
+    sub country_names {
+	goto $dispatch[ $_[0]{space_track_version} ];
+    }
+}
+
+sub _country_names_v1 {
+    push @_, {
+	encode		=> { ALL	=> 'ALL' },
+	num_head	=> 1,
+	path		=> 'perl/cntry_key_pu.pl',
+	processor	=> \&_country_names_v1_processor,
+	table		=> 0,
+	type		=> 'country_names',
+    };
+    goto &_scrape_table_v1;
+}
+
+sub _country_names_v1_processor {
+    my ( $self, $ctxt, $datum ) = @_;
+    $ctxt->{encode}{$datum->[0]} = $datum->[1];
+    return;
+}
+
+sub _country_names_v2 {
+
+    my ( $self, @args ) = @_;
+
+    ( my $opt, @args ) = _parse_args(
+	[
+	    'json!'	=> 'Return data in JSON format',
+	], @args );
+
+    my $resp = $self->spacetrack_query_v2(
+	basicspacedata	=> 'query',
+	class		=> 'boxscore',
+	format		=> 'json',
+	predicates	=> 'COUNTRY,SPADOC_CD',
+    );
+    $resp->is_success()
+	or return $resp;
+
+    my $json = $self->_get_json_object();
+
+    my $data = $json->decode( $resp->content() );
+
+    my %dict;
+    foreach my $datum ( @{ $data } ) {
+	$dict{$datum->{SPADOC_CD}} = $datum->{COUNTRY};
+    }
+
+    if ( $opt->{json} ) {
+
+	$resp->content( $json->encode( \%dict ) );
+
+    } else {
+
+	$resp->content(
+	    join '',
+		join( "\t", 'Abbreviation', 'Country/Organization' )
+		    . "\n",
+		map { "$_\t$dict{$_}\n" } sort keys %dict
+	);
+
+    }
+
+    $self->_add_pragmata( $resp,
+	'spacetrack-type'	=> 'country_names',
+	'spacetrack-source'	=> 'spacetrack',
+	'spacetrack-interface'	=> 2,
+    );
+
+    return $resp;
 }
 
 
@@ -4274,86 +4379,6 @@ sub _check_cookie_generic {
     }
 }	# End local symbol block.
 
-# __country_names returns the list of country name abbreviations, and
-# their expansions.
-
-{
-    my @dispatch = ( undef, \&_country_names_v1, \&_country_names_v2 );
-
-    sub __country_names {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _country_names_v1 {
-    push @_, {
-	fields	=> [ qw{ SPADOC_CD COUNTRY } ],
-	num_head	=> 1,
-	path	=> 'perl/cntry_key_pu.pl',
-	table	=> 0,
-	type	=> 'country_names',
-    };
-    goto &_scrape_table_v1;
-}
-
-{
-
-    my @headings = ( 'Abbreviation', 'Country/Organization' );
-
-    sub _country_names_v2 {
-
-	my ( $self, @args ) = @_;
-
-	( my $opt, @args ) = _parse_args(
-	    [
-		'json!'	=> 'Return data in JSON format',
-	    ], @args );
-
-	my $resp = $self->spacetrack_query_v2(
-	    basicspacedata	=> 'query',
-	    class		=> 'boxscore',
-	    format		=> 'json',
-	    predicates	=> 'COUNTRY,SPADOC_CD',
-	);
-	$resp->is_success()
-	    or return $resp;
-
-	my $data;
-
-	if ( ! $opt->{json} || wantarray ) {
-
-	    $data = $self->_get_json_object()->decode( $resp->content() );
-
-	    my %dict;
-	    foreach my $datum ( @{ $data } ) {
-		$dict{$datum->{SPADOC_CD}} = $datum->{COUNTRY};
-	    }
-
-	    $opt->{json}
-		or $resp->content(
-		    join '',
-		        join( "\t", @headings ) . "\n",
-			map { "$_\t$dict{$_}\n" } sort keys %dict
-		);
-
-	    wantarray
-		and $data = [
-		    [ @headings ],
-		    map { [ $_ => $dict{$_} ] } sort keys %dict
-		];
-	}
-
-	$self->_add_pragmata( $resp,
-	    'spacetrack-type'	=> 'country_names',
-	    'spacetrack-source'	=> 'spacetrack',
-	    'spacetrack-interface'	=> 2,
-	);
-
-	return wantarray ? ( $resp, $data ) : $resp;
-
-    }
-}
-
 #	$self->_deprecation_notice( $method, $argument );
 #
 #	This method centralizes deprecation.  Deprecation is driven of
@@ -4752,8 +4777,31 @@ sub _instance {
     return $object->isa( $class );
 }
 
-# __launch_sites returns the list of launch site abbreviations, and
-# their expansions.
+# $resp = $st->__launch_sites()
+#
+# This method returns the list of launch site abbreviations and names
+# from the Space Track web site. If it succeeds, the content will be the
+# abbreviations and names, including headings, with the fields
+# tab-delimited.
+#
+# This method takes option C<-json>, specified either command-style
+# (i.e.  C<< $st->__launch_sites( '-json' ) >>) or as a hash reference
+# (i.e.  C<< $st->__launch_sites( { json => 1 } ) >>). This causes the
+# body of the response to be the JSON representation of a hash whose
+# keys are the launch site abbreviations, and whose values are the
+# corresponding launch site names.
+#
+# This method requires a Space Track username and password. It
+# implicitly calls the C<login()> method if the session cookie is
+# missing or expired.  If C<login()> fails, you will get the
+# HTTP::Response from C<login()>.
+#
+# If this method succeeds, the response will contain headers
+#
+#  Pragma: spacetrack-type = box_score
+#  Pragma: spacetrack-source = spacetrack
+#
+# There are no arguments.
 
 {
     my @dispatch = ( undef, \&_launch_sites_v1, \&_launch_sites_v2 );
@@ -4765,11 +4813,12 @@ sub _instance {
 
 sub _launch_sites_v1 {
     push @_, {
-	caller	=> '__launch_sites',
+	encode		=> {},
 	num_head	=> 1,
-	path	=> 'perl/launch_key_pu.pl',
-	table	=> 0,
-	type	=> 'launch_sites',
+	path		=> 'perl/launch_key_pu.pl',
+	processor	=> \&_country_names_v1_processor,
+	table		=> 0,
+	type		=> 'launch_sites',
     };
     goto &_scrape_table_v1;
 }
@@ -5315,22 +5364,27 @@ sub _post {
 # The recognized keys in the arguments hash are:
 #   {caller} --- Name of caller for error messages. Defaults to
 #		( caller 1 )[3].
-#   {fields} -- Reference to an array of JSON field names. Optional, but
-#		it is an error to specify -json unless this is present.
-#   {fixup} --- Reference to code to fix up the hash being constructed.
-#		Optional.
+#   {encode} --- The reference to be encoded into JSON. Required.
 #   {num_head} - The number of header rows in the table. Required.
 #		Usually 1.
 #   {path} ---- Path to desired web page, relative to base URL. Required.
+#   {processor} - Code reference to the processor for the row. Optional,
+#		but it is an error to specify -json unless this is
+#		present.
 #   {table} --- The number of the table of interest. Required. Ususally 0.
 #   {type} ---- The value to put in pragma spacetrack-type. Required.
+#   {wantarray} - If true and called in list context, returns a
+#		a reference to the parsed data in addition to the
+#		HTTP::Response object.
+# All lower-case keys are reserved for the use of this method. Other
+# keys can be provided for (or added by) the {processor} code, but these
+# must not be all lower-case.
 #
-# The {fixup} code is passed three arguments: The invocant, a context
-# hash, and the hash to be fixed up. The context hash is an exercise in
-# imagination. It is initially empty, but the fixup code can modify it
-# as necessary. The hash to be fixed already has the values specified in
-# {fields}. The fixup code can do anything it wants to the hash to be
-# fixed. It should simply return.
+# The {processor} code is passed three arguments: the invocant, a
+# reference to the argument hash, and a reference to the row to be
+# processed. The code is expected to add relevant data from the row
+# being processed to the {encode} reference. The return value is
+# ignored.
 
 sub _scrape_table_v1 {
 #   my ( $self, $path, $table, $type ) = @_;
@@ -5343,14 +5397,14 @@ sub _scrape_table_v1 {
 	    'json!'	=> 'Return data in JSON format',
 	], @args );
 
+    delete $self->{_pragmata};
+
     $opt->{json}
-	and 'ARRAY' ne ref $arg->{fields}
+	and not $arg->{processor}
 	and do {
 	my $caller = defined $arg->{caller} ? $arg->{caller} : ( caller 1 )[3];
        	croak "${caller}() does not support -json";
     };
-
-    delete $self->{_pragmata};
 
     my $resp = $self->_get( $arg->{path} );
     $resp->is_success()
@@ -5377,17 +5431,14 @@ sub _scrape_table_v1 {
     }
 
     if ( $opt->{json} ) {
-	my @list;
-	my %ctxt;
+
 	foreach my $datum ( @data[ $arg->{num_head} .. $#data ] ) {
-	    my %obj;
-	    @obj{ @{ $arg->{fields} } } = @{ $datum };
-	    $arg->{fixup}
-		and $arg->{fixup}->( $self, \%ctxt, \%obj );
-	    push @list, \%obj;
+	    $arg->{processor}->( $self, $arg, $datum );
 	}
-	$content = $self->_get_json_object()->encode( \@list );
+	$content = $self->_get_json_object()->encode( $arg->{encode} );
+
     } else {
+
 	foreach my $datum ( @data ) {
 	    if ( $line++ == $arg->{num_head} ) {
 		foreach ( @{ $datum } ) {
@@ -5399,13 +5450,18 @@ sub _scrape_table_v1 {
     }
 
     $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
+
     $self->_add_pragmata($resp,
 	'spacetrack-type'	=> $arg->{type},
 	'spacetrack-source'	=> 'spacetrack',
 	'spacetrack-interface'	=> 1,
     );
-    return wantarray ? ($resp, \@data) : $resp;
 
+    wantarray
+	and $arg->{wantarray}
+	and return ( $resp, \@data );
+
+    return $resp;
 }
 
 #	_search wraps the specific search functions. It is called
