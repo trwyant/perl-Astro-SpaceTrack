@@ -1,3 +1,12 @@
+0.066		2012-10-15	T. R. Wyant
+  Add methods country_names() and launch_sites(), to return the
+    expansions of the relevant abbreviations in either tabular form or
+    JSON. Under space_track_version == 2, launch_sites() is hard-coded,
+    since this information is not available under the REST interface.
+  The box_score() method now takes option -json, to return the data in
+    JSON format. If space_track_version == 1, the JSON is made up from
+    the tabular data.
+
 0.065		2012-10-09	T. R. Wyant
   Retract the merging of names from observing lists (in celestrak() and
     file()) in REST queries, since we can now get them direct from the

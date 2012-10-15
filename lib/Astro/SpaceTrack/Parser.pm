@@ -25,7 +25,7 @@ use base qw{HTML::Parser};
 
 use Carp;
 
-our $VERSION = '0.065';
+our $VERSION = '0.066';
 
 my %target = (
     table => {
