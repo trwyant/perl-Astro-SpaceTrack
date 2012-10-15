@@ -1154,6 +1154,8 @@ sub content_interface {
     return;
 }
 
+=for html <a name="country_names"></a>
+
 =item $resp = $st->country_names()
 
 This method returns the list of country abbreviations and names from
@@ -1175,8 +1177,8 @@ HTTP::Response from C<login()>.
 
 If this method succeeds, the response will contain headers
 
-Pragma: spacetrack-type = box_score
-Pragma: spacetrack-source = spacetrack
+ Pragma: spacetrack-type = box_score
+ Pragma: spacetrack-source = spacetrack
 
 There are no arguments.
 
@@ -1814,6 +1816,155 @@ The BODY_STATUS constants are exportable using the :status tag.
     }
 
 }	# End of local symbol block.
+
+=for html <a name="launch_sites"></a>
+
+=item $resp = $st->launch_sites()
+
+This method returns the list of launch site abbreviations and names
+from the Space Track web site. If it succeeds, the content will be the
+abbreviations and names, including headings, with the fields
+tab-delimited.
+
+This method takes option C<-json>, specified either command-style
+(i.e.  C<< $st->launch_sites( '-json' ) >>) or as a hash reference
+(i.e.  C<< $st->launch_sites( { json => 1 } ) >>). This causes the
+body of the response to be the JSON representation of a hash whose
+keys are the launch site abbreviations, and whose values are the
+corresponding launch site names.
+
+If C<space_track_version> is C<1>, this method requires a Space Track
+username and password. It implicitly calls the C<login()> method if the
+session cookie is missing or expired.  If C<login()> fails, you will get
+the HTTP::Response from C<login()>.
+
+If C<space_track_version> is C<2>, this method should be considered to
+return historical data that is for information only, since it returns
+canned data which I have no way to keep up to date. The Space Track REST
+interface does not provide this information, and I decided preserving
+the old data might be better than losing it. If you disagree, you should
+probably not use this method. B<Caveat user.>
+
+If this method succeeds, the response will contain headers
+
+ Pragma: spacetrack-type = box_score
+ Pragma: spacetrack-source = spacetrack
+
+There are no arguments.
+
+=cut
+
+{
+    my @dispatch = ( undef, \&_launch_sites_v1, \&_launch_sites_v2 );
+
+    sub launch_sites {
+	goto $dispatch[ $_[0]{space_track_version} ];
+    }
+}
+
+sub _launch_sites_v1 {
+    push @_, {
+	encode		=> {},
+	num_head	=> 1,
+	path		=> 'perl/launch_key_pu.pl',
+	processor	=> \&_country_names_v1_processor,
+	table		=> 0,
+	type		=> 'launch_sites',
+    };
+    goto &_scrape_table_v1;
+}
+
+{
+    # The following generated from version 1 results by
+    # foo/launch_sites.
+    my $headings = [ 'Abbreviation', 'Country/Organization' ];
+    my @data = (
+        [ 'AFETR'  => 'AIR FORCE EASTERN TEST RANGE' ],
+        [ 'AFWTR'  => 'AIR FORCE WESTERN TEST RANGE' ],
+        [ 'CAS'    => 'Pegasus launched from Canary Islands Air Space' ],
+        [ 'ERAS'   => 'Pegasus launched from Eastern Range Air Space' ],
+        [ 'FRGUI'  => 'FRENCH GUIANA' ],
+        [ 'HGSTR'  => 'HAMMA GUIRA SPACE TRACK RANGE' ],
+        [ 'JSC'    => 'Jiuquan Satellite Launch Center, China' ],
+        [ 'KODAK'  => 'Kodiak Island, Alaska' ],
+        [ 'KSCUT'  => 'KAGOSHIMA SPACE CENTER UNIVERSITY OF TOKYO' ],
+        [ 'KWAJ'   => 'Kwajalein' ],
+        [ 'KYMTR'  => 'KAPUSTIN YAR MISSILE AND SPACE COMPLEX' ],
+        [ 'OREN'   => 'Orenburg, Russia' ],
+        [ 'PKMTR'  => 'PLESETSK MISSILE AND SPACE COMPLEX' ],
+        [ 'SADOL'  => 'Submarine Launch from Barents Sea, Russia' ],
+        [ 'SCTMR'  => 'JIUQUAN' ],
+        [ 'SEAL'   => 'SEA LAUNCH' ],
+        [ 'SEM'    => 'Semnan, Iran' ],
+        [ 'SNMLP'  => 'SAN MARCO LAUNCH PLATFORM' ],
+        [ 'SRI'    => 'SIRHARIKOTA' ],
+        [ 'SVOB'   => 'Svobodny, Russia' ],
+        [ 'TCS'    => 'UNKNOWN' ],
+        [ 'TNSTA'  => 'TANEGASHIMA SPACE CENTER' ],
+        [ 'TSC'    => 'Taiyaun Space Center, China' ],
+        [ 'TTMTR'  => 'TYURATAM MISSILE AND SPACE COMPLEX' ],
+        [ 'WLPIS'  => 'WALLOPS ISLAND' ],
+        [ 'WOMRA'  => 'WOOMERA' ],
+        [ 'WRAS'   => 'Pegasus launched from Western Range Air Space' ],
+        [ 'WUZ'    => 'TAIYUAN' ],
+        [ 'XIC'    => 'XI CHANG LAUNCH FACILITY' ],
+        [ 'XSC'    => 'Xichang Space Center, China' ],
+        [ 'YAVNE'  => 'Yavne, Israel' ],
+    );
+
+    my $no_json;
+    my %struct;
+    my @json;
+
+    sub _launch_sites_v2 {
+	my ( $self, @args ) = @_;
+
+	delete $self->{_pragmata};
+
+	( my $opt, @args ) = _parse_args(
+	    [
+		'json!'	=> 'Return data in JSON format',
+	    ], @args );
+
+	my $resp;
+
+	if ( $opt->{json} ) {
+	    my $inx = $self->getv( 'pretty' ) ? 1 : 0;
+
+	    if ( ! %struct ) {
+		foreach my $datum ( @data ) {
+		    $struct{$datum->[0]} = $datum->[1];
+		}
+	    }
+
+	    if ( ! defined $json[$inx] ) {
+		$json[$inx] = $self->_get_json_object()
+		    ->encode( \%struct );
+	    }
+
+	    $resp = HTTP::Response->new( HTTP_OK, undef, undef,
+		$json[$inx] );
+
+	} else {
+
+	    if ( ! defined $no_json ) {
+		foreach my $datum ( $headings, @data ) {
+		    $no_json .= join( "\t", @{ $datum } ) . "\n";
+		}
+	    }
+
+	    $resp = HTTP::Response->new( HTTP_OK, undef, undef, $no_json );
+	}
+
+	$self->_add_pragmata( $resp,
+	    'spacetrack-type'	=> 'launch_sites',
+	    'spacetrack-source'	=> 'spacetrack',
+	    'spacetrack-interface'	=> 2,
+	);
+
+	return $resp;
+    }
+}
 
 
 =for html <a name="login"></a>
@@ -4777,59 +4928,6 @@ sub _instance {
     return $object->isa( $class );
 }
 
-# $resp = $st->__launch_sites()
-#
-# This method returns the list of launch site abbreviations and names
-# from the Space Track web site. If it succeeds, the content will be the
-# abbreviations and names, including headings, with the fields
-# tab-delimited.
-#
-# This method takes option C<-json>, specified either command-style
-# (i.e.  C<< $st->__launch_sites( '-json' ) >>) or as a hash reference
-# (i.e.  C<< $st->__launch_sites( { json => 1 } ) >>). This causes the
-# body of the response to be the JSON representation of a hash whose
-# keys are the launch site abbreviations, and whose values are the
-# corresponding launch site names.
-#
-# This method requires a Space Track username and password. It
-# implicitly calls the C<login()> method if the session cookie is
-# missing or expired.  If C<login()> fails, you will get the
-# HTTP::Response from C<login()>.
-#
-# If this method succeeds, the response will contain headers
-#
-#  Pragma: spacetrack-type = box_score
-#  Pragma: spacetrack-source = spacetrack
-#
-# There are no arguments.
-
-{
-    my @dispatch = ( undef, \&_launch_sites_v1, \&_launch_sites_v2 );
-
-    sub __launch_sites {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _launch_sites_v1 {
-    push @_, {
-	encode		=> {},
-	num_head	=> 1,
-	path		=> 'perl/launch_key_pu.pl',
-	processor	=> \&_country_names_v1_processor,
-	table		=> 0,
-	type		=> 'launch_sites',
-    };
-    goto &_scrape_table_v1;
-}
-
-sub _launch_sites_v2 {
-    my ( $self, @args ) = @_;
-
-    delete $self->{_pragmata};
-
-    croak 'Launch site names are unavailable under the REST interface';
-}
 
 # _make_space_track_base_url() makes the a base Space Track URL. You can
 # pass the interface version number (1 or 2) as an argument -- it

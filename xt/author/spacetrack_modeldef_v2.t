@@ -787,6 +787,42 @@ EOD
     };
 }
 
+note <<'EOD';
+The following is not really model definition. It is data not available
+under the REST interface, which I want to track for as long as possible.
+EOD
+
+{
+    $rslt = $st->_launch_sites_v2( { json => 0 } );
+
+    ok $rslt->is_success(), 'Fetch version 2 launch sites';
+
+    # Should always succeed, since it's hard-coded, but you never know.
+    if ( $rslt->is_success() ) {
+
+	my $expect = $rslt->content();
+
+	$rslt = $st->_launch_sites_v1( { json => 0 } );
+
+	ok $rslt->is_success(), 'Fetch version 1 launch sites';
+
+	if ( $rslt->is_success() ) {
+
+	    my $got = $rslt->content();
+
+	    is $got, $expect, 'Got expected launch sites'
+		or do {
+		diag <<'EOD';
+Writing launch sites we got and we expect to launch_sites.got and
+launch_sites.expect
+EOD
+		dump_json( 'launch_sites.got', $got );
+		dump_json( 'launch_sites.expect', $expect );
+	    };
+	}
+    }
+}
+
 done_testing;
 
 1;

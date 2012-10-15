@@ -371,7 +371,7 @@ subtest 'Space Track access - v1 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    is_success $st, '__launch_sites', 'Retrieve launch sites';
+    is_success $st, 'launch_sites', 'Retrieve launch sites';
 
     is $st->content_type(), 'launch_sites',
 	q{Content type is 'launch_sites'};
@@ -731,11 +731,7 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
-    # TODO Not supported yet
-
-=begin comment
-
-    is_success $st, '__launch_sites', 'Retrieve launch sites';
+    is_success $st, 'launch_sites', 'Retrieve launch sites';
 
     is $st->content_type(), 'launch_sites',
 	q{Content type is 'launch_sites'};
@@ -746,13 +742,15 @@ subtest 'Space Track access - v2 interface', sub {
     is $st->content_interface(), $desired_content_interface,
 	"Content version is $desired_content_interface";
 
+=begin comment
+
+    throws_exception $st, 'launch_sites',
+	qr{\QLaunch site names are unavailable under the REST interface}smx,
+	'Retrieve launch sites should throw an exception';
+
 =end comment
 
 =cut
-
-    throws_exception $st, '__launch_sites',
-	qr{\QLaunch site names are unavailable under the REST interface}smx,
-	'Retrieve launch sites should throw an exception';
 
 };
 
