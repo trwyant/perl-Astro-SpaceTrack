@@ -1632,6 +1632,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    'man' => BODY_STATUS_IS_TUMBLING,
 	    'tum' => BODY_STATUS_IS_TUMBLING,
 	    'tum?' => BODY_STATUS_IS_TUMBLING,
+	    'unc'	=> BODY_STATUS_IS_TUMBLING,
 	},
 #	sladen => undef,	# Not needed; done programmatically.
     );
@@ -1695,9 +1696,26 @@ The BODY_STATUS constants are exportable using the :status tag.
 	return $resp;
     }
 
+    # Mung an Iridium status hash to assume all actual Iridium
+    # satellites are good. This is used to prevent bleed-through from
+    # Kelso to McCants, since the latter only reports by exception.
+    sub _iridium_status_assume_good {
+	my ( $self, $rslt ) = @_;
+
+	foreach my $val ( values %{ $rslt } ) {
+	    $val->[1] =~ m/ \A iridium \b /smxi
+		or next;
+	    $val->[2] = '';
+	    $val->[4] = BODY_STATUS_IS_OPERATIONAL;
+	}
+
+	return;
+    }
+
     # Get Iridium status from Mike McCants
     sub _iridium_status_mccants {
 	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
+	$self->_iridium_status_assume_good( $rslt );
 	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_mccants' )
 	);
@@ -1742,6 +1760,8 @@ The BODY_STATUS constants are exportable using the :status tag.
     # Get Iridium status from Rod Sladen.
     sub _iridium_status_sladen {
 	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
+
+	$self->_iridium_status_assume_good( $rslt );
 
 	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_sladen' )
