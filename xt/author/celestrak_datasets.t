@@ -43,6 +43,11 @@ $expect{'iridium-33-debris'} = {
     note => 'Not actually provided as a fetchable data set.',
     ignore => 1,
 };
+$expect{'2012-044'} = {
+    name => 'BREEZE-M R/B Breakup (2012-044C)',
+    note => 'Not actually provided as a fetchable data set.',
+    ignore => 1,
+};
 
 =begin comment
 
@@ -78,7 +83,7 @@ foreach my $key (sort keys %expect) {
 ok ( !%got, 'The above is all there is' ) or do {
     diag( 'The following have been added:' );
     foreach (sort keys %got) {
-	diag( "    $_ => '$got{$_}{name}" );
+	diag( "    $_ => '$got{$_}{name}'" );
     }
 };
 

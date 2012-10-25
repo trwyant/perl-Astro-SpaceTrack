@@ -915,6 +915,12 @@ by its collision with Cosmos 2251 on February 10 2009. As of February 21
 2010 there are 461 pieces of debris in the data set, up from the 159
 that had been cataloged as of March 9 2009.
 
+=item 2012-044
+
+This is the debris of a Breeze-M upper stage (OID 38746, International
+Designator 2012-044C), which exploded October 16 2012. As of October 25
+there were 81 pieces of debris in the data set.
+
 =back
 
 Before the end of the Space Shuttle program, data on the current mission

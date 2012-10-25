@@ -32,6 +32,7 @@ co
 com
 cpan
 dataset
+designator
 executables
 exportable
 fallback
