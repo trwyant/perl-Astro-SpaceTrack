@@ -2341,7 +2341,7 @@ sub _retrieve_v2 {
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
 		separator	=> ',',
-##		range_operator	=> '--',
+		range_operator	=> '--',
 	    }, @batch );
 
 	my $resp = $self->spacetrack_query_v2(
