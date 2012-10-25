@@ -1,3 +1,12 @@
+0.067		2012-10-25	T. R. Wyant
+  Document a new Celestrak "direct-fetch only" data set, 2012-044, which
+    represents the explosion of a Breeze-M upper stage (2012-044C) on
+    October 16 2012.
+  Re-instate the use of ranges when fetching a number of OIDs via the
+    Space Track REST interface, since they are supported now.
+  Fix bug that allowed Kelso's Iridium status to "bleed through" into
+    the McCants status data.
+
 0.066		2012-10-15	T. R. Wyant
   Add methods country_names() and launch_sites(), to return the
     expansions of the relevant abbreviations in either tabular form or
