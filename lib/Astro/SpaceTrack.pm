@@ -2347,7 +2347,7 @@ sub _retrieve_v2 {
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
 		separator	=> ',',
-		range_operator	=> '--',
+		range_operator	=> _rest_range_operator(),
 	    }, @batch );
 
 	my $resp = $self->spacetrack_query_v2(
@@ -2541,7 +2541,7 @@ sub _retrieve_v2 {
 	    @args = (
 		_stringify_oid_list( {
 			separator	=> ',',
-##			range_operator	=> '--',
+			range_operator	=> _rest_range_operator(),
 		    },
 		    @args
 		)
@@ -5785,6 +5785,15 @@ sub _search_generic_tabulate {
 
 	return @rslt;
     }
+}
+
+# The following UNDOCUMENTED hack will disappear when the REST
+# interface's behavior when you have ranges in a list of OIDs
+# stabilizes.
+sub _rest_range_operator {
+    return $ENV{SPACETRACK_REST_RANGE_OPERATOR} ?
+	'--' :
+	undef;
 }
 
 #	$swapped = _swap_upper_and_lower( $original );
