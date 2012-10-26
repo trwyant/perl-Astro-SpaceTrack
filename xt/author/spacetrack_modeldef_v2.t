@@ -254,15 +254,15 @@ if ( $rslt->is_success() ) {
          "Extra" : "",
          "Field" : "OBJECT_NAME",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "char(25)"
       },
       {
-         "Default" : "",
+         "Default" : null,
          "Extra" : "",
          "Field" : "OBJECT_TYPE",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "varchar(11)"
       },
       {
@@ -402,11 +402,11 @@ if ( $rslt->is_success() ) {
          "Type" : "int(10) unsigned"
       },
       {
-         "Default" : "",
+         "Default" : null,
          "Extra" : "",
          "Field" : "TLE_LINE0",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "varchar(27)"
       },
       {
@@ -488,15 +488,15 @@ if ( $rslt->is_success() ) {
          "Extra" : "",
          "Field" : "OBJECT_NAME",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "char(25)"
       },
       {
-         "Default" : "",
+         "Default" : null,
          "Extra" : "",
          "Field" : "OBJECT_TYPE",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "varchar(11)"
       },
       {
@@ -636,11 +636,11 @@ if ( $rslt->is_success() ) {
          "Type" : "int(10) unsigned"
       },
       {
-         "Default" : "",
+         "Default" : null,
          "Extra" : "",
          "Field" : "TLE_LINE0",
          "Key" : "",
-         "Null" : "NO",
+         "Null" : "YES",
          "Type" : "varchar(27)"
       },
       {
