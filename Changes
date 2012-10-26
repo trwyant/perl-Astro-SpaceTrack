@@ -1,3 +1,7 @@
+0.068		2012-10-26	T. R. Wyant
+  Retract use of ranges when fetching from Space Track REST interface by
+    OID, since it appears this is not stable yet.
+
 0.067		2012-10-25	T. R. Wyant
   Document a new Celestrak "direct-fetch only" data set, 2012-044, which
     represents the explosion of a Breeze-M upper stage (2012-044C) on
