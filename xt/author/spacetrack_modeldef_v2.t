@@ -402,11 +402,11 @@ if ( $rslt->is_success() ) {
          "Type" : "int(10) unsigned"
       },
       {
-         "Default" : null,
+         "Default" : "",
          "Extra" : "",
          "Field" : "TLE_LINE0",
          "Key" : "",
-         "Null" : "YES",
+         "Null" : "NO",
          "Type" : "varchar(27)"
       },
       {
@@ -636,11 +636,11 @@ if ( $rslt->is_success() ) {
          "Type" : "int(10) unsigned"
       },
       {
-         "Default" : null,
+         "Default" : "",
          "Extra" : "",
          "Field" : "TLE_LINE0",
          "Key" : "",
-         "Null" : "YES",
+         "Null" : "NO",
          "Type" : "varchar(27)"
       },
       {
