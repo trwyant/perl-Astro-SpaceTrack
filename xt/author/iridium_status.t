@@ -18,7 +18,9 @@ my %known_inconsistent = (
 ###    24946 => {kelso => 1},	# Kelso: operational; others: tumbling
 ###    27372 => {mccants => 1},	# Kelso & Sladen: operational;
     				# McCants: spare.
-    24796 => { kelso => 1 },	# Kelso: failed; others: operatioal 20-Oct-2012
+    24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
+				# McCants: failed 29-Oct-2012;
+				# Sladen: still operational.
     24906 => { kelso => 1 },	# Kelso: spare; others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
@@ -84,7 +86,7 @@ foreach (["Mike McCants' Iridium status",
  24793   Iridium 7               Celestrak
  24794   Iridium 6               Celestrak
  24795   Iridium 5               Celestrak
- 24796   Iridium 4               Celestrak
+ 24796   Iridium 4      unc      Failed? No longer station keeping after July 20, 2012
  24836   Iridium 914    tum      Failed; was called Iridium 14
  24837   Iridium 12              Celestrak
  24839   Iridium 10              Celestrak
