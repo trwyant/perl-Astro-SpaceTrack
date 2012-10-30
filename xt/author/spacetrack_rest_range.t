@@ -21,6 +21,12 @@ The purpose of this test is to alert me when ranges can be used in lists
 of OIDs in the Space Track REST interface.
 EOD
 
+diag <<'EOD';
+
+If this test passes, it means you still can not mix ranges with
+individual OIDs in a query.
+EOD
+
 {
     my @oids = qw{ 25778 27372-27376 27450 };
     local $ENV{SPACETRACK_REST_RANGE_OPERATOR} = 1;
