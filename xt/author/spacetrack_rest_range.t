@@ -82,11 +82,20 @@ EOD
 	cmp_ok scalar @{ $data }, '==', scalar @expect,
 	'Got expected number of OIDs';
 
-	my %got = map { $_->{NORAD_CAT_ID} => 1 } @{ $data };
+	my %got;
+	foreach ( map { $_->{NORAD_CAT_ID} } @{ $data } ) {
+	    $got{$_}++;
+	}
 
 	foreach my $oid ( @expect ) {
-	    ok $got{$oid}, "Got OID $oid";
+	    cmp_ok $got{$oid}, '==', 1, "Got exactly one of OID $oid";
+	    delete $got{$oid};
 	}
+
+	my $extra = join ', ', sort { $a <=> $b } keys %got;
+
+	ok !%got, 'No OIDs other than the ones expected'
+	    or diag "Extra OIDs: $extra";
 
     }
 }
