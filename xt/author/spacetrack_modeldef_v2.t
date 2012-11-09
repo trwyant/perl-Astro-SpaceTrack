@@ -641,7 +641,7 @@ if ( $rslt->is_success() ) {
          "Field" : "TLE_LINE0",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(27)"
+         "Type" : "varchar(62)"
       },
       {
          "Default" : "",
