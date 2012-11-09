@@ -2216,9 +2216,8 @@ epoch (i.e. the interval is closed at the beginning but open at
 the end). If you specify only one of these, you get a one-day
 interval. Dates are specified either numerically (as a Perl date) or as
 numeric year-month-day (and optional hour, hour:minute, or
-hour:minute:second), punctuated by any non-numeric string. The
-hour:minute:second is ignored unless C<space_track_version> is C<2>.  It
-is an error to specify an end_epoch before the start_epoch.
+hour:minute:second, but this is ignored), punctuated by any non-numeric
+string.  It is an error to specify an end_epoch before the start_epoch.
 
 If you are passing the options as a hash reference, you must specify
 a value for the boolean options 'descending' and 'last5'. This value is
@@ -2400,10 +2399,12 @@ sub _retrieve_v2 {
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
 	    $rest{EPOCH} = sprintf
-		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
-		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
-		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
-##	    $rest{EPOCH} =~ s/ \s+ 00:00:00 (?= \z | - ) //smxg;
+#		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
+#		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
+#		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
+		'%04d-%02d-%02d--%04d-%02d-%02d',
+		@{ $opt->{_start_epoch} }[ 0 .. 2 ],
+		@{ $opt->{_end_epoch} }[ 0 .. 2 ];
 	    $rest{class} = 'tle';
 	} else {
 	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
