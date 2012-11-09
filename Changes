@@ -1,3 +1,8 @@
+0.069		2012-11-09	T. R. Wyant
+  Do not pass the time portion of a date/time query to the Space Track
+    REST interface, since it seems not to handle it (though I thought it
+    did at one time).
+
 0.068		2012-10-26	T. R. Wyant
   Retract use of ranges when fetching from Space Track REST interface by
     OID, since it appears this is not stable yet.
