@@ -21,11 +21,14 @@ my %known_inconsistent = (
     24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
 				# McCants: failed 29-Oct-2012;
 				# Sladen: still operational.
-    24906 => { kelso => 1 },	# Kelso: spare; others: operational
+    24906 => { mccants => 1 },	# Kelso: spare; others: operational
+				# 16-Nov-2012: Sladen declares spare
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
     25262 => { kelso => 1 },	# Kelso: spare; others: operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
+    27374 => { sladen => 1 },	# 16-Nov-2012 Sladen: operational;
+				#             others: spare
 );
 
 =begin comment
@@ -291,7 +294,7 @@ EOD
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [+]      Plane 2
  24905   Iridium 46     [+]      Plane 2
- 24906   Iridium 23     [+]      Plane 2
+ 24906   Iridium 23     [S]      Plane 2
  24907   Iridium 22     [+]      Plane 2
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
@@ -359,7 +362,7 @@ EOD
  25778   Iridium 21     [+]      Plane 1
  27372   Iridium 91     [+]      Plane 3
  27373   Iridium 90     [S]      Plane 5
- 27374   Iridium 94     [S]      Plane 2
+ 27374   Iridium 94     [+]      Plane 2
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [S]      Plane 3
  27450   Iridium 97     [+]      Plane 4
