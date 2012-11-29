@@ -959,10 +959,11 @@ sub celestrak {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    $self->get( 'space_track_version' ) > 1
+    not $self->{direct}
+	and $self->getv( 'space_track_version' ) > 1
 	and unshift @args, SPACE_TRACK_V2_OPTIONS;
-    @args = _parse_retrieve_args( @args );
-    my $opt = shift @args;
+
+    ( my $opt, @args ) = _parse_retrieve_args( @args );
 
     my $name = shift @args;
     $self->_deprecation_notice( celestrak => $name );
