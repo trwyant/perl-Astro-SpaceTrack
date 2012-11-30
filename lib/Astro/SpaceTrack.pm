@@ -320,6 +320,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
     },
+    celestrak_supplemental => {
+	gps		=> { name => 'GPS',		rms => 1 },
+	glonass		=> { name => 'Glonass',		rms => 1 },
+	meteosat	=> { name => 'Meteosat',	rms => 1 },
+	intelsat	=> { name => 'Intelsat',	rms => 1 },
+	orbcomm		=> { name => 'Orbcomm (no rms data)' },
+    },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
 	mccants => {name => 'McCants'},
@@ -972,7 +979,7 @@ sub celestrak {
 	and return $self->_celestrak_direct( $opt, $name );
     my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/SpaceTrack/query/$name.txt");
-    if ( my $check = $self->_celestrak_response_check( $resp, $name ) ) {
+    if ( my $check = $self->_response_check( $resp, celestrak => $name ) ) {
 	return $check;
     }
     $self->_convert_content ($resp);
@@ -982,13 +989,80 @@ sub celestrak {
 	$self->_celestrak_direct( $opt, $name );
 }
 
+=for html <a name="celestrak_supplemental"></a>
+
+=item $resp = $st->celestrak_supplemental ($name);
+
+This method takes the name of a Celestrak supplemental data set and
+returns an HTTP::Response object whose content is the relevant element
+sets.
+
+These TLE data are B<not> redistributed from Space Track, but are
+derived from publicly available ephemeris data for the satellites in
+question.
+
+The C<-rms> option can be specified to return the RMS data, if it is
+available.
+
+A list of valid names and brief descriptions can be obtained by calling
+C<< $st->names( 'celestrak_supplemental' ) >>. If you have set the
+C<verbose> attribute true (e.g. C<< $st->set (verbose => 1) >>), the
+content of the error response will include this list. Note, however,
+that this list does not determine what can be retrieved; if Dr.  Kelso
+adds a data set, it can be retrieved even if it is not on the list, and
+if he removes one, being on the list won't help.
+
+For more information, see
+L<http://celestrak.com/NORAD/elements/supplemental/>.
+
+=cut
+
+sub celestrak_supplemental {
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
+
+    ( my $opt, @args ) = _parse_args(
+	[
+	    'rms!' => '(Return RMS data)',
+	], @args );
+
+    my $name = shift @args;
+
+    not $opt->{rms}
+	or $catalogs{celestrak_supplemental}{$name}{rms}
+	or return HTTP::Response->new(
+	    HTTP_PRECONDITION_FAILED,
+	    "$name does not take the -rms option" );
+
+    $self->_deprecation_notice( celestrak_supplemental => $name );
+
+    my $sfx = $opt->{rms} ? 'rms.txt' : 'txt';
+    my $resp = $self->_get_agent()->get (
+	"http://celestrak.com/NORAD/elements/supplemental/$name.$sfx" );
+
+    my $check;
+    $check = $self->_response_check(
+	$resp, celestrak_supplemental => $name, 'direct')
+	and return $check;
+
+    $self->_convert_content( $resp );
+
+    $self->_add_pragmata($resp,
+	'spacetrack-type'	=> ( $opt->{rms} ? 'rms' : 'orbit' ),
+	'spacetrack-source'	=> 'celestrak',
+    );
+
+    $self->_dump_headers( $resp );
+    return $resp;
+}
+
 sub _celestrak_direct {
     my ( $self, $opt, $name ) = @_;
     delete $self->{_pragmata};
 
     my $resp = $self->_get_agent()->get (
 	"http://celestrak.com/NORAD/elements/$name.txt");
-    if (my $check = $self->_celestrak_response_check($resp, $name, 'direct')) {
+    if (my $check = $self->_response_check($resp, celestrak => $name, 'direct')) {
 	return $check;
     }
     $self->_convert_content ($resp);
@@ -1018,12 +1092,12 @@ sub _celestrak_repack_iridium {
 
     my %valid_type = ('text/plain' => 1, 'text/text' => 1);
 
-    sub _celestrak_response_check {
-	my ($self, $resp, $name, @args) = @_;
+    sub _response_check {
+	my ($self, $resp, $source, $name, @args) = @_;
 	unless ($resp->is_success) {
 	    $resp->code == HTTP_NOT_FOUND
 		and return $self->_no_such_catalog(
-		celestrak => $name, @args);
+		$source => $name, @args);
 	    return $resp;
 	}
 	if (my $loc = $resp->header('Content-Location')) {
@@ -1032,7 +1106,7 @@ sub _celestrak_repack_iridium {
 		@args and $msg = "@args; $msg";
 		$1 == HTTP_NOT_FOUND
 		    and return $self->_no_such_catalog(
-		    celestrak => $name, $msg);
+		    $source => $name, $msg);
 		return HTTP::Response->new (+$1, "$msg\n")
 	    }
 	}
@@ -1041,7 +1115,7 @@ sub _celestrak_repack_iridium {
 	    my $msg = 'No Content-Type header found';
 	    @args and $msg = "@args; $msg";
 	    return $self->_no_such_catalog(
-		celestrak => $name, $msg);
+		$source => $name, $msg);
 	};
 	foreach ( _trim( split ',', $type ) ) {
 	    s/ ; .* //smx;
@@ -1050,7 +1124,7 @@ sub _celestrak_repack_iridium {
 	my $msg = "Content-Type: $type";
 	@args and $msg = "@args; $msg";
 	return $self->_no_such_catalog(
-	    celestrak => $name, $msg);
+	    $source => $name, $msg);
     }
 
 }	# End local symbol block.
@@ -2131,9 +2205,10 @@ since all it is doing is returning data kept by this module.
 =cut
 
 sub names {
-    my $self = shift;
+    my ( $self, $name ) = @_;
+    $name = lc $name;
     delete $self->{_pragmata};
-    my $name = lc shift;
+
     $catalogs{$name} or return HTTP::Response (
 	    HTTP_NOT_FOUND, "Data source '$name' not found.");
     my $src = $catalogs{$name};

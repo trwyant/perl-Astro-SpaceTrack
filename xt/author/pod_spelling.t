@@ -33,6 +33,7 @@ com
 cpan
 dataset
 designator
+ephemeris
 executables
 exportable
 fallback
@@ -66,6 +67,7 @@ org
 redirections
 redistributer
 redistributers
+RMS
 satcat
 sladen
 Sladen's

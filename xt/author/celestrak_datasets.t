@@ -9,11 +9,13 @@ use LWP::UserAgent;
 use Test::More 0.96;
 
 my $ua = LWP::UserAgent->new ();
+
+# Redistributed TLEs
+
 my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');
-unless ($rslt->is_success) {
-    plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
-    exit;	# Defensive code.
-}
+
+$rslt->is_success()
+    or plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
 
 my %got = parse_string ($rslt->content);
 
@@ -66,6 +68,49 @@ $expect{'usa-193-debris'} = {
 if ($expect{sts}) {
     $expect{sts}{note} = 'Only available when a mission is in progress.';
     $expect{sts}{ignore} = 1;	# What it says.
+}
+
+foreach my $key (sort keys %expect) {
+    if ($expect{$key}{ignore}) {
+	my $presence = delete $got{$key} ? 'present' : 'not present';
+	note "Ignored - $key (@{[($got{$key} ||
+		$expect{$key})->{name}]}): $presence";
+	$expect{$key}{note} and note( "    $expect{$key}{note}" );
+    } else {
+	ok delete $got{$key}, $expect{$key}{name};
+	$expect{$key}{note} and note "    $expect{$key}{note}";
+    }
+}
+
+ok ( !%got, 'The above is all there is' ) or do {
+    diag( 'The following have been added:' );
+    foreach (sort keys %got) {
+	diag( "    $_ => '$got{$_}{name}'" );
+    }
+};
+
+# Supplemental TLEs
+
+$rslt = $ua->get ('http://celestrak.com/NORAD/elements/supplemental/');
+
+%got = parse_string ($rslt->content);
+
+foreach my $key ( keys %got ) {
+    $key !~ m{ / }smx
+	and $key !~ m{ [.] rms \z }smx
+	and next;
+    delete $got{$key};
+}
+
+( undef, $names ) = $st->names( 'celestrak_supplemental' );
+
+%expect = ();
+
+foreach ( @{ $names } ) {
+    $expect{$_->[1]} = {
+	name => $_->[0],
+	ignore => 0,
+    };
 }
 
 foreach my $key (sort keys %expect) {

@@ -6,6 +6,7 @@ use warnings;
 use Test::More 0.96;	# For subtest
 
 use Astro::SpaceTrack;
+use HTTP::Response;
 
 sub is_error (@);
 sub is_not_success (@);
@@ -18,7 +19,7 @@ sub throws_exception (@);
 use constant VERIFY_HOSTNAME => 1;
 
 my $desired_content_interface = 1;
-my $rslt;
+# my $rslt;
 my $space_track_domain = 'www.space-track.org';
 my $st;
 
@@ -70,6 +71,20 @@ subtest 'Celestrak access', sub {
     is_error $st, celestrak => 'fubar',
 	404, 'Direct-fetch non-existent Celestrak catalog';
 
+    is_success $st, celestrak_supplemental => 'orbcomm',
+        'Fetch Celestrak supplemental Orbcomm data';
+
+    is $st->content_type(), 'orbit', "Content type is 'orbit'";
+
+    is $st->content_source(), 'celestrak', "Content source is 'celestrak'";
+
+    is_success $st, celestrak_supplemental => '-rms', 'intelsat',
+        'Fetch Celestrak supplemental Intelsat RMS data';
+
+    is $st->content_type(), 'rms', "Content type is 'rms'";
+
+    is $st->content_source(), 'celestrak', "Content source is 'celestrak'";
+
 };
 
 $st->set( direct => 0 );
@@ -93,6 +108,8 @@ subtest 'Space Track access - v1 interface', sub {
     my $skip;
     $skip = site_check $space_track_domain
 	and plan skip_all => $skip;
+
+    my $rslt = HTTP::Response->new();
 
     not_defined $st->content_type(), 'Content type should be undef'
 	or diag( 'content_type is ', $st->content_type() );
@@ -429,7 +446,7 @@ subtest 'Space Track login - v2 interface', sub {
     $skip = site_check $space_track_domain
 	and plan skip_all => $skip;
 
-    $rslt = $st->login();
+    my $rslt = $st->login();
     if ( not ok $rslt->is_success(), 'Log in to Space-Track' ) {
 	diag $rslt->status_line();
 	set_skip( $space_track_domain,
@@ -442,6 +459,8 @@ subtest 'Space Track access - v2 interface', sub {
     my $skip;
     $skip = site_check $space_track_domain
 	and plan skip_all => $skip;
+
+    my $rslt = HTTP::Response->new();
 
     not_defined $st->content_type(), 'Content type should be undef'
 	or diag( 'content_type is ', $st->content_type() );
@@ -914,6 +933,8 @@ $st->shell( '', '# comment', 'set banner 1', 'exit' );
 ok $st->get('banner'), 'Reset an attribute using the shell';
 
 done_testing;
+
+my $rslt;
 
 sub most_recent_http_response {
     return $rslt;
