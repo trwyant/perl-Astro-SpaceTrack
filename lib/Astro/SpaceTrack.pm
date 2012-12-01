@@ -64,8 +64,9 @@ it.
 
 Space Track announced August 24 2012 that the bulk data downloads
 provided by the spacetrack() method were deprecated, and would probably
-be eliminated in October 2012. Their rationale is that the new REST
-interface makes prepackaged data no longer necessary.
+be eliminated in October 2012 (though I note that it is still there as
+of November 30 2012). Their rationale is that the new REST interface
+makes prepackaged data no longer necessary.
 
 What I have decided to do about this is to replicate the bulk data
 catalogs with REST queries, to the extent possible. Catalogs which can
@@ -119,21 +120,34 @@ stated otherwise.
 
 =over
 
-=item In version 0.064_01 and before, the retrieve() method (which
-retrieves TLEs for given OIDs) was incapable of returning the common
-name of the body when using version 2 of the Space Track interface.
-Beginning with 0.064_02 this restriction is removed. The
-celestrak() and file() methods still prefer the object name from the
-observing list to the object name supplied by Space Track.
+=item * Retrieval of common names
 
-=item The C<spacetrack()> method (which returns predefined packages of
+In version 0.064_01 and before, the retrieve() method (which retrieves
+TLEs for given OIDs) was incapable of returning the common name of the
+body when using version 2 of the Space Track interface. Beginning with
+0.064_02 this restriction is removed. The celestrak() and file() methods
+still prefer the object name from the observing list to the object name
+supplied by Space Track.
+
+=item * Greater resolution in queries by epoch
+
+If you are using version 2 of the Space Track interface, you can specify
+time as well as date to the C<-start_epoch> and C<-end_epoch> options,
+and they will be honored. Under version 1 this would be truncated to an
+even day.
+
+=item * Bulk data (the C<spacetrack()> method)
+
+The C<spacetrack()> method (which returns predefined packages of
 TLEs) is implemented by REST queries, and those bulk data packages which
 are not reasonably implemented by REST queries are simply not available.
 See
 L<DEPRECATION NOTICE: SPACE TRACK BULK DATA|/DEPRECATION NOTICE: SPACE TRACK BULK DATA>
 above for details.
 
-=item It appears that the idea of what kind of thing an orbiting body is
+=item * Type of orbiting body
+
+It appears that the idea of what kind of thing an orbiting body is
 (payload, rocket body, debris, etc) is being reworked for version 2 of
 the Space Track interface. This means that if you use the C<-exclude>
 option of the C<search_*()> methods you may get different results
@@ -141,14 +155,18 @@ depending on the interface used. A known example is 'Westford Needles',
 which are debris under version 1 of the interface, but payload under
 version 2.
 
-=item The C<-status> search option defaults to 'onorbit' under version 2
+=item * Default for C<-status>
+
+The C<-status> search option defaults to 'onorbit' under version 2
 of the interface. The default under version 1 is still 'all'. This
 change was made because I believe that is what the user generally wants,
 and because the database underlying version 2 of the interface is
 optimized for this sort of query (see below). Basically, I believe that
 if you want a slow query you should have to ask for one specifically.
 
-=item Version 2 of the interface has two separate sources of TLE data.
+=item * Source of TLE data
+
+Version 2 of the interface has two separate sources of TLE data.
 The C<tle_latest> source is optimized for speed, but contains only
 current data. The C<tle> source contains all TLEs back to Sputnik, but
 is slower. The high-level interfaces attempt to select the correct
@@ -156,6 +174,15 @@ source based on the options given them. Options C<-start_epoch>,
 C<-end_epoch> and C<-since_file> cause the C<tle> source do be used, as
 does any value for C<-status> other than C<-status=onorbit>. Otherwise,
 the C<tle_latest> source is used.
+
+=item * Ad-hoc tweaks to version 2 functionality
+
+In some cases, where I have seen (or thought I have seen) glitches
+in the Space Track functionality, I have used environment variables to
+control whether the functionality is used. See the C<SPACETRACK_REST_*>
+entries under L<ENVIRONMENT|/ENVIRONMENT> for details. I will remove
+code using these environment variables when I think the interface is
+stable.
 
 =back
 
@@ -2286,14 +2313,15 @@ The legal options are:
    specifies how to sort the data. Legal types are
    'catnum' and 'epoch', with 'catnum' the default.
 
-If you specify either start_epoch or end_epoch, you get data with
-epochs at least equal to the start epoch, but less than the end
-epoch (i.e. the interval is closed at the beginning but open at
-the end). If you specify only one of these, you get a one-day
-interval. Dates are specified either numerically (as a Perl date) or as
-numeric year-month-day (and optional hour, hour:minute, or
-hour:minute:second, but this is ignored), punctuated by any non-numeric
-string.  It is an error to specify an end_epoch before the start_epoch.
+If you specify either start_epoch or end_epoch, you get data with epochs
+at least equal to the start epoch, but less than the end epoch (i.e. the
+interval is closed at the beginning but open at the end). If you specify
+only one of these, you get a one-day interval. Dates are specified
+either numerically (as a Perl date) or as numeric year-month-day (and
+optional hour, hour:minute, or hour:minute:second, but these are ignored
+under the Space Track version 1 interface), punctuated by any
+non-numeric string. It is an error to specify an end_epoch before the
+start_epoch.
 
 If you are passing the options as a hash reference, you must specify
 a value for the boolean options 'descending' and 'last5'. This value is
@@ -2474,6 +2502,9 @@ sub _retrieve_v2 {
 	my %rest = ( class	=> 'tle_latest' );
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
+
+=begin comment
+
 	    $rest{EPOCH} = sprintf
 #		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
 #		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
@@ -2481,6 +2512,13 @@ sub _retrieve_v2 {
 		'%04d-%02d-%02d--%04d-%02d-%02d',
 		@{ $opt->{_start_epoch} }[ 0 .. 2 ],
 		@{ $opt->{_end_epoch} }[ 0 .. 2 ];
+
+=end comment
+
+=cut
+
+	    $rest{EPOCH} = join '--', map { _rest_date( $opt->{$_} ) }
+	    qw{ _start_epoch _end_epoch };
 	    $rest{class} = 'tle';
 	} else {
 	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
@@ -5868,9 +5906,26 @@ sub _search_generic_tabulate {
 # interface's behavior when you have ranges in a list of OIDs
 # stabilizes.
 sub _rest_range_operator {
-    return $ENV{SPACETRACK_REST_RANGE_OPERATOR} ?
+    return _get_env( SPACETRACK_REST_RANGE_OPERATOR => 1 ) ?
 	'--' :
 	undef;
+}
+
+# The following UNDOCUMENTED hack will disappear when the REST
+# interface's behavior with fractional days stabilizes.
+
+sub _rest_date {
+    my ( $time ) = @_;
+    my $fmt = _get_env( SPACETRACK_REST_FRACTIONAL_DATE => 1 ) ?
+    '%04d-%02d-%02d %02d:%02d:%02d' : '%04d-%02d-%02d';
+    return sprintf $fmt, @{ $time };
+}
+
+sub _get_env {
+    my ( $name, $default ) = @_;
+    defined $ENV{$name}
+	and return $ENV{$name};
+    return $default;
 }
 
 #	$swapped = _swap_upper_and_lower( $original );
@@ -6231,6 +6286,30 @@ C<'yehudi:menuhin'> are accepted.
 An explicit username and/or password passed to the new () method
 overrides the environment variable, as does any subsequently-set
 username or password.
+
+=head2 SPACETRACK_REST_RANGE_OPERATOR
+
+This environment variable controls whether the Space Track version 2
+interface (a.k.a. the REST interface) uses OID ranges in its queries.
+A value Perl sees as false (i.e. C<0> or C<''>) causes ranges not to be
+used. A value Perl sees as true (i.e. anything else) causes ranges to be
+used. The default is to use ranges.
+
+Support for this environment variable will be removed when I think
+range support in the REST interface is stable.
+
+=head2 SPACETRACK_REST_FRACTIONAL_DATE
+
+This environment variable controls whether the Space Track version 2
+interface (a.k.a. the REST interface) will query epoch ranges (i.e. the
+C<-start_epoch> and C<-end_epoch> C<retrieve()> options) to
+fractional-day resolution.  A value Perl sees as false (i.e. C<0> or
+C<''>) causes epoch queries to be truncated to even days. A value Perl
+sees as true (i.e. anything else) causes epoch queries to be to the
+nearest second.  The default is to query to the nearest second.
+
+Support for this environment variable will be removed when I think
+fractional-day query support in the REST interface is stable.
 
 =head1 EXECUTABLES
 

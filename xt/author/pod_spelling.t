@@ -41,6 +41,7 @@ Fengyun
 filename
 globalstar
 glonass
+hoc
 HTTPS
 IDs
 inmarsat

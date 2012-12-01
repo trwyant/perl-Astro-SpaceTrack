@@ -819,65 +819,70 @@ is_resp qw{retrieve -last5 25544}, [ {
     } ],
 ;
 
-is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
-	args => [
-	    basicspacedata	=> 'query',
-	    class	=> 'tle',
-	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID asc',
-	    EPOCH	=> '2009-04-01--2009-04-02',
-	    NORAD_CAT_ID => 25544,
-	],
-	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-04-01--2009-04-02/NORAD_CAT_ID/25544",
-	version => 2,
-    } ],
-;
+{
+    local $ENV{SPACETRACK_REST_FRACTIONAL_DATE} = undef;
 
-is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, [ {
-	args => [
-	    basicspacedata	=> 'query',
-	    class	=> 'tle',
-	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID asc',
-	    EPOCH	=> '2009-04-01--2009-04-02',
-	    NORAD_CAT_ID => 25544,
-	],
-	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-04-01--2009-04-02/NORAD_CAT_ID/25544",
-	version => 2,
-    } ],
-;
+    is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
+	    args => [
+		basicspacedata	=> 'query',
+		class	=> 'tle',
+		format	=> 'tle',
+		orderby	=> 'NORAD_CAT_ID asc',
+		EPOCH	=> '2009-04-01 00:00:00--2009-04-02 00:00:00',
+		NORAD_CAT_ID => 25544,
+	    ],
+	    method => 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/NORAD_CAT_ID/25544",
+	    version => 2,
+	} ],
+    ;
 
-is_resp qw{retrieve -end_epoch 2009-04-01 25544}, [ {
-	args => [
-	    basicspacedata	=> 'query',
-	    class	=> 'tle',
-	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID asc',
-	    EPOCH	=> '2009-03-31--2009-04-01',
-	    NORAD_CAT_ID => 25544,
-	],
-	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-03-31--2009-04-01/NORAD_CAT_ID/25544",
-	version => 2,
-    } ],
-;
+    is_resp qw{retrieve -last5 -start_epoch 2009-04-01 25544}, [ {
+	    args => [
+		basicspacedata	=> 'query',
+		class	=> 'tle',
+		format	=> 'tle',
+		orderby	=> 'NORAD_CAT_ID asc',
+		EPOCH	=> '2009-04-01 00:00:00--2009-04-02 00:00:00',
+		NORAD_CAT_ID => 25544,
+	    ],
+	    method => 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-04-01%2000:00:00--2009-04-02%2000:00:00/NORAD_CAT_ID/25544",
+	    version => 2,
+	} ],
+    ;
 
-is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, [ {
-	args => [
-	    basicspacedata	=> 'query',
-	    class	=> 'tle',
-	    format	=> 'tle',
-	    orderby	=> 'NORAD_CAT_ID asc',
-	    EPOCH	=> '2009-03-01--2009-04-01',
-	    NORAD_CAT_ID => 25544,
-	],
-	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-03-01--2009-04-01/NORAD_CAT_ID/25544",
-	version => 2,
-    } ],
-;
+    is_resp qw{retrieve -end_epoch 2009-04-01 25544}, [ {
+	    args => [
+		basicspacedata	=> 'query',
+		class	=> 'tle',
+		format	=> 'tle',
+		orderby	=> 'NORAD_CAT_ID asc',
+		EPOCH	=> '2009-03-31 00:00:00--2009-04-01 00:00:00',
+		NORAD_CAT_ID => 25544,
+	    ],
+	    method => 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-03-31%2000:00:00--2009-04-01%2000:00:00/NORAD_CAT_ID/25544",
+	    version => 2,
+	} ],
+    ;
+
+    is_resp qw{retrieve -start_epoch 2009-03-01 -end_epoch 2009-04-01 25544}, [ {
+	    args => [
+		basicspacedata	=> 'query',
+		class	=> 'tle',
+		format	=> 'tle',
+		orderby	=> 'NORAD_CAT_ID asc',
+		EPOCH	=> '2009-03-01 00:00:00--2009-04-01 00:00:00',
+		NORAD_CAT_ID => 25544,
+	    ],
+	    method => 'GET',
+	    url => "$base_url/basicspacedata/query/class/tle/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/2009-03-01%2000:00:00--2009-04-01%2000:00:00/NORAD_CAT_ID/25544",
+	    version => 2,
+	} ],
+    ;
+
+}
 
 note <<'EOD';
 The point of the following test is to ensure that the request is being
@@ -889,7 +894,7 @@ EOD
 
     local $Astro::SpaceTrack::RETRIEVAL_SIZE = 50;
     # Force undocumented hack to be turned off.
-    local $ENV{SPACETRACK_REST_RANGE_OPERATOR} = 0;
+    local $ENV{SPACETRACK_REST_RANGE_OPERATOR} = undef;
 
     is_resp retrieve => 1 .. 66, [
 	{
@@ -898,11 +903,11 @@ EOD
 		class		=> 'tle_latest',
 		format		=> 'tle',
 		orderby		=> 'NORAD_CAT_ID asc',
-		NORAD_CAT_ID	=> '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50',
+		NORAD_CAT_ID	=> '1--50',
 		ORDINAL		=> 1,
 	    ],
 	    method	=> 'GET',
-	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50/ORDINAL/1",
+	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/1--50/ORDINAL/1",
 	    version	=> 2
 	},
 	{
@@ -911,11 +916,11 @@ EOD
 		class		=> 'tle_latest',
 		format		=> 'tle',
 		orderby		=> 'NORAD_CAT_ID asc',
-		NORAD_CAT_ID	=> '51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66',
+		NORAD_CAT_ID	=> '51--66',
 		ORDINAL		=> 1,
 	    ],
 	    method	=> 'GET',
-	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66/ORDINAL/1",
+	    url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/51--66/ORDINAL/1",
 	    version	=> 2
 	},
     ],
