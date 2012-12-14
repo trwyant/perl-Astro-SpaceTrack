@@ -2038,6 +2038,7 @@ sub _launch_sites_v1 {
         [ 'XIC'    => 'XI CHANG LAUNCH FACILITY' ],
         [ 'XSC'    => 'Xichang Space Center, China' ],
         [ 'YAVNE'  => 'Yavne, Israel' ],
+        [ 'YUN'    => 'Yunsong, DPRK' ],
     );
 
     my $no_json;

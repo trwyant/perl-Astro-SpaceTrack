@@ -208,8 +208,8 @@ EOD
 	diag <<'EOD';
 Writing modeldef we got and we expect to satcat.got and satcat.expect
 EOD
-	dump_json( 'satcat.got', $got );
-	dump_json( 'satcat.expect', $expect );
+	dump_data( 'satcat.got', $got );
+	dump_data( 'satcat.expect', $expect );
     };
 }
 
@@ -434,8 +434,8 @@ EOD
 	diag <<'EOD';
 Writing modeldef we got and we expect to tle.got and tle.expect
 EOD
-	dump_json( 'tle.got', $got );
-	dump_json( 'tle.expect', $expect );
+	dump_data( 'tle.got', $got );
+	dump_data( 'tle.expect', $expect );
     };
 }
 
@@ -668,8 +668,8 @@ EOD
 	diag <<'EOD';
 Writing modeldef we got and we expect to tle_latest.got and tle_latest.expect
 EOD
-	dump_json( 'tle_latest.got', $got );
-	dump_json( 'tle_latest.expect', $expect );
+	dump_data( 'tle_latest.got', $got );
+	dump_data( 'tle_latest.expect', $expect );
     };
 }
 
@@ -782,8 +782,8 @@ EOD
 	diag <<'EOD';
 Writing modeldef we got and we expect to boxscore.got and boxscore.expect
 EOD
-	dump_json( 'boxscore.got', $got );
-	dump_json( 'boxscore.expect', $expect );
+	dump_data( 'boxscore.got', $got );
+	dump_data( 'boxscore.expect', $expect );
     };
 }
 
@@ -800,7 +800,7 @@ EOD
     # Should always succeed, since it's hard-coded, but you never know.
     if ( $rslt->is_success() ) {
 
-	my $expect = $rslt->content();
+	my $got = $rslt->content();
 
 	$rslt = $st->_launch_sites_v1( { json => 0 } );
 
@@ -808,16 +808,16 @@ EOD
 
 	if ( $rslt->is_success() ) {
 
-	    my $got = $rslt->content();
+	    my $expect = $rslt->content();
 
-	    is $got, $expect, 'Got expected launch sites'
+	    is $expect, $got, 'Got expected launch sites'
 		or do {
 		diag <<'EOD';
 Writing launch sites we got and we expect to launch_sites.got and
 launch_sites.expect
 EOD
-		dump_json( 'launch_sites.got', $got );
-		dump_json( 'launch_sites.expect', $expect );
+		dump_data( 'launch_sites.expect', $expect );
+		dump_data( 'launch_sites.got', $got );
 	    };
 	}
     }
@@ -827,11 +827,11 @@ done_testing;
 
 1;
 
-sub dump_json {
+sub dump_data {
     my ( $fn, $data ) = @_;
     open my $fh, '>', $fn
 	or die "Unable to open $fn for output: $!\n";
-    print { $fh } $json->encode( $data );
+    print { $fh } ref $data ? $json->encode( $data ) : $data;
     close $fh;
     return;
 }
