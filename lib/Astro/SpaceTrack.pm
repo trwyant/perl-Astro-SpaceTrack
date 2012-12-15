@@ -449,18 +449,20 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    navigation => {
 		name => 'Navigation satellites',
-		tle	=> {
-		    favorites	=> 'Navigation',
-		    EPOCH	=> '>now-30',
-		},
+		favorite	=> 'Navigation',
+#		tle	=> {
+#		    favorites	=> 'Navigation',
+#		    EPOCH	=> '>now-30',
+#		},
 #		number => 5,
 	    },
 	    weather => {
 		name => 'Weather satellites',
-		tle	=> {
-		    favorites	=> 'Weather',
-		    EPOCH	=> '>now-30',
-		},
+		favorite	=> 'Weather',
+#		tle	=> {
+#		    favorites	=> 'Weather',
+#		    EPOCH	=> '>now-30',
+#		},
 #		number => 7,
 	    },
 	    iridium => {
@@ -535,30 +537,31 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 #		number	=> 17,
 	    },
 	    amateur => {
+		favorite	=> 'Amateur',
 		name => 'Amateur Radio satellites',
-		tle	=> {
-		    favorites	=> 'Amateur',
-		    EPOCH	=> '>now-30',
-		},
+#		tle	=> {
+#		    favorites	=> 'Amateur',
+#		    EPOCH	=> '>now-30',
+#		},
 #		number => 19,
 	    },
 	    visible => {
+		favorite	=> 'Visible',
 		name => 'Visible satellites',
-		# https://beta.space-track.org/basicspacedata/query/class/tle_latest/favorites/Visible/ORDINAL/1/EPOCH/%3Enow-30/format/tle
-		tle	=> {
-		    favorites	=> 'Visible',
-		    EPOCH	=> '>now-30',
-		},
+#		tle	=> {
+#		    favorites	=> 'Visible',
+#		    EPOCH	=> '>now-30',
+#		},
 #		number => 21,
 	    },
 	    special => {
+		favorite	=> 'Special_interest',
 		name => 'Special interest satellites',
-		# https://beta.space-track.org/basicspacedata/query/class/tle_latest/favorites/Special_interest/ORDINAL/1/EPOCH/%3Enow-30/format/tle
-		tle	=> {
-		    favorites	=> 'Special_interest',
-		    EPOCH	=> '>now-30',
-		},
-		number => 23,
+#		tle	=> {
+#		    favorites	=> 'Special_interest',
+#		    EPOCH	=> '>now-30',
+#		},
+#		number => 23,
 	    },
 	},
     ],
@@ -1448,6 +1451,81 @@ sub _country_names_v2 {
 	'spacetrack-source'	=> 'spacetrack',
 	'spacetrack-interface'	=> 2,
     );
+
+    return $resp;
+}
+
+
+=for html <a name="favorite"></a>
+
+=item $resp = $st->favorite( $name )
+
+This method takes the name of a C<favorite> set up by the user on the
+Space Track web site, and returns the bodies specified.
+
+Although both version 1 and version 2 of the Space Track interface
+provide favorites, only the version 2 interface is supported by this
+method. If you call this method with attribute C<'space_track_version'>
+set to C<1>, an exception will be thrown.
+
+Under the version 2 interface, the 'global' favorites (e.g.
+C<'Navigation'>, C<'Weather'>, and so on) may also be fetched.
+Additionally, the C<-json> option may be specified, either in
+command-line format or as a leading hash reference. For example,
+
+ $resp = $st->favorite( '-json', 'Weather' );
+ $resp = $st->favorite( { json => 1 }, 'Weather' );
+
+both work.
+
+=cut
+
+{
+    my @dispatch = ( undef, \&_favorite_v1, \&_favorite_v2 );
+
+    sub favorite {
+	goto $dispatch[ $_[0]{space_track_version} ];
+    }
+}
+
+sub _favorite_v1 {
+    croak 'favorite() not implemented under the Space Track version 1 interface';
+}
+
+sub _favorite_v2 {
+    my ($self, @args) = @_;
+    delete $self->{_pragmata};
+
+    ( my $opt, @args ) = _parse_args(
+	[
+	    'json!'	=> 'Return data in JSON format',
+	], @args );
+
+    @args
+	and defined $args[0]
+	or croak 'Must specify a favorite';
+    @args > 1
+	and croak 'Can not specify more than one favorite';
+    # https://beta.space-track.org/basicspacedata/query/class/tle_latest/favorites/Visible/ORDINAL/1/EPOCH/%3Enow-30/format/3le
+
+    my $rest = $self->_convert_retrieve_options_to_rest( $opt );
+    $rest->{favorites}	= $args[0];
+    $rest->{EPOCH}	= '>now-30';
+    delete $rest->{orderby};
+
+    my $resp = $self->spacetrack_query_v2(
+	basicspacedata	=> 'query',
+	_sort_rest_arguments( $rest )
+    );
+
+    $resp->is_success()
+	or return $resp;
+
+    _spacetrack_v2_response_is_empty( $resp )
+	and return HTTP::Response->new(
+	    HTTP_NOT_FOUND,
+	    "Favorite '$args[0]' not found"
+	);
 
     return $resp;
 }
@@ -4240,7 +4318,9 @@ sub _spacetrack_v2 {
     my ( $self, @args ) = @_;
 
     my ( $opt, $catalog ) = _parse_args(
-	SPACE_TRACK_V2_OPTIONS, @args );
+	[
+	    'json!'	=> 'Return data in JSON format',
+	], @args );
 
     my $format = $self->getv( 'with_name' ) ? '3le' : 'tle';
 
@@ -4250,6 +4330,9 @@ sub _spacetrack_v2 {
 
     defined $info->{deprecate}
 	and carp "Catalog '$catalog' is deprecated in favor of '$info->{deprecate}'";
+
+    defined $info->{favorite}
+	and return $self->_favorite_v2( $opt, $info->{favorite} );
 
     my %retrieve_opt = %{
 	$self->_convert_retrieve_options_to_rest( $opt )
@@ -6002,6 +6085,11 @@ sub _search_generic_tabulate {
 
 	return @rslt;
     }
+}
+
+sub _spacetrack_v2_response_is_empty {
+    my ( $resp ) = @_;
+    return $resp->content() =~ m/ \A \s* (?: [[] \s* []] )? \s* \z /smx;
 }
 
 # The following UNDOCUMENTED hack will disappear when the REST

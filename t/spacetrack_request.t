@@ -1431,13 +1431,12 @@ is_resp qw{ spacetrack special }, {
 	    class		=> 'tle_latest',
 	    favorites		=> 'Special_interest',
 	    format		=> '3le',
-	    orderby		=> 'NORAD_CAT_ID asc',
 	    predicates		=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
 	    EPOCH		=> '>now-30',
 	    ORDINAL		=> 1
 	],
 	method	=> 'GET',
-	url	=> "$base_url/basicspacedata/query/class/tle_latest/favorites/Special_interest/format/3le/orderby/NORAD_CAT_ID%20asc/predicates/OBJECT_NAME,TLE_LINE1,TLE_LINE2/EPOCH/%3Enow-30/ORDINAL/1",
+	url	=> "$base_url/basicspacedata/query/class/tle_latest/favorites/Special_interest/format/3le/predicates/OBJECT_NAME,TLE_LINE1,TLE_LINE2/EPOCH/%3Enow-30/ORDINAL/1",
 	version	=> 2
     }
 ;
