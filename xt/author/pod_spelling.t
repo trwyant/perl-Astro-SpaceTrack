@@ -27,6 +27,7 @@ attrib
 celestrak
 celestrak's
 checkbox
+checksums
 China's
 co
 com
@@ -65,6 +66,7 @@ onorbit
 Optionmenu
 orbcomm
 org
+pre
 redirections
 redistributer
 redistributers
@@ -82,6 +84,7 @@ sts
 tle
 tles
 txt
+un
 unzip
 unzipped
 URI

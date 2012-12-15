@@ -144,14 +144,9 @@ subtest 'Space Track access - v1 interface', sub {
 	like $warning, qr{\ACatalog 'fubar' will not be supported\b}sm,
 	    q{Attempt to fetch 'fubar' generated a warning};
 
-	$warning = undef;
-
-	is_success $st, spacetrack => 'special', 'Fetch a catalog entry';
-
-	like $warning, qr{\ACatalog 'special' will not be supported\b}sm,
-	    q{Attempt to fetch 'special' generated a warning};
-
     }
+
+    is_success $st, spacetrack => 'special', 'Fetch a catalog entry';
 
     is $st->content_type(), 'orbit', "Content type is 'orbit'";
 

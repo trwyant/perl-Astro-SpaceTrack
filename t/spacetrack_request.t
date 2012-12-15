@@ -1410,18 +1410,36 @@ is_resp qw{search_name -exclude debris -exclude rocket ISS}, {
 is_resp qw{spacetrack iridium}, {
 	args => [
 	    basicspacedata	=> 'query',
-	    class		=> 'satcat',
-	    format		=> 'json',
-	    predicates		=> 'NORAD_CAT_ID',
-	    CURRENT		=> 'Y',
-	    DECAY		=> 'null-val',
-	    OBJECT_TYPE		=> 'PAYLOAD',
-	    SATNAME		=> '~~IRIDIUM',
+	    class		=> 'tle_latest',
+	    format		=> '3le',
+	    orderby		=> 'NORAD_CAT_ID asc',
+	    predicates		=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
+	    EPOCH		=> '>now-30',
+	    OBJECT_NAME		=> 'iridium~~',
+	    OBJECT_TYPE		=> 'payload',
+	    ORDINAL		=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/satcat/format/json/predicates/NORAD_CAT_ID/CURRENT/Y/DECAY/null-val/OBJECT_TYPE/PAYLOAD/SATNAME/~~IRIDIUM",
+	url => "$base_url/basicspacedata/query/class/tle_latest/format/3le/orderby/NORAD_CAT_ID%20asc/predicates/OBJECT_NAME,TLE_LINE1,TLE_LINE2/EPOCH/%3Enow-30/OBJECT_NAME/iridium~~/OBJECT_TYPE/payload/ORDINAL/1",
 	version => 2,
     },
+;
+
+is_resp qw{ spacetrack special }, {
+	args => [
+	    basicspacedata	=> 'query',
+	    class		=> 'tle_latest',
+	    favorites		=> 'Special_interest',
+	    format		=> '3le',
+	    orderby		=> 'NORAD_CAT_ID asc',
+	    predicates		=> 'OBJECT_NAME,TLE_LINE1,TLE_LINE2',
+	    EPOCH		=> '>now-30',
+	    ORDINAL		=> 1
+	],
+	method	=> 'GET',
+	url	=> "$base_url/basicspacedata/query/class/tle_latest/favorites/Special_interest/format/3le/orderby/NORAD_CAT_ID%20asc/predicates/OBJECT_NAME,TLE_LINE1,TLE_LINE2/EPOCH/%3Enow-30/ORDINAL/1",
+	version	=> 2
+    }
 ;
 
 is_resp qw{set with_name 0}, 'OK';
@@ -1430,16 +1448,16 @@ is_resp qw{set with_name 0}, 'OK';
 is_resp qw{spacetrack iridium}, {
 	args => [
 	    basicspacedata	=> 'query',
-	    class		=> 'satcat',
-	    format		=> 'json',
-	    predicates		=> 'NORAD_CAT_ID',
-	    CURRENT		=> 'Y',
-	    DECAY		=> 'null-val',
-	    OBJECT_TYPE		=> 'PAYLOAD',
-	    SATNAME		=> '~~IRIDIUM',
+	    class		=> 'tle_latest',
+	    format		=> 'tle',
+	    orderby		=> 'NORAD_CAT_ID asc',
+	    EPOCH		=> '>now-30',
+	    OBJECT_NAME		=> 'iridium~~',
+	    OBJECT_TYPE		=> 'payload',
+	    ORDINAL		=> 1,
 	],
 	method => 'GET',
-	url => "$base_url/basicspacedata/query/class/satcat/format/json/predicates/NORAD_CAT_ID/CURRENT/Y/DECAY/null-val/OBJECT_TYPE/PAYLOAD/SATNAME/~~IRIDIUM",
+	url => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/EPOCH/%3Enow-30/OBJECT_NAME/iridium~~/OBJECT_TYPE/payload/ORDINAL/1",
 	version => 2,
     },
 ;
