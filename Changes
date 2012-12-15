@@ -1,3 +1,12 @@
+0.069_02	2012-12-15	T. R. Wyant
+  Add method favorite() to access the Space Track 'Favorites'
+    functionality. This only works for the Space Track version 2
+    interface.
+  Add to the spacetrack() method for version 2 of the interface those
+    bulk data catalogs which are represented by 'Global Favorites'.
+  Add 'YUN' (Yunsong, DPRK) to hard-coded list of launch sites returned
+    by the Space Track REST interface.
+
 0.069_01	2012-12-02	T. R. Wyant
   Re-instate the use of hour, minute, and second spacifications in
     -start_epoch and -end_epoch for the Space Track REST interface.

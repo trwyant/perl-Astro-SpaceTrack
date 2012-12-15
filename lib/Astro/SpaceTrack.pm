@@ -233,7 +233,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.069_01';
+our $VERSION = '0.069_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -4154,12 +4154,12 @@ Under C<space_track_version == 2>, the following catalogs are available:
     visible         Visible satellites
     special         Special satellites
 
-The C<*_fast> queries are, as of version [%% next_version %%], the same
+The C<*_fast> queries are, as of version 0.069_02, the same
 as their un-fast versions. The queries are those implemented on the
 Space Track web site, and B<may> included recently-decayed satellites.
 
 The C<*_fast> queries are also deprecated as of version
-[%% next_version %%]. Because these were always considered unsupported,
+0.069_02. Because these were always considered unsupported,
 the deprecation cycle will be accelerated. They will C<carp()> on every
 use, and six months after release 0.070 will produce fatal errors. Six
 months after they become fatal, they will be removed completely.
