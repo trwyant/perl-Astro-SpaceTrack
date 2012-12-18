@@ -30,6 +30,86 @@ sub distribution {
     return $self->{distribution};
 }
 
+sub notice {
+    my ( $self, $opt, $prompter ) = @_;
+
+    my @possible_exes = ('SpaceTrack');
+    my $tk = eval { require Tk; 1 }
+	and push @possible_exes, 'SpaceTrackTk';
+
+    print <<"EOD";
+
+NOTICE -\a\a\a
+
+In the first release after July 1 2013 I plan to make the following
+changes to the installers:
+
+* The questions about which scripts to install will go away;
+* SpaceTrack will be installed by default;
+* SpaceTrackTk will not be installed, and will be moved to the eg/
+  directory.
+
+Options -n and -y will still be supported, so that you can suppress the
+installation if you so desire.
+
+At the same time, I intend to remove VMS- and Win32-specific code in
+$0 which I believe to be no longer necessary.\a\a\a
+EOD
+
+    print $tk ? <<'EOD' : <<'EOD';
+
+The following scripts can be installed:
+
+  SpaceTrack is an interactive interface to Astro::SpaceTrack;
+  SpaceTrackTk is a windowed interface to Astro::SpaceTrack, using
+    Perl/Tk.
+
+EOD
+
+The following script can be installed:
+
+   SpaceTrack is an interactive interface to Astro::SpaceTrack.
+
+SpaceTrackTk, a windowed interface to Astro::SpaceTrack, is provided
+but will not be installed because you do not have the Tk package
+installed. If you want this, install Tk and then rerun Build.PL.
+
+EOD
+
+    if ( $opt->{n} ) {
+	$opt->{y}
+	    and die 'You have asserted both -y and -n; I can not resolve the contradiction';
+	print "Because you have asserted -n, the executables will not be installed.\n\n";
+	return;
+    } elsif ( $opt->{y} ) {
+	print "Because you have asserted -y, the executables will be installed.\n\n";
+	return @possible_exes;
+    } else {
+	print <<'EOD';
+To supress the following prompts, run Build.PL with the -y option to
+install the scripts, or with the -n option not to install the scripts.
+Setting environment variable PERL_MM_USE_DEFAULT true, or running non-
+interactively without data on STDIN will also cause the scripts not to
+be installed.
+
+EOD
+	my @exe_files;
+	foreach ( @possible_exes ) {
+	    {
+		my $rslt = $prompter->( "Do you want to install $_?",
+		    'n' );
+		if ( $rslt =~ m/ \A y /smxi ) {
+		    push @exe_files, $_;
+		} elsif ( $rslt !~ m/ \A n /smxi ) {
+		    print "Please respond with 'y' or 'n'\n";
+		    redo;
+		}
+	    }
+	}
+	return @exe_files;
+    }
+}
+
 sub requires {
     my ( $self, @extra ) = @_;
 
@@ -119,6 +199,25 @@ C<< {META_MERGE}->{build_requires} >> key.
 
 This method returns the value of the environment variable
 C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
+
+=head2 notice
+
+ my @exes = $meta->notice( \%opt, \&prompter );
+
+This method prints a notice before building. It returns a list of
+executables to build.
+
+The arguments are the options hash returned by the build system, and a
+reference to a prompt routine. This reference is given the prompt and
+the default answer, and the correct argument depends on your build
+system; for ExtUtils::MakeMaker it is C<\&prompt>; for Module::Build it
+needs to be C<< sub { return $bldr->prompt( @_ ) } >>, where C<$bldr> is
+the Module::Build object.
+
+The above are general remarks.
+
+In this incarnation, the method determines which executables are to be
+installed.
 
 =head2 requires
 
