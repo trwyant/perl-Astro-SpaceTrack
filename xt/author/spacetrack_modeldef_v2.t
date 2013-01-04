@@ -198,6 +198,22 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "enum('Y','N')"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
+         "Field" : "OBJECT_NAME",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "char(25)"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
+         "Field" : "OBJECT_ID",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "char(12)"
       }
    ]
 }
