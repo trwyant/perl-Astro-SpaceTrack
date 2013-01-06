@@ -1,7 +1,7 @@
 ^_build/
 ^Astro-SpaceTrack-
 ^blib/
-^box_score\.(expect|got)$
+^boxscore\.(expect|got)$
 ^Build$
 ^Changes_
 ^cover_db/
