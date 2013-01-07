@@ -29,7 +29,7 @@ Track bulk data, of which not all are exclusive:
 
 =over
 
-=item 1) there is an obvious satcat query to get the OIDs involved;
+=item 1) there is an obvious SATCAT query to get the OIDs involved;
 
 =item 2) there is a Celestrak list of the OIDs involved;
 
@@ -37,7 +37,7 @@ Track bulk data, of which not all are exclusive:
 
 =back
 
-The satcat queries would specify at least
+The SATCAT queries would specify at least
 C</basicspacedata/query/class/satcat/CURRENT/Y/DECAY/null-val>. Except
 for the C<full> and C<geosynchronous> catalogs, C</OBJECT_TYPE/PAYLOAD>
 would also be specified. Predicates could be limited to
@@ -201,7 +201,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2012 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
+Copyright 2012-2013 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 LICENSE
 
