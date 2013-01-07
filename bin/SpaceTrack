@@ -62,7 +62,7 @@ can also be piped in, or redirected in from a file.
 
 The one and only option is -filter, which sets the 'filter' attribute
 of the C<Astro::SpaceTrack> object. This prevents informational output
-(such as the banner and 'OK' messages) to stdout. The idea is that
+(such as the banner and 'OK' messages) to STDOUT. The idea is that
 with -filter asserted, you can pipe the output to another program,
 and only have orbital elements written to the pipe.
 
