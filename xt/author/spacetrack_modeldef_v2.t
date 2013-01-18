@@ -152,14 +152,6 @@ if ( $rslt->is_success() ) {
          "Type" : "float"
       },
       {
-         "Default" : null,
-         "Extra" : "",
-         "Field" : "RCSSOURCE",
-         "Key" : "",
-         "Null" : "YES",
-         "Type" : "char(3)"
-      },
-      {
          "Default" : "0",
          "Extra" : "",
          "Field" : "FILE",

@@ -2878,7 +2878,6 @@ sub _retrieve_v2 {
 		my $info = $search_info{$body->{NORAD_CAT_ID}};
 		if ( $opt->{json} ) {
 		    if ( $opt->{rcs} ) {
-			$body->{RCSSOURCE} = $info->{RCSSOURCE};
 			$body->{RCSVALUE} = $info->{RCSVALUE};
 		    }
 		} else {
