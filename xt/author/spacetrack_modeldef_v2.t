@@ -206,6 +206,14 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "char(12)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "OBJECT_NUMBER",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "mediumint(8) unsigned"
       }
    ]
 }
@@ -415,7 +423,7 @@ if ( $rslt->is_success() ) {
          "Field" : "TLE_LINE0",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(27)"
+         "Type" : "varchar(62)"
       },
       {
          "Default" : "",
@@ -432,6 +440,22 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "char(71)"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
+         "Field" : "OBJECT_ID",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "varchar(11)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "OBJECT_NUMBER",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "mediumint(8) unsigned"
       }
    ]
 }
@@ -666,6 +690,22 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "char(71)"
+      },
+      {
+         "Default" : "",
+         "Extra" : "",
+         "Field" : "OBJECT_ID",
+         "Key" : "",
+         "Null" : "NO",
+         "Type" : "varchar(11)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "OBJECT_NUMBER",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "mediumint(8) unsigned"
       }
    ]
 }
@@ -707,7 +747,7 @@ if ( $rslt->is_success() ) {
          "Field" : "SPADOC_CD",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "varchar(6)"
+         "Type" : "varchar(9)"
       },
       {
          "Default" : null,
