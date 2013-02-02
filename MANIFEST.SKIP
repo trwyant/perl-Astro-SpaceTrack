@@ -9,7 +9,7 @@ CVS/
 ^foo/
 ^html/
 ^kelso\.(expect|got)$
-^launch_sites\.(expect|got)$
+^launch_site\.(expect|got)$
 ^Makefile$
 ^MANIFEST\.
 ^mccants\.(expect|got)$

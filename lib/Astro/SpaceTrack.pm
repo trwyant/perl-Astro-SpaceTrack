@@ -2164,95 +2164,61 @@ sub _launch_sites_v1 {
 }
 
 {
-    # The following generated from version 1 results by
-    # foo/launch_sites.
     my $headings = [ 'Abbreviation', 'Country/Organization' ];
-    my @data = (
-        [ 'AFETR'  => 'AIR FORCE EASTERN TEST RANGE' ],
-        [ 'AFWTR'  => 'AIR FORCE WESTERN TEST RANGE' ],
-        [ 'CAS'    => 'Pegasus launched from Canary Islands Air Space' ],
-        [ 'ERAS'   => 'Pegasus launched from Eastern Range Air Space' ],
-        [ 'FRGUI'  => 'FRENCH GUIANA' ],
-        [ 'HGSTR'  => 'HAMMA GUIRA SPACE TRACK RANGE' ],
-        [ 'JSC'    => 'Jiuquan Satellite Launch Center, China' ],
-        [ 'KODAK'  => 'Kodiak Island, Alaska' ],
-        [ 'KSCUT'  => 'KAGOSHIMA SPACE CENTER UNIVERSITY OF TOKYO' ],
-        [ 'KWAJ'   => 'Kwajalein' ],
-        [ 'KYMTR'  => 'KAPUSTIN YAR MISSILE AND SPACE COMPLEX' ],
-        [ 'OREN'   => 'Orenburg, Russia' ],
-        [ 'PKMTR'  => 'PLESETSK MISSILE AND SPACE COMPLEX' ],
-        [ 'SADOL'  => 'Submarine Launch from Barents Sea, Russia' ],
-        [ 'SCTMR'  => 'JIUQUAN' ],
-        [ 'SEAL'   => 'SEA LAUNCH' ],
-        [ 'SEM'    => 'Semnan, Iran' ],
-        [ 'SNMLP'  => 'SAN MARCO LAUNCH PLATFORM' ],
-        [ 'SRI'    => 'SIRHARIKOTA' ],
-        [ 'SVOB'   => 'Svobodny, Russia' ],
-        [ 'TCS'    => 'UNKNOWN' ],
-        [ 'TNSTA'  => 'TANEGASHIMA SPACE CENTER' ],
-        [ 'TSC'    => 'Taiyaun Space Center, China' ],
-        [ 'TTMTR'  => 'TYURATAM MISSILE AND SPACE COMPLEX' ],
-        [ 'WLPIS'  => 'WALLOPS ISLAND' ],
-        [ 'WOMRA'  => 'WOOMERA' ],
-        [ 'WRAS'   => 'Pegasus launched from Western Range Air Space' ],
-        [ 'WUZ'    => 'TAIYUAN' ],
-        [ 'XIC'    => 'XI CHANG LAUNCH FACILITY' ],
-        [ 'XSC'    => 'Xichang Space Center, China' ],
-        [ 'YAVNE'  => 'Yavne, Israel' ],
-        [ 'YUN'    => 'Yunsong, DPRK' ],
-    );
-
-    my $no_json;
-    my %struct;
-    my @json;
+    my @fields = qw{ SITE_CODE LAUNCH_SITE };
 
     sub _launch_sites_v2 {
 	my ( $self, @args ) = @_;
-
-	delete $self->{_pragmata};
 
 	( my $opt, @args ) = _parse_args(
 	    [
 		'json!'	=> 'Return data in JSON format',
 	    ], @args );
 
-	my $resp;
+	my $resp = $self->spacetrack_query_v2( qw{
+	    basicspacedata query class launch_site
+	    format json },
+		orderby	=> 'SITE_CODE asc',
+	    qw{ predicates all
+	} );
+	$resp->is_success()
+	    or return $resp;
 
-	if ( $opt->{json} ) {
-	    my $inx = $self->getv( 'pretty' ) ? 1 : 0;
+	my $data;
 
-	    if ( ! %struct ) {
-		foreach my $datum ( @data ) {
-		    $struct{$datum->[0]} = $datum->[1];
-		}
+	if ( ! $opt->{json} ) {
+
+	    $data = $self->_get_json_object()->decode( $resp->content() );
+
+	    my $content;
+	    foreach my $row ( $headings ) {
+		$content .= join( "\t", @{ $row } ) . "\n";
+	    }
+	    foreach my $datum ( @{ $data } ) {
+		$content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
 	    }
 
-	    if ( ! defined $json[$inx] ) {
-		$json[$inx] = $self->_get_json_object()
-		    ->encode( \%struct );
-	    }
-
-	    $resp = HTTP::Response->new( HTTP_OK, undef, undef,
-		$json[$inx] );
-
-	} else {
-
-	    if ( ! defined $no_json ) {
-		foreach my $datum ( $headings, @data ) {
-		    $no_json .= join( "\t", @{ $datum } ) . "\n";
-		}
-	    }
-
-	    $resp = HTTP::Response->new( HTTP_OK, undef, undef, $no_json );
+	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	}
 
-	$self->_add_pragmata( $resp,
-	    'spacetrack-type'	=> 'launch_sites',
-	    'spacetrack-source'	=> 'spacetrack',
-	    'spacetrack-interface'	=> 2,
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'launch_sites',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 2,
 	);
 
-	return $resp;
+	wantarray
+	    or return $resp;
+
+	my @table;
+	foreach my $row ( @{ $headings } ) {
+	    push @table, [ @{ $row } ];
+	}
+	$data ||= $self->_get_json_object()->decode( $resp->content() );
+	foreach my $datum ( @{ $data } ) {
+	    push @table, [ map { $datum->{$_} } @fields ];
+	}
+	return ( $resp, \@table );
     }
 }
 
