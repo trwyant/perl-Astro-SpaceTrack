@@ -4287,8 +4287,6 @@ sub _spacetrack_v2 {
 	    'json!'	=> 'Return data in JSON format',
 	], @args );
 
-    my $format = $self->getv( 'with_name' ) ? '3le' : 'tle';
-
     defined $catalog
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
 	or return $self->_no_such_catalog( spacetrack => 2, $catalog );
