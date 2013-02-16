@@ -1,4 +1,7 @@
 0.071		2013-02-16	T. R. Wyant
+  Attempts to retrieve Space Shuttle data (via celestrak('sts') or
+    spaceflight('shuttle') now cause exceptions. Retrieval of historical
+    data from Space Track should still work as before.
   Convert the REST version of the launch_sites() method to use the new
     launch_site data instead of canned data.
   Space Track dropped RCSSOURCE from class satcat of the REST interface.
