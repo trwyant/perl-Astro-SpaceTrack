@@ -52,13 +52,12 @@ C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
 argument, because of the end of the Space Shuttle program on July 21
 2011.
 
-With the first release on or after January 22 2013, all uses of
-C<celestrak()> C<'sts'> or C<spaceflight()> C<'SHUTTLE'> will generate
-an exception.
+With this release (0.071), all uses of C<celestrak()> C<'sts'> or
+C<spaceflight()> C<'SHUTTLE'> will generate an exception.
 
-Six further months later, the deprecated functionality will be removed.
-This means (probably) you will get a C<404> error when you try to use
-it.
+With the first release on or after August 16 2013, the deprecated
+functionality will be removed.  This means (probably) you will get a
+C<404> error when you try to use it.
 
 =head1 DEPRECATION NOTICE: SPACE TRACK BULK DATA
 
@@ -86,7 +85,8 @@ provided by the version 1 interface except MD5 checksums. The data sets
 not easily constructed by queries were provided by pre-generated
 'favorites' entries. 
 
-So at this point this deprecation notice may itself be deprecated.
+So though the deprecation is technically correct, the actual data are
+still available.
 
 See the documentation for the C<spacetrack()> method for a list of what
 is included, and
@@ -1121,7 +1121,7 @@ A list of valid names and brief descriptions can be obtained by calling
 C<< $st->names( 'celestrak_supplemental' ) >>. If you have set the
 C<verbose> attribute true (e.g. C<< $st->set (verbose => 1) >>), the
 content of the error response will include this list. Note, however,
-that this list does not determine what can be retrieved; if Dr.  Kelso
+that this list does not determine what can be retrieved; if Dr. Kelso
 adds a data set, it can be retrieved even if it is not on the list, and
 if he removes one, being on the list won't help.
 
@@ -4832,10 +4832,10 @@ sub _check_cookie_generic {
 
     my %deprecate = (
 	celestrak => {
-	    sts	=> 2,
+	    sts	=> 3,
 	},
 	spaceflight => {
-	    shuttle	=> 2,
+	    shuttle	=> 3,
 	},
     );
 
