@@ -104,23 +104,17 @@ production code at this point.
 
 This module will use either the old (version 1) API or the new (version
 2) API, depending on the value of the C<space_track_version> attribute,
-which can be either C<1> or C<2>, with C<1> being the default. It is
-anticipated that some time in the future the default of this attribute
-will become C<2>.
+which can be either C<1> or C<2>, with C<2> being the default as of
+version C<0.072>.
 
-I do not have a timing for the conversion, though I understand that a
-multimonth transition period is planned when the REST interface is
-complete. I also do not know the details of the transition plan. If they
-change web domains suddenly, you may be able to get yourself going again
-with the C<domain_space_track> attribute.
-
-At some point near the beginning of the transition period, the default
-value of the C<space_track_version> attribute will become C<2>, and the
-value of C<1> will become deprecated. Because I do not know the timing
-of any of this I can not commit to a deprecation schedule, but I can
-promise that setting C<space_track_version> to C<1> will throw an
-exception as soon after the decommissioning of the old web site as I can
-manage.
+The conversion is to take place on or about February 20 2013. The
+version 1 interface should still work after this, but will not do so
+indefinitely. Once the conversion takes place, the
+C<space_track_version> value of C<1> will become deprecated.  Because I
+do not know the timing of any of this I can not commit to a deprecation
+schedule, but I can promise that setting C<space_track_version> to C<1>
+will throw an exception as soon after the decommissioning of the old web
+site as I can manage.
 
 Version 2 of the interface differs from version 1 in the following ways
 that are known to me at this time. All are due to differences in the
@@ -284,7 +278,7 @@ use constant NO_RECORDS => 'No records found.';
 use constant SESSION_PATH => '/';
 
 use constant DEFAULT_SPACE_TRACK_REST_SEARCH_CLASS => 'satcat';
-use constant DEFAULT_SPACE_TRACK_VERSION => 1;
+use constant DEFAULT_SPACE_TRACK_VERSION => 2;
 
 use constant DUMP_NONE => 0;		# No dump
 use constant DUMP_TRACE => 0x01;	# Logic trace
@@ -1048,14 +1042,6 @@ Before the end of the Space Shuttle program, data on the current mission
 deprecated, and will be removed in a future release. See the
 L</DEPRECATION NOTICE> for details.
 
-The Space Track REST interface is currently (August 25 2012) incapable
-of returning NASA-format TLEs (i.e. with satellite common name). As a
-convenience hack, this method will insert the names recorded in the
-Celestrak data set if the C<with_name> attribute is true and the
-C<space_track_version> attribute is 2. This hack will be retracted when
-(or maybe I should say if) the Space Track REST interface becomes
-capable of providing this data.
-
 If this method succeeds, the response will contain headers
 
  Pragma: spacetrack-type = orbit
@@ -1552,14 +1538,6 @@ The observing list file is (how convenient!) in the Celestrak format,
 with the first five characters of each line containing the object ID,
 and the rest containing a name of the object. Lines whose first five
 characters do not look like a right-justified number will be ignored.
-
-The Space Track REST interface is currently (August 25 2012) incapable
-of returning NASA-format TLEs (i.e. with satellite common name). As a
-convenience hack, this method will insert the names recorded in the
-observing list file if the C<with_name> attribute is true and the
-C<space_track_version> attribute is 2. This hack will be retracted when
-(or maybe I should say if) the Space Track REST interface becomes
-capable of providing this data.
 
 If this method succeeds, the response will contain headers
 
@@ -2121,18 +2099,6 @@ This method takes option C<-json>, specified either command-style
 body of the response to be the JSON representation of a hash whose
 keys are the launch site abbreviations, and whose values are the
 corresponding launch site names.
-
-If C<space_track_version> is C<1>, this method requires a Space Track
-username and password. It implicitly calls the C<login()> method if the
-session cookie is missing or expired.  If C<login()> fails, you will get
-the HTTP::Response from C<login()>.
-
-If C<space_track_version> is C<2>, this method should be considered to
-return historical data that is for information only, since it returns
-canned data which I have no way to keep up to date. The Space Track REST
-interface does not provide this information, and I decided preserving
-the old data might be better than losing it. If you disagree, you should
-probably not use this method. B<Caveat user.>
 
 If this method succeeds, the response will contain headers
 
