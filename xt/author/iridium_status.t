@@ -27,7 +27,8 @@ my %known_inconsistent = (
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
     25262 => { kelso => 1 },	# Kelso: spare; others: operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
-    27374 => { sladen => 1 },	# 16-Nov-2012 Sladen: operational;
+    27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
+				# 18-Feb-2015 McCants: operational;
 				#             others: spare
 );
 
@@ -172,7 +173,7 @@ foreach (["Mike McCants' Iridium status",
  25778   Iridium 21              Replaced Iridium 74   was called Iridium 21A
  27372   Iridium 91              Replaced Iridium 33 about Mar. 2, 2009   was called Iridium 90
  27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
- 27374   Iridium 94     ?        Spare
+ 27374   Iridium 94              Next to Iridium 23
  27375   Iridium 95              Replaced Iridium 28 about July 26, 2008
  27376   Iridium 96     ?        Spare
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
