@@ -27,6 +27,8 @@ my $st;
 my $search_date = '2012-06-13';
 my $start_epoch = '2012/04/01';
 
+no warnings qw{ deprecated };
+
 {
     site_check $space_track_domain;	# To make sure we have account
     local $ENV{SPACETRACK_USER} = spacetrack_account();

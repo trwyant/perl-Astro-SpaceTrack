@@ -59,39 +59,23 @@ With the first release on or after August 16 2013, the deprecated
 functionality will be removed.  This means (probably) you will get a
 C<404> error when you try to use it.
 
-=head1 DEPRECATION NOTICE: SPACE TRACK BULK DATA
+=head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
-Space Track announced August 24 2012 that the bulk data downloads
-provided by the spacetrack() method were deprecated, and would probably
-be eliminated in October 2012 (though I note that it is still there as
-of November 30 2012). Their rationale is that the new REST interface
-makes prepackaged data no longer necessary.
+As of February 20 2013 (version 0.073) use of the Space Track version 1
+API is deprecated. Since I have no control over how long this interface
+will last, setting attribute C<space_track_version> to C<1> will
+B<immediately> give a warning the first time it is done. In the first
+release after August 20 2013 you will get a warning every time you set
+attribute C<space_track_version> to 1, assuming Space Track supports the
+interface that long.
 
-What I have decided to do about this is to replicate the bulk data
-catalogs with REST queries, to the extent possible. Catalogs which can
-only be implemented using OID lists will not be reproduced under the
-REST interface, since I have no way to maintain the OID list.
+B<However>, the version 1 interface will stop working when Space Track
+decommissions support for it, regardless of any timing given in the
+previous paragraph. If I have advance notice of this I will make the
+code throw an exception when the C<space_track_version> is set to 1. But
+I may not get that notice.
 
-I decided to try to replicate what I could because of recent
-improvements in the performance of REST class C<'tle'> (I write this
-September 3 2012), as well as the provision of a source of TLE data
-(REST class C<'tle_latest'>) groomed and optimized for the retrieval of
-current data.
-
-As of December 15 2012, the web site for the REST interface provided a
-live link for bulk data downloads (rather than the struck-out text that
-had been there previously). This link led to a page with all the data
-provided by the version 1 interface except MD5 checksums. The data sets
-not easily constructed by queries were provided by pre-generated
-'favorites' entries. 
-
-So though the deprecation is technically correct, the actual data are
-still available.
-
-See the documentation for the C<spacetrack()> method for a list of what
-is included, and
-L<Astro::SpaceTrack::BulkData|Astro::SpaceTrack::BulkData> for the gory
-details.
+The warning can be suppressed by C<no warnings qw{ deprecated };>
 
 =head1 SPACE TRACK REST API
 
@@ -105,7 +89,8 @@ production code at this point.
 This module will use either the old (version 1) API or the new (version
 2) API, depending on the value of the C<space_track_version> attribute,
 which can be either C<1> or C<2>, with C<2> being the default as of
-version C<0.072>.
+version C<0.072>. As of version C<0.073>, the version 1 API is
+B<deprecated>.
 
 The conversion is to take place on or about February 20 2013. The
 version 1 interface should still work after this, but will not do so
@@ -134,8 +119,8 @@ even day.
 
 The C<spacetrack()> method (which returns predefined packages of
 TLEs) is implemented by REST queries, and those bulk data packages which
-are not reasonably implemented by REST queries are simply not available.
-See
+are not reasonably implemented by REST queries are handled by global
+favorites. See
 L<DEPRECATION NOTICE: SPACE TRACK BULK DATA|/DEPRECATION NOTICE: SPACE TRACK BULK DATA>
 above for details.
 
@@ -650,7 +635,7 @@ sub new {
 		# something in when the time comes.
 		cookie_expires		=> 0,
 		cookie_name		=> 'chocolatechip',
-		domain_space_track	=> 'beta.space-track.org',
+		domain_space_track	=> 'www.space-track.org',
 		session_cookie		=> undef,
 	    },
 	],
@@ -4803,6 +4788,9 @@ sub _check_cookie_generic {
 	spaceflight => {
 	    shuttle	=> 3,
 	},
+	space_track_version => {
+	    1		=> 1,
+	},
     );
 
     sub _deprecation_notice {
@@ -4810,9 +4798,9 @@ sub _check_cookie_generic {
 	$deprecate{$method} or return;
 	$deprecate{$method}{$argument} or return;
 	$deprecate{$method}{$argument} >= 3
-	    and croak "$argument $method is retracted";
+	    and croak "$method $argument is retracted";
 	warnings::enabled( 'deprecated' )
-	    and carp "Method $method( '$argument' ) is deprecated";
+	    and carp "$method $argument is deprecated";
 	$deprecate{$method}{$argument} == 1
 	    and $deprecate{$method}{$argument} = 0;
 	return;
@@ -5339,6 +5327,7 @@ sub _mutate_space_track_version {
     $value =~ m/ \A \d+ \z /smx
 	and $self->{_space_track_interface}[$value]
 	or croak "Invalid Space Track version $value";
+    $self->_deprecation_notice( $name => $value );
     return ( $self->{$name} = $value );
 }
 
@@ -6220,9 +6209,9 @@ queries going again.
 The object maintains a separate copy of this attribute for each possible
 value of C<space_track_version>.
 
-The default is C<'www.space-track.org'> for version 1, and
-C<'beta.space-track.org'> for version 2. These will change if necessary
-to remain appropriate to the Space Track web site.
+The default is C<'www.space-track.org'> for both versions 1 and 2. This
+will change if necessary to remain appropriate to the Space Track web
+site.
 
 =item fallback (boolean)
 

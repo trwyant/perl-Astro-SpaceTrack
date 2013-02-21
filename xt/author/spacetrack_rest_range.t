@@ -13,6 +13,8 @@ my $st = Astro::SpaceTrack->new(
     space_track_version	=> 2,
 );
 
+my $base_url = $st->_make_space_track_base_url();
+
 defined $st->getv( 'username' )
     and defined $st->getv( 'password' )
     or plan skip_all => 'Environment variable SPACETRACK_USER not set';
@@ -61,7 +63,7 @@ EOD
 		 1
 	      ],
 	      "method" => "GET",
-	      "url" => "https://beta.space-track.org/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/24792--24796,24836,24837,24839--24842,24869--24873,24903--24907,24925,24926,24944--24946,24948--24950,24965--24969,25039--25043,25077,25078,25104--25106,25108,25169--25173,25262,25263,25272--25276,25285--25291,25319,25320,25342--25346,25431,25432,25467--25469,25471,25527,25528,25530,25531,25577,25578,25777,25778,27372--27376,27450,27451/ORDINAL/1",
+	      "url" => "$base_url/basicspacedata/query/class/tle_latest/format/tle/orderby/NORAD_CAT_ID%20asc/NORAD_CAT_ID/24792--24796,24836,24837,24839--24842,24869--24873,24903--24907,24925,24926,24944--24946,24948--24950,24965--24969,25039--25043,25077,25078,25104--25106,25108,25169--25173,25262,25263,25272--25276,25285--25291,25319,25320,25342--25346,25431,25432,25467--25469,25471,25527,25528,25530,25531,25577,25578,25777,25778,27372--27376,27450,27451/ORDINAL/1",
 	      "version" => 2,
 	   },
 	], 'Generated correct query';

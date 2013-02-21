@@ -17,6 +17,8 @@ my $loader = Astro::SpaceTrack->__get_loader() or do {
     exit;
 };
 
+no warnings qw{ deprecated };
+
 my $st = Astro::SpaceTrack->new(
     space_track_version	=> 1,
     dump_headers =>
