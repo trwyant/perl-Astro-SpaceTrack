@@ -1,3 +1,7 @@
+0.073		2013-02-21	T. R. Wyant
+  Move Space Track REST interface to production web site.
+  Deprecate the version 1 Space Track interface.
+
 0.072		2013-02-17	T. R. Wyant
   Make default value of space_track_version attribute 2.
 
