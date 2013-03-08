@@ -181,7 +181,7 @@ if ( $rslt->is_success() ) {
          "Field" : "LAUNCH_PIECE",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "char(3)"
+         "Type" : "varchar(3)"
       },
       {
          "Default" : "N",
