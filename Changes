@@ -1,3 +1,9 @@
+0.073_01	2013-05-05	T. R. Wyant
+  Make the value returned by launch_sites( { json => 1 } ) under the v2
+    interface conform to the documentation. I was really sloppy with
+    this and returned the raw JSON (which was an array ref) when the
+    docs called for (and I really wanted) the JSON for a hash ref.
+
 0.073		2013-02-21	T. R. Wyant
   Move Space Track REST interface to production web site.
   Deprecate the version 1 Space Track interface.
