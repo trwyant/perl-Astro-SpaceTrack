@@ -2115,8 +2115,7 @@ sub _launch_sites_v1 {
 }
 
 {
-    my $headings = [ 'Abbreviation', 'Country/Organization' ];
-    my @fields = qw{ SITE_CODE LAUNCH_SITE };
+    my @headings = ( 'Abbreviation', 'Launch Site' );
 
     sub _launch_sites_v2 {
 	my ( $self, @args ) = @_;
@@ -2135,21 +2134,27 @@ sub _launch_sites_v1 {
 	$resp->is_success()
 	    or return $resp;
 
-	my $data;
+	my $json = $self->_get_json_object();
 
-	if ( ! $opt->{json} ) {
+	my $data = $json->decode( $resp->content() );
 
-	    $data = $self->_get_json_object()->decode( $resp->content() );
+	my %dict;
+	foreach my $datum ( @{ $data } ) {
+	    $dict{$datum->{SITE_CODE}} = $datum->{LAUNCH_SITE};
+	}
 
-	    my $content;
-	    foreach my $row ( $headings ) {
-		$content .= join( "\t", @{ $row } ) . "\n";
-	    }
-	    foreach my $datum ( @{ $data } ) {
-		$content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
-	    }
+	if ( $opt->{json} ) {
 
-	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
+	    $resp->content( $json->encode( \%dict ) );
+
+	} else {
+
+	    $resp->content(
+		join '',
+		join( "\t", @headings ) . "\n",
+		map { "$_\t$dict{$_}\n" } sort keys %dict
+	    );
+
 	}
 
 	$self->_add_pragmata($resp,
@@ -2162,12 +2167,9 @@ sub _launch_sites_v1 {
 	    or return $resp;
 
 	my @table;
-	foreach my $row ( @{ $headings } ) {
-	    push @table, [ @{ $row } ];
-	}
-	$data ||= $self->_get_json_object()->decode( $resp->content() );
-	foreach my $datum ( @{ $data } ) {
-	    push @table, [ map { $datum->{$_} } @fields ];
+	push @table, [ @headings ];
+	foreach my $key ( sort keys %dict ) {
+	    push @table, [ $key, $dict{$key} ];
 	}
 	return ( $resp, \@table );
     }
