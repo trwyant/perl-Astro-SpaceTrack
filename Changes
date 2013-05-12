@@ -1,3 +1,6 @@
+0.074		2013-05-12	T. R. Wyant
+  No changes since 0.073_01.
+
 0.073_01	2013-05-05	T. R. Wyant
   Make the value returned by launch_sites( { json => 1 } ) under the v2
     interface conform to the documentation. I was really sloppy with
