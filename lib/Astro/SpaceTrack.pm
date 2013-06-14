@@ -63,7 +63,7 @@ C<404> error when you try to use it.
 
 On June 14 2013 Space Track informed users that the version 1 API would
 be taken out of service July 16 2013 at 11:00 PST, which I take to be
-18:00 UT. Therefore, effective with version [%% next_version %%] there
+18:00 UT. Therefore, effective with version 0.075 there
 will be a warning every time the space_track_version attribute is set to
 1, and effective the first release after July 16 2013 at 18:00 UT, this
 warning will become an exception.
@@ -186,7 +186,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.074';
+our $VERSION = '0.075';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
