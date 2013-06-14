@@ -64,9 +64,9 @@ C<404> error when you try to use it.
 On June 14 2013 Space Track informed users that the version 1 API would
 be taken out of service July 16 2013 at 11:00 PST, which I take to be
 18:00 UT. Therefore, effective with version [%% next_version %%] there
-will be a warning every time the interface version is set to 1, and
-effective the first release after July 16 2013 at 18:00 UT, this warning
-will become an exception.
+will be a warning every time the space_track_version attribute is set to
+1, and effective the first release after July 16 2013 at 18:00 UT, this
+warning will become an exception.
 
 The warning can not be suppressed by C<no warnings qw{ deprecated };>
 because of the imminence of the removal of the functionality. If you
@@ -299,6 +299,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	radar => {name => 'Radar Calibration'},
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
+	beidou => { name => 'Beidou navigational satellites' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
