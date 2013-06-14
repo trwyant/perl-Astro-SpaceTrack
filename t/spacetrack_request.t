@@ -17,13 +17,17 @@ my $loader = Astro::SpaceTrack->__get_loader() or do {
     exit;
 };
 
-no warnings qw{ deprecated };
-
-my $st = Astro::SpaceTrack->new(
-    space_track_version	=> 1,
-    dump_headers =>
-	Astro::SpaceTrack->DUMP_REQUEST | Astro::SpaceTrack->DUMP_NO_EXECUTE,
-);
+my $st;
+{
+    # TODO this whole section of test goes away when the Version 1
+    # interface does.
+    local $SIG{__WARN__} = sub {};
+    $st = Astro::SpaceTrack->new(
+	space_track_version	=> 1,
+	dump_headers =>
+	    Astro::SpaceTrack->DUMP_REQUEST | Astro::SpaceTrack->DUMP_NO_EXECUTE,
+    );
+}
 
 my $base_url = $st->_make_space_track_base_url();
 

@@ -61,50 +61,24 @@ C<404> error when you try to use it.
 
 =head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
-As of February 20 2013 (version 0.073) use of the Space Track version 1
-API is deprecated. Since I have no control over how long this interface
-will last, setting attribute C<space_track_version> to C<1> will
-B<immediately> give a warning the first time it is done. In the first
-release after August 20 2013 you will get a warning every time you set
-attribute C<space_track_version> to 1, assuming Space Track supports the
-interface that long.
+On June 14 2013 Space Track informed users that the version 1 API would
+be taken out of service July 16 2013 at 11:00 PST, which I take to be
+18:00 UT. Therefore, effective with version [%% next_version %%] there
+will be a warning every time the interface version is set to 1, and
+effective the first release after July 16 2013 at 18:00 UT, this warning
+will become an exception.
 
-B<However>, the version 1 interface will stop working when Space Track
-decommissions support for it, regardless of any timing given in the
-previous paragraph. If I have advance notice of this I will make the
-code throw an exception when the C<space_track_version> is set to 1. But
-I may not get that notice.
-
-The warning can be suppressed by C<no warnings qw{ deprecated };>
+The warning can not be suppressed by C<no warnings qw{ deprecated };>
+because of the imminence of the removal of the functionality. If you
+really must suppress the warnings, you will need to make use of
+C<$SIG{__WARN__}>, properly localized.
 
 =head1 SPACE TRACK REST API
 
-The Space Track web site is in the throes of implementing a new REST
-API, to replace the old screen-scraping API. This API is currently in
-beta. This module implements the REST API to the extent possible, but
-since the REST API is beta, the C<Astro::SpaceTrack> interface to it may
-have to change without notice, and it should probably not be used for
-production code at this point.
-
-This module will use either the old (version 1) API or the new (version
-2) API, depending on the value of the C<space_track_version> attribute,
-which can be either C<1> or C<2>, with C<2> being the default as of
-version C<0.072>. As of version C<0.073>, the version 1 API is
-B<deprecated>.
-
-The conversion is to take place on or about February 20 2013. The
-version 1 interface should still work after this, but will not do so
-indefinitely. Once the conversion takes place, the
-C<space_track_version> value of C<1> will become deprecated.  Because I
-do not know the timing of any of this I can not commit to a deprecation
-schedule, but I can promise that setting C<space_track_version> to C<1>
-will throw an exception as soon after the decommissioning of the old web
-site as I can manage.
-
-Version 2 of the interface differs from version 1 in the following ways
-that are known to me at this time. All are due to differences in the
-functionality provided by version 2 of the interface, unless explicitly
-stated otherwise.
+The REST interface differs from the version 1 interface in the following
+ways that are known to me at this time. All are due to differences in
+the functionality provided by version 2 of the interface, unless
+explicitly stated otherwise.
 
 =over
 
@@ -4790,9 +4764,6 @@ sub _check_cookie_generic {
 	spaceflight => {
 	    shuttle	=> 3,
 	},
-	space_track_version => {
-	    1		=> 1,
-	},
     );
 
     sub _deprecation_notice {
@@ -5329,7 +5300,9 @@ sub _mutate_space_track_version {
     $value =~ m/ \A \d+ \z /smx
 	and $self->{_space_track_interface}[$value]
 	or croak "Invalid Space Track version $value";
-    $self->_deprecation_notice( $name => $value );
+##  $self->_deprecation_notice( $name => $value );
+    $value == 1
+	and carp 'The version 1 SpaceTrack interface is scheduled to stop working July 16 2013 at 18:00 UT';
     return ( $self->{$name} = $value );
 }
 
