@@ -63,15 +63,20 @@ C<404> error when you try to use it.
 
 On June 14 2013 Space Track informed users that the version 1 API would
 be taken out of service July 16 2013 at 11:00 PST, which I take to be
-18:00 UT. Therefore, effective with version 0.075 there
-will be a warning every time the space_track_version attribute is set to
-1, and effective the first release after July 16 2013 at 18:00 UT, this
-warning will become an exception.
+18:00 UT. Therefore, effective with version 0.075 there will be a
+warning every time the space_track_version attribute is set to 1, and
+effective the first release after July 16 2013 at 18:00 UT, this warning
+will become an exception.
 
 The warning can not be suppressed by C<no warnings qw{ deprecated };>
 because of the imminence of the removal of the functionality. If you
 really must suppress the warnings, you will need to make use of
 C<$SIG{__WARN__}>, properly localized.
+
+Effective with version [%% next_version %%], the version 1 API is
+unsupported. This is because the tests must be retracted before Space
+Track takes the API out of service. The version 1 code will not be
+removed, though, until after Space Track takes the API out of service.
 
 =head1 SPACE TRACK REST API
 
