@@ -1,3 +1,18 @@
+0.076		2013-07-01	T. R. Wyant
+  Deprecated spacetrack() queries (the *_fast ones) become fatal.
+  Document intent to remove support for environment variables
+    SPACETRACK_REST_RANGE_OPERATOR and SPACETRACK_REST_FRACTIONAL_DATE
+    in the first release after January 1 2014.
+  Install the SpaceTrack script by default.
+  Eliminate prompting for whether to install SpaceTrack. The -y and -n
+    options are still available.
+  Move the SpaceTrackTk script to the eg/ directory.
+  Eliminate Win32 and VMS specific code in the installers.
+  Document the desupport of the Space Track version 1 interface as of
+    this release.
+  No longer test version 1 of the Space Track interface, since it is
+    scheduled to stop working.
+
 0.075		2013-06-14	T. R. Wyant
   Document that the Space Track version 1 API will be shut down July 16
     2013.

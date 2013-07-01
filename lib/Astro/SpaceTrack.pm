@@ -73,7 +73,7 @@ because of the imminence of the removal of the functionality. If you
 really must suppress the warnings, you will need to make use of
 C<$SIG{__WARN__}>, properly localized.
 
-Effective with version [%% next_version %%], the version 1 API is
+Effective with version 0.076, the version 1 API is
 unsupported. This is because the tests must be retracted before Space
 Track takes the API out of service. The version 1 code will not be
 removed, though, until after Space Track takes the API out of service.
@@ -191,7 +191,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.075';
+our $VERSION = '0.076';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
