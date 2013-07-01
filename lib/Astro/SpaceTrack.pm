@@ -6384,8 +6384,9 @@ A value Perl sees as false (i.e. C<0> or C<''>) causes ranges not to be
 used. A value Perl sees as true (i.e. anything else) causes ranges to be
 used. The default is to use ranges.
 
-Support for this environment variable will be removed when I think
-range support in the REST interface is stable.
+Support for this environment variable will be removed the first release
+after January 1 2014, since I think range support in the REST interface
+is stable.
 
 =head2 SPACETRACK_REST_FRACTIONAL_DATE
 
@@ -6397,8 +6398,9 @@ C<''>) causes epoch queries to be truncated to even days. A value Perl
 sees as true (i.e. anything else) causes epoch queries to be to the
 nearest second.  The default is to query to the nearest second.
 
-Support for this environment variable will be removed when I think
-fractional-day query support in the REST interface is stable.
+Support for this environment variable will be removed the first release
+after January 1 2014, since I think fractional-day query support in the
+REST interface is stable.
 
 =head1 EXECUTABLES
 
