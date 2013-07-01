@@ -21,36 +21,7 @@ The only legal options are
 You may not assert both of these at once - it's too confusing.
 EOD
 
-my @exe_files = $meta->notice( \%opt, \&prompt );
-my @clean_files;
-
-if (@exe_files) {
-    if ($^O eq 'MSWin32') {
-	@exe_files = map {"bin/$_"} @exe_files;
-	foreach (@exe_files) {`pl2bat $_`}
-	@clean_files = @exe_files =
-	    grep {-e $_} map {"$_.bat"} @exe_files;
-	}
-      elsif ($^O eq 'VMS') {
-	foreach my $fni (map {"[.bin]$_"} @exe_files) {
-	    my $fno = "$fni.com";
-	    my $fhi = FileHandle->new ("<$fni") or die <<eod;
-Error - Unable to open $fni
-        $!
-eod
-	    my $fho = FileHandle->new (">$fno") or die <<eod;
-Error - Unable to open $fno
-        $!
-eod
-	    print $fho "$Config{startperl}\n";
-	    while (<$fhi>) {print $fho $_}
-	    }
-	@clean_files = @exe_files = map {"[.bin]$_.com"} @exe_files;
-	}
-      else {
-	@exe_files = map {"bin/$_"} @exe_files;
-	}
-    }
+my @exe_files = map {"bin/$_"} $meta->notice( \%opt, \&prompt );
 
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
 
@@ -61,7 +32,6 @@ my %attr = (
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     EXE_FILES => \@exe_files,
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
-    realclean => {FILES => join ' ', @clean_files},
     AUTHOR => 'Tom Wyant (wyant at cpan dot org)',
     ABSTRACT => 'Download satellite orbital elements from Space Track',
 );

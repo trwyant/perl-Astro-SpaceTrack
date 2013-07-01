@@ -52,40 +52,11 @@ my $bldr = My::Module::Build->new (%attr);
 
 my %opt = $bldr->args ();
 
-my @exe_files = $meta->notice( \%opt, sub { return $bldr->prompt( @_ ) } );
-my @clean_files;
-
-if (@exe_files) {
-    if ($^O eq 'MSWin32') {
-	@exe_files = map {"bin/$_"} @exe_files;
-	foreach (@exe_files) {`pl2bat $_`}
-	@clean_files = @exe_files =
-	    grep {-e $_} map {"$_.bat"} @exe_files;
-	}
-      elsif ($^O eq 'VMS') {
-	foreach my $fni (map {"[.bin]$_"} @exe_files) {
-	    my $fno = "$fni.com";
-	    my $fhi = FileHandle->new ("<$fni") or die <<eod;
-Error - Unable to open $fni
-        $!
-eod
-	    my $fho = FileHandle->new (">$fno") or die <<eod;
-Error - Unable to open $fno
-        $!
-eod
-	    print $fho "$Config{startperl}\n";
-	    while (<$fhi>) {print $fho $_}
-	    }
-	@clean_files = @exe_files = map {"[.bin]$_.com"} @exe_files;
-	}
-      else {
-	@exe_files = map {"bin/$_"} @exe_files;
-	}
-    }
+my @exe_files = map {"bin/$_"}
+    $meta->notice( \%opt, sub { return $bldr->prompt( @_ ) } );
 
 #	Tell Module::Build what we want to do.
 
-$bldr->add_to_cleanup (\@clean_files);
 $bldr->script_files (\@exe_files);
 
 #	Generate the build script, at long last.

@@ -5,12 +5,12 @@ MANIFEST
 MANIFEST.SKIP
 README
 bin/SpaceTrack
-bin/SpaceTrackTk
 eg/README
 eg/celestrak
 eg/sh_data
 eg/sh_script
 eg/spaceflight
+eg/SpaceTrackTk
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
 lib/Astro/SpaceTrack.pm
