@@ -4225,7 +4225,7 @@ sub _spacetrack_v2 {
 	or return $self->_no_such_catalog( spacetrack => 2, $catalog );
 
     defined $info->{deprecate}
-	and carp "Catalog '$catalog' is deprecated in favor of '$info->{deprecate}'";
+	and croak "Catalog '$catalog' is deprecated in favor of '$info->{deprecate}'";
 
     defined $info->{favorite}
 	and return $self->_favorite_v2( $opt, $info->{favorite} );
