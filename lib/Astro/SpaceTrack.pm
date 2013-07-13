@@ -61,88 +61,11 @@ C<404> error when you try to use it.
 
 =head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
-On June 14 2013 Space Track informed users that the version 1 API would
-be taken out of service July 16 2013 at 11:00 PST, which I take to be
-18:00 UT. Therefore, effective with version 0.075 there will be a
-warning every time the space_track_version attribute is set to 1, and
-effective the first release after July 16 2013 at 18:00 UT, this warning
-will become an exception.
-
-The warning can not be suppressed by C<no warnings qw{ deprecated };>
-because of the imminence of the removal of the functionality. If you
-really must suppress the warnings, you will need to make use of
-C<$SIG{__WARN__}>, properly localized.
-
-Effective with version 0.076, the version 1 API is
-unsupported. This is because the tests must be retracted before Space
-Track takes the API out of service. The version 1 code will not be
-removed, though, until after Space Track takes the API out of service.
-
-=head1 SPACE TRACK REST API
-
-The REST interface differs from the version 1 interface in the following
-ways that are known to me at this time. All are due to differences in
-the functionality provided by version 2 of the interface, unless
-explicitly stated otherwise.
-
-=over
-
-=item * Greater resolution in queries by epoch
-
-If you are using version 2 of the Space Track interface, you can specify
-time as well as date to the C<-start_epoch> and C<-end_epoch> options,
-and they will be honored. Under version 1 this would be truncated to an
-even day.
-
-=item * Bulk data (the C<spacetrack()> method)
-
-The C<spacetrack()> method (which returns predefined packages of
-TLEs) is implemented by REST queries, and those bulk data packages which
-are not reasonably implemented by REST queries are handled by global
-favorites. See
-L<DEPRECATION NOTICE: SPACE TRACK BULK DATA|/DEPRECATION NOTICE: SPACE TRACK BULK DATA>
-above for details.
-
-=item * Type of orbiting body
-
-It appears that the idea of what kind of thing an orbiting body is
-(payload, rocket body, debris, etc) is being reworked for version 2 of
-the Space Track interface. This means that if you use the C<-exclude>
-option of the C<search_*()> methods you may get different results
-depending on the interface used. A known example is 'Westford Needles',
-which are debris under version 1 of the interface, but payload under
-version 2.
-
-=item * Default for C<-status>
-
-The C<-status> search option defaults to 'onorbit' under version 2
-of the interface. The default under version 1 is still 'all'. This
-change was made because I believe that is what the user generally wants,
-and because the database underlying version 2 of the interface is
-optimized for this sort of query (see below). Basically, I believe that
-if you want a slow query you should have to ask for one specifically.
-
-=item * Source of TLE data
-
-Version 2 of the interface has two separate sources of TLE data.
-The C<tle_latest> source is optimized for speed, but contains only
-current data. The C<tle> source contains all TLEs back to Sputnik, but
-is slower. The high-level interfaces attempt to select the correct
-source based on the options given them. Options C<-start_epoch>,
-C<-end_epoch> and C<-since_file> cause the C<tle> source do be used, as
-does any value for C<-status> other than C<-status=onorbit>. Otherwise,
-the C<tle_latest> source is used.
-
-=item * Ad-hoc tweaks to version 2 functionality
-
-In some cases, where I have seen (or thought I have seen) glitches
-in the Space Track functionality, I have used environment variables to
-control whether the functionality is used. See the C<SPACETRACK_REST_*>
-entries under L<ENVIRONMENT|/ENVIRONMENT> for details. I will remove
-code using these environment variables when I think the interface is
-stable.
-
-=back
+The Space Track version 1 API was taken out of service July 16 2013 at
+18:00 UT. Therefore, as of version [%% next_version %%], an attempt to
+set the C<space_track_version> attribute to C<1> will result in a fatal
+error. Subsequent releases of this package will remove the code related
+to the version 1 API.
 
 =head1 DESCRIPTION
 
@@ -746,7 +669,7 @@ benefit of the shell method.
 		'v' . $Config::Config{version};	## no critic (ProhibitPackageVars)
 	    }
 	};
-	my $url = $self->_make_space_track_base_url( 1 );
+	my $url = $self->_make_space_track_base_url();
 	return HTTP::Response->new (HTTP_OK, undef, undef, <<"EOD");
 
 @{[__PACKAGE__]} version $VERSION
@@ -786,8 +709,7 @@ tab-delimited.
 This method takes option C<-json>, specified either command-style (i.e.
 C<< $st->box_score( '-json' ) >>) or as a hash reference (i.e. 
 C<< $st->box_score( { json => 1 } ) >>). This causes the body of the
-response to be the JSON data as returned from Space Track. If
-C<space_track_version> is 1, equivalent JSON will be constructed.
+response to be the JSON data as returned from Space Track.
 
 This method requires a Space Track username and password. It implicitly
 calls the C<login()> method if the session cookie is missing or expired.
@@ -1412,16 +1334,9 @@ sub _country_names_v2 {
 =item $resp = $st->favorite( $name )
 
 This method takes the name of a C<favorite> set up by the user on the
-Space Track web site, and returns the bodies specified.
-
-Although both version 1 and version 2 of the Space Track interface
-provide favorites, only the version 2 interface is supported by this
-method. If you call this method with attribute C<'space_track_version'>
-set to C<1>, an exception will be thrown.
-
-Under the version 2 interface, the 'global' favorites (e.g.
-C<'Navigation'>, C<'Weather'>, and so on) may also be fetched.
-Additionally, the C<-json> option may be specified, either in
+Space Track web site, and returns the bodies specified. The 'global'
+favorites (e.g.  C<'Navigation'>, C<'Weather'>, and so on) may also be
+fetched.  Additionally, the C<-json> option may be specified, either in
 command-line format or as a leading hash reference. For example,
 
  $resp = $st->favorite( '-json', 'Weather' );
@@ -2067,7 +1982,7 @@ corresponding launch site names.
 
 If this method succeeds, the response will contain headers
 
- Pragma: spacetrack-type = box_score
+ Pragma: spacetrack-type = launch_sites
  Pragma: spacetrack-source = spacetrack
 
 There are no arguments.
@@ -2284,9 +2199,6 @@ list context, you also get a reference to a list of two-element lists;
 each inner list contains the description and the catalog name, in that
 order (suitable for inserting into a Tk Optionmenu).
 
-In the case of C<'spacetrack'>, the return depends on the value of the
-C<space_track_version> attribute.
-
 No Space Track username and password are required to use this method,
 since all it is doing is returning data kept by this module.
 
@@ -2360,7 +2272,6 @@ The legal options are:
    specifies the end epoch for the desired data.
  -json
    specifies the TLE be returned in JSON format
-   (space_track_version == 2 only!)
  -last5
    specifies the last 5 element sets be retrieved.
    Ignored if start_epoch or end_epoch specified.
@@ -2368,8 +2279,7 @@ The legal options are:
    specifies the start epoch for the desired data.
  -since_file number
    specifies that only data since the given Space Track
-   file number be retrieved (space_track_version == 2
-   only!)
+   file number be retrieved.
  -sort type
    specifies how to sort the data. Legal types are
    'catnum' and 'epoch', with 'catnum' the default.
@@ -2971,19 +2881,10 @@ Examples:
     '2005-12-25');
  search_date ( '-notle', '2005-12-25' );
 
-The effect of the C<-exclude> option differs depending on which version
-of the Space Track interface is in use. Under version 1, it maps to the
-'Exclude' check box on the relevant search form. Under version 2, it
-maps to the C<OBJECT_TYPE> predicate, which is one of the values
-C<'PAYLOAD'>, C<'ROCKET BODY'>, C<'DEBRIS'>, C<'UNKNOWN'>, or
-C<'OTHER'>, and is implemented by selecting all values other than the
-ones specifically excluded.
-
-In at least one case, the two interfaces classify bodies differently.
-The site legend for the version 1 site says Westford Needles are debris,
-and in fact searches that exclude debris do not return them. But their
-C<OBJECT_TYPE> under the version 2 interface is C<'PAYLOAD'>, and I am
-informed that this is intentional.
+The C<-exclude> option is implemented in terms of the C<OBJECT_TYPE>
+predicate, which is one of the values C<'PAYLOAD'>, C<'ROCKET BODY'>,
+C<'DEBRIS'>, C<'UNKNOWN'>, or C<'OTHER'>. It works by selecting all
+values other than the ones specifically excluded.
 
 This method implicitly calls the C<login()> method if the session cookie
 is missing or expired. If C<login()> fails, you will get the
@@ -3984,54 +3885,12 @@ sub spaceflight {
 
 =for html <a name="spacetrack"></a>
 
-=item $resp = $st->spacetrack ($name_or_number);
+=item $resp = $st->spacetrack ($name);
 
-What this method does depends on the value of the C<space_track_version>
-attribute.
+This method returns predefined sets of data from the Space Track web
+site, using either canned queries or global favorites.
 
-If C<space_track_version == 1>, this method downloads the named (or
-numbered) bulk catalog. This interface is deprecated by Space Track, and
-is expected to be removed (by them) in October 2012. When the bulk data
-interface is removed (or as soon thereafter as I can manage) requests
-will be sent to the version 2 interface regardless of the
-C<space_track_version> setting.
-
-Under C<space_track_version == 1>, the following catalogs are available:
-
-    Name            Description             Number
-    md5             MD5 checksums              0
-    full            Full catalog               1
-    geosynchronous  Geosynchronous bodies      3
-    navigation      Navigation satellites      5
-    weather         Weather satellites         7
-    iridium         Iridium satellites         9
-    orbcomm         OrbComm satellites        11
-    globalstar      Globalstar satellites     13
-    intelsat        Intelsat satellites       15
-    inmarsat        Inmarsat satellites       17
-    amateur         Amateur Radio satellites  19
-    visible         Visible satellites        21
-    special         Special satellites        23
-
-These can also be requested by number. Except for C<md5> the numbers
-represent the data sets without common names; add one to get the
-corresponding data set with common names.
-
-When retrieving a bulk catalog by name, the value of the C<with_names>
-attribute determines whether you get common names.
-
-Because the removal of the bulk catalog data under version 1 of the
-interface is immanent, the requesting of a catalog which has no
-counterpart in the version 2 functionality will produce a warning. This
-applies to any request by number, plus requests for C<'navigation'>,
-C<'weather'>, C<'amateur'>, C<'visible'>, and C<'special'>.
-
-If C<space_track_version == 2>, this method executes canned queries to
-retrieve data sets similar to those above. If the bulk catalog can not
-be reasonably approximated by a query, it is unsupported under version
-2.
-
-Under C<space_track_version == 2>, the following catalogs are available:
+The following catalogs are available:
 
     Name            Description
     full            Full catalog
@@ -4062,23 +3921,18 @@ the deprecation cycle will be accelerated. They will C<carp()> on every
 use, and six months after release 0.070 will produce fatal errors. Six
 months after they become fatal, they will be removed completely.
 
-Retrieval by number is unsupported under version 2 of the interface.
-When retrieving a bulk catalog by name, the value of the C<with_names>
-attribute determines whether you get common names.
-
-Under version 2 of the interface, the following options are supported:
+The following option is supported:
 
  -json
    specifies the TLE be returned in JSON format
 
-If supported, options may be specified either in command-line style
+Options may be specified either in command-line style
 (that is, as C<< spacetrack( '-json', ... ) >>) or as a hash reference
 (that is, as C<< spacetrack( { json => 1 }, ... ) >>).
 
-Under either version of the interface, the method returns an
-L<HTTP::Response|HTTP::Response> object. If the operation succeeded, the
-content of the response will be the requested data, unzipped if you used
-the version 1 interface.
+This method returns an L<HTTP::Response|HTTP::Response> object. If the
+operation succeeded, the content of the response will be the requested
+data, unzipped if you used the version 1 interface.
 
 If you requested a non-existent catalog, the response code will be
 C<HTTP_NOT_FOUND> (a.k.a.  404); otherwise the response code will be
@@ -4095,8 +3949,7 @@ These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 A list of valid names and brief descriptions can be obtained by calling
-C<< $st->names ('spacetrack') >>. Note that this list will be different
-under different values of C<space_track_version>.
+C<< $st->names ('spacetrack') >>.
 
 If you have set the C<verbose> attribute true (e.g.  C<< $st->set
 (verbose => 1) >>), the content of the error response will include the
@@ -4303,9 +4156,7 @@ sub _spacetrack_v2 {
 
 This method exposes the Space Track version 2 interface (a.k.a the REST
 interface). It has nothing to do with the (probably badly-named)
-C<spacetrack()> method. Unlike other methods that interface to Space
-Track, this method uses version 2 of the Space Track interface
-regardless of the value of the C<space_track_version> attribute.
+C<spacetrack()> method.
 
 The arguments are the arguments to the REST interface. These will be
 URI-escaped, and a login will be performed if necessary. This method
@@ -4451,14 +4302,12 @@ is the updated TLE data, in whatever format is desired. If any updates
 were in fact found, the file is rewritten. The rewritten JSON will be
 pretty if the C<pretty> attribute is true.
 
-The file to be updated can be generated by setting the
-C<space_track_version> attribute to C<2>, and using the C<-json> option
-on any of the methods that accesses Space Track data. For example,
+The file to be updated can be generated by using the C<-json> option on
+any of the methods that accesses Space Track data. For example,
 
  # Assuming $ENV{SPACETRACK_USER} contains
  # username/password
  my $st = Astro::SpaceTrack->new(
-     space_track_version => 2,
      pretty              => 1,
  );
  my $rslt = $st->spacetrack( { json => 1 }, 'iridium' );
@@ -4471,14 +4320,13 @@ on any of the methods that accesses Space Track data. For example,
 
 The following is the equivalent example using the F<SpaceTrack> script:
 
- SpaceTrack> set space_track_version 2 pretty 1
+ SpaceTrack> set pretty 1
  SpaceTrack> spacetrack -json iridium >iridium.json
 
-This method uses the Space Track Version 2 interface, regardless of the
-setting of the C<space_track_version> attribute. It reads the file to be
-updated, determines the highest C<FILE> value, and then requests the
-given OIDs, restricting the return to C<FILE> values greater than the
-highest found. If anything is returned, the file is rewritten.
+This method reads the file to be updated, determines the highest C<FILE>
+value, and then requests the given OIDs, restricting the return to
+C<FILE> values greater than the highest found. If anything is returned,
+the file is rewritten.
 
 The following options may be specified:
 
@@ -5117,18 +4965,6 @@ sub _handle_observing_list {
     my $resp = $self->retrieve( $opt, sort {$a <=> $b} @catnum );
     if ( $resp->is_success ) {
 
-=begin comment
-
-	$self->getv( 'with_name' )
-	    and $self->getv( 'space_track_version' ) == 2
-	    and $self->_merge_names( $resp, {
-		    map { _normalize_oid( $_->[0] ) => $_->[1] } @data },
-	    );
-
-=end comment
-
-=cut
-
 	unless ( $self->{_pragmata} ) {
 	    $self->_add_pragmata($resp,
 		'spacetrack-type' => 'orbit',
@@ -5308,7 +5144,7 @@ sub _mutate_space_track_version {
 	or croak "Invalid Space Track version $value";
 ##  $self->_deprecation_notice( $name => $value );
     $value == 1
-	and carp 'The version 1 SpaceTrack interface is scheduled to stop working July 16 2013 at 18:00 UT';
+	and croak 'The version 1 SpaceTrack interface stopped working July 16 2013 at 18:00 UT';
     return ( $self->{$name} = $value );
 }
 
@@ -6159,18 +5995,11 @@ This attribute specifies the expiration time of the cookie. You should
 only set this attribute with a previously-retrieved value, which
 matches the cookie.
 
-The object maintains a separate copy of this attribute for each possible
-value of C<space_track_version>. Not all versions of the interface have
-expiring cookies.
-
 =item cookie_name (string)
 
 This attribute specifies the name of the session cookie. You should not
 need to change this in normal circumstances, but if Space Track changes
 the name of the session cookie you can use this to get you going again.
-
-The object maintains a separate copy of this attribute for each possible
-value of C<space_track_version>.
 
 =item direct (boolean)
 
@@ -6187,12 +6016,8 @@ The user will not normally need to modify this, but if the web site
 changes names for some reason, this attribute may provide a way to get
 queries going again.
 
-The object maintains a separate copy of this attribute for each possible
-value of C<space_track_version>.
-
-The default is C<'www.space-track.org'> for both versions 1 and 2. This
-will change if necessary to remain appropriate to the Space Track web
-site.
+The default is C<'www.space-track.org'>. This will change if necessary
+to remain appropriate to the Space Track web site.
 
 =item fallback (boolean)
 
@@ -6257,21 +6082,16 @@ The default is C<'https'>.
 This attribute specifies the session cookie. You should only set it
 with a previously-retrieved value.
 
-The object maintains a separate copy of this attribute for each possible
-value of C<space_track_version>.
-
 The default is an empty string.
 
 =item space_track_version (integer)
 
-B<This attribute is unsupported>.
-
 This attribute specifies the version of the Space Track interface to use
-to retrieve data. Valid values are C<1> and C<2>, but C<2> is
-unsupported. If you set it to a false value (i.e. C<undef>, C<0>, or
-C<''>) it will be set to the default.
+to retrieve data. The only valid value is C<2>.  If you set it to a
+false value (i.e. C<undef>, C<0>, or C<''>) it will be set to the
+default.
 
-The default is C<1>.
+The default is C<2>.
 
 =item url_iridium_status_kelso (text)
 
