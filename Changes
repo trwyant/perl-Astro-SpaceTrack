@@ -1,3 +1,9 @@
+0.077		2013-07-15	T. R. Wyant
+  Make it an error to set space_track_version to 1. Eliminate all
+    documentation of the version 1 API, and make version 2 documentaion
+    not refer to API version. Code for the version 1 API will be removed
+    in subsequent releases.
+
 0.076		2013-07-01	T. R. Wyant
   Deprecated spacetrack() queries (the *_fast ones) become fatal.
   Document intent to remove support for environment variables

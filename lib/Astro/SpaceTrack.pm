@@ -62,7 +62,7 @@ C<404> error when you try to use it.
 =head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
 The Space Track version 1 API was taken out of service July 16 2013 at
-18:00 UT. Therefore, as of version [%% next_version %%], an attempt to
+18:00 UT. Therefore, as of version 0.077, an attempt to
 set the C<space_track_version> attribute to C<1> will result in a fatal
 error. Subsequent releases of this package will remove the code related
 to the version 1 API.
@@ -114,7 +114,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.076';
+our $VERSION = '0.077';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
