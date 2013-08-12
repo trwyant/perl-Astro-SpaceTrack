@@ -122,9 +122,7 @@ our %EXPORT_TAGS = (
 	BODY_STATUS_IS_TUMBLING}],
 );
 
-use Astro::SpaceTrack::Parser;
 use Carp;
-use Compress::Zlib ();
 use Getopt::Long;
 use HTTP::Response;
 use HTTP::Status qw{
@@ -725,14 +723,6 @@ There are no arguments.
 =cut
 
 {
-    my @dispatch = ( undef, \&_box_score_v1, \&_box_score_v2 );
-
-    sub box_score {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-{
 
     my @fields = qw{ SPADOC_CD
 	ORBITAL_PAYLOAD_COUNT ORBITAL_ROCKET_BODY_COUNT
@@ -751,42 +741,7 @@ There are no arguments.
 	],
     );
 
-    sub _box_score_v1 {
-	push @_, {
-	    encode	=> [],
-	    Names	=> $_[0]->_get_country_names_hash_ref(),
-	    num_head	=> 2,
-	    path	=> 'perl/boxscore.pl',
-	    processor	=> \&_box_score_v1_processor,
-	    table	=> 0,
-	    type	=> 'box_score',
-	    wantarray	=> 1,
-	};
-	goto &_scrape_table_v1;
-    }
-
-    sub _get_country_names_hash_ref {
-	my ( $self ) = @_;
-	my $rslt = $self->country_names( { json => 1 } );
-	return $rslt->is_success() ?
-	    $self->_get_json_object()->decode( $rslt->content() ) :
-	    {};
-    }
-
-    sub _box_score_v1_processor {
-	my ( $self, $ctxt, $datum ) = @_;
-	my %obj;
-	@obj{@fields} = @{ $datum };
-	$obj{SPADOC_CD} eq 'Total'
-	    and $obj{SPADOC_CD} = 'ALL';
-	$obj{COUNTRY} = $ctxt->{Names}{$obj{SPADOC_CD}};
-	defined $obj{COUNTRY}
-	    or $obj{COUNTRY} = 'Unknown';
-	push @{ $ctxt->{encode} }, \%obj;
-	return;
-    }
-
-    sub _box_score_v2 {
+    sub box_score {
 	my ( $self, @args ) = @_;
 
 	( my $opt, @args ) = _parse_args(
@@ -1251,33 +1206,7 @@ There are no arguments.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_country_names_v1, \&_country_names_v2 );
-
-    sub country_names {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _country_names_v1 {
-    push @_, {
-	encode		=> { ALL	=> 'ALL' },
-	num_head	=> 1,
-	path		=> 'perl/cntry_key_pu.pl',
-	processor	=> \&_country_names_v1_processor,
-	table		=> 0,
-	type		=> 'country_names',
-    };
-    goto &_scrape_table_v1;
-}
-
-sub _country_names_v1_processor {
-    my ( $self, $ctxt, $datum ) = @_;
-    $ctxt->{encode}{$datum->[0]} = $datum->[1];
-    return;
-}
-
-sub _country_names_v2 {
+sub country_names {
 
     my ( $self, @args ) = @_;
 
@@ -1346,19 +1275,7 @@ both work.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_favorite_v1, \&_favorite_v2 );
-
-    sub favorite {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _favorite_v1 {
-    croak 'favorite() not implemented under the Space Track version 1 interface';
-}
-
-sub _favorite_v2 {
+sub favorite {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
@@ -1990,29 +1907,9 @@ There are no arguments.
 =cut
 
 {
-    my @dispatch = ( undef, \&_launch_sites_v1, \&_launch_sites_v2 );
-
-    sub launch_sites {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _launch_sites_v1 {
-    push @_, {
-	encode		=> {},
-	num_head	=> 1,
-	path		=> 'perl/launch_key_pu.pl',
-	processor	=> \&_country_names_v1_processor,
-	table		=> 0,
-	type		=> 'launch_sites',
-    };
-    goto &_scrape_table_v1;
-}
-
-{
     my @headings = ( 'Abbreviation', 'Launch Site' );
 
-    sub _launch_sites_v2 {
+    sub launch_sites {
 	my ( $self, @args ) = @_;
 
 	( my $opt, @args ) = _parse_args(
@@ -2088,50 +1985,7 @@ A Space Track username and password are required to use this method.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_login_v1, \&_login_v2 );
-
-    sub login {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _login_v1 {
-    my ($self, @args) = @_;
-    delete $self->{_pragmata};
-    @args and $self->set (@args);
-    ($self->{username} && $self->{password}) or
-	return HTTP::Response->new (
-	    HTTP_PRECONDITION_FAILED, NO_CREDENTIALS);
-    $self->{dump_headers} & DUMP_TRACE and warn <<"EOD";
-Logging in as $self->{username}.
-EOD
-
-    #	Do not use the _post method to retrieve the session cookie,
-    #	unless you like bottomless recursions.
-    my $url = $self->_make_space_track_base_url( 1 );
-    my $resp = $self->_get_agent()->post (
-	"$url/perl/login.pl", [
-	    username => $self->{username},
-	    password => $self->{password},
-	    _submitted => 1,
-	    _sessionid => "",
-	    ]);
-
-    $resp->is_success()
-	or return _mung_login_status( $resp );
-    $self->_dump_headers( $resp );
-
-    $self->_record_cookie_generic( 1 )
-	or return HTTP::Response->new (HTTP_UNAUTHORIZED, LOGIN_FAILED);
-
-    $self->{dump_headers} & DUMP_TRACE and warn <<'EOD';
-Login successful.
-EOD
-    return HTTP::Response->new (HTTP_OK, undef, undef, "Login successful.\n");
-}
-
-sub _login_v2 {
+sub login {
     my ( $self, @args ) = @_;
     delete $self->{_pragmata};
     @args and $self->set( @args );
@@ -2322,78 +2176,7 @@ added to the HTTP::Response object returned.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_retrieve_v1, \&_retrieve_v2 );
-
-    sub retrieve {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _retrieve_v1 {
-    my ($self, @args) = @_;
-    delete $self->{_pragmata};
-
-    @args = _parse_retrieve_args( @args );
-    my $opt = _parse_retrieve_dates (shift @args);
-
-    my @params = $opt->{start_epoch} ?
-	(timeframe => 'timespan',
-	    start_year => $opt->{_start_epoch}[0],
-	    start_month => $opt->{_start_epoch}[1],
-	    start_day => $opt->{_start_epoch}[2],
-	    end_year => $opt->{_end_epoch}[0],
-	    end_month => $opt->{_end_epoch}[1],
-	    end_day => $opt->{_end_epoch}[2],
-	) :
-	$opt->{last5} ? (timeframe => 'last5') : (timeframe => 'latest');
-    push @params, common_name => $self->{with_name} ? 'yes' : '';
-    push @params, sort => $opt->{sort};
-    push @params, descending => $opt->{descending} ? 'yes' : '';
-
-    @args = $self->_expand_oid_list( @args )
-	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
-
-    my $content = '';
-    local $_ = undef;
-    my $resp;
-    while ( @args ) {
-	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
-	$resp = $self->_post ('perl/id_query.pl',
-	    ids => _stringify_oid_list( {
-		    separator	=> ' ',
-		    range_operator	=> '-',
-		}, @batch ),
-	    @params,
-	    ascii => 'yes',		# or ''
-	    _sessionid => '',
-	    _submitted => 1,
-	);
-	return $resp unless $resp->is_success;
-	$_ = $resp->content;
-	next if m/ No \s records \s found /smxi;
-	if ( m/ ERROR: /smx ) {
-	    return HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
-		"Failed to retrieve IDs @batch.\n",
-		undef, $content);
-	}
-	s{ </pre> .* }{}smx;
-	s{ .* <pre> }{}smx;
-	s{ \A \n }{}smx;
-	$content .= $_;
-    }
-    $content or return HTTP::Response->new (HTTP_NOT_FOUND, NO_RECORDS);
-    $resp->content ($content);
-    $self->_convert_content ($resp);
-    $self->_add_pragmata($resp,
-	'spacetrack-type' => 'orbit',
-	'spacetrack-source' => 'spacetrack',
-	'spacetrack-interface' => 1,
-    );
-    return $resp;
-}
-
-sub _retrieve_v2 {
+sub retrieve {
     my ( $self, @args ) = @_;
     delete $self->{_pragmata};
 
@@ -2675,7 +2458,7 @@ sub _retrieve_v2 {
 
 	    {
 		local $self->{pretty} = 0;
-		$rslt = $self->_retrieve_v2( $opt,
+		$rslt = $self->retrieve( $opt,
 		    map { $_->{NORAD_CAT_ID} } @found );
 	    }
 	    $rslt->is_success()
@@ -2922,39 +2705,7 @@ containing the actual search results.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_search_date_v1, \&_search_date_v2 );
-
-    sub search_date {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _search_date_v1 {
-    my ($self, @args) = @_;
-    @args = _parse_search_args (@args);
-    return $self->_search_generic (sub {
-	my ( $self, $name, $opt ) = @_;
-	my ( $year, $month, $day ) = _parse_launch_date( $name )
-	    or return;
-	$month ||= 0;
-	$day ||= 0;
-	my $resp = $self->_post ('perl/launch_query.pl',
-	    date_spec => 'month',
-	    launch_year => $year,
-	    launch_month => $month,
-	    launch_day => $day,
-	    status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
-	    exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
-	    _sessionid => '',
-	    _submit => 'submit',
-	    _submitted => 1,
-	);
-	return $resp;
-    }, @args );
-}
-
-sub _search_date_v2 {	## no critic (RequireArgUnpacking)
+sub search_date {	## no critic (RequireArgUnpacking)
     splice @_, 1, 0, LAUNCH => \&_format_launch_date_rest;
     goto &_search_rest;
 }
@@ -3006,41 +2757,7 @@ containing the actual search results.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_search_decay_v1, \&_search_decay_v2 );
-
-    sub search_decay {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _search_decay_v1 {
-    my ($self, @args) = @_;
-    @args = _parse_search_args (@args);
-    return $self->_search_generic (
-	{
-	    splice => -1,
-	    poster => sub {
-		my ( $self, $name, $opt ) = @_;
-		my ( $year, $month, $day ) = _parse_launch_date( $name );
-		$month ||= 0;
-		$day ||= 0;
-		my $resp = $self->_post ('perl/decay_query.pl',
-		    decay_year => $year,
-		    decay_month => $month,
-		    decay_day => $day,
-		    status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
-		    exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
-		    _sessionid => '',
-		    _submit => 'Submit',
-		    _submitted => 1,
-		);
-		return $resp;
-	    },
-	}, @args);
-}
-
-sub _search_decay_v2 {	## no critic (RequireArgUnpacking)
+sub search_decay {	## no critic (RequireArgUnpacking)
     splice @_, 1, 0, DECAY => \&_format_launch_date_rest;
     goto &_search_rest;
 }
@@ -3100,36 +2817,7 @@ containing the actual search results.
  
 =cut
 
-{
-    my @dispatch = ( undef, \&_search_id_v1, \&_search_id_v2 );
-
-    sub search_id {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _search_id_v1 {
-    my ($self, @args) = @_;
-    @args = _parse_search_args (@args);
-    return $self->_search_generic (sub {
-	my ( $self, $name, $opt ) = @_;
-	my ( $year, $number, $piece ) = _parse_international_id( $name );
-	my $resp = $self->_post ('perl/launch_query.pl',
-	    date_spec => 'number',
-	    launch_year => $year,
-	    launch_number => $number || '',
-	    piece => uc ($piece || ''),
-	    status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
-	    exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
-	    _sessionid => '',
-	    _submit => 'submit',
-	    _submitted => 1,
-	);
-	return $resp;
-    }, @args);
-}
-
-sub _search_id_v2 {	## no critic (RequireArgUnpacking)
+sub search_id {	## no critic (RequireArgUnpacking)
     splice @_, 1, 0, INTLDES => \&_format_international_id_rest;
     goto &_search_rest;
 }
@@ -3184,33 +2872,7 @@ containing the actual search results.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_search_name_v1, \&_search_name_v2 );
-
-    sub search_name {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _search_name_v1 {
-    my ($self, @args) = @_;
-    @args = _parse_search_args (@args);
-    return $self->_search_generic (sub {
-	my ($self, $name, $opt) = @_;
-	$self->_post ('perl/name_query.pl',
-	    _submitted => 1,
-	    _sessionid => '',
-	    name => $name,
-	    launch_year_start => 1957,
-	    launch_year_end => (gmtime)[5] + 1900,
-	    status => $opt->{status},	# 'all', 'onorbit' or 'decayed'.
-	    exclude => $opt->{exclude},	# ['debris', 'rocket', or both]
-	    _submit => 'Submit',
-	    );
-	}, @args);
-}
-
-sub _search_name_v2 {	## no critic (RequireArgUnpacking)
+sub search_name {	## no critic (RequireArgUnpacking)
     splice @_, 1, 0, SATNAME => sub { return "~~$_[0]" };
     goto &_search_rest;
 }
@@ -3288,44 +2950,7 @@ containing the actual search results.
 
 =cut
 
-{
-    my @dispatch = ( undef, \&_search_oid_v1, \&_search_oid_v2 );
-
-    sub search_oid {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-}
-
-sub _search_oid_v1 {
-    my ($self, @args) = @_;
-    @args = _parse_retrieve_args(
-	[
-	    'rcs!' => '(append --rcs radar_cross_section to name)',
-	    'tle!' => '(return TLE data from search (defaults true))'
-	],
-	@args );
-    my $opt = shift @args;
-
-    exists $opt->{tle} or $opt->{tle} = 1;
-
-    @args = $self->_expand_oid_list( @args )
-	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
-
-    return $self->_search_generic( sub {
-	    my ( $self, $ids, $opt ) = @_;
-	    return $self->_post (
-		'perl/satcat_id_query.pl',
-		_submitted => 1,
-		_sessionid => '',
-		ids => $ids,
-		desc => ( $opt->{descending} ? 'yes' : '' ),
-		_submit => 'Submit',
-	    );
-	},
-	$opt, "@args" );
-}
-
-sub _search_oid_v2 {	## no critic (RequireArgUnpacking)
+sub search_oid {	## no critic (RequireArgUnpacking)
     my ( $self, @args ) = @_;
     splice @_, 1, 0, NORAD_CAT_ID => sub { return $_[0] };
     goto &_search_rest;
@@ -3963,89 +3588,6 @@ HTTP::Response from C<login()>.
 =cut
 
 {
-    my @dispatch = ( undef, \&_spacetrack_v1, \&_spacetrack_v2 );
-
-    sub spacetrack {
-	goto $dispatch[ $_[0]{space_track_version} ];
-    }
-
-}
-sub _spacetrack_v1 {
-    my ( $self, $catnum ) = @_;
-    delete $self->{_pragmata};
-
-    $catalogs{spacetrack}[2]{$catnum}
-	or carp "Catalog '$catnum' will not be supported under the REST interface";
-
-    $catnum =~ m/ \D /smx and do {
-	my $info = $catalogs{spacetrack}[1]{$catnum} or
-	    return $self->_no_such_catalog (spacetrack => 1, $catnum);
-	$catnum = $info->{number};
-	$self->{with_name} && $catnum++ unless $info->{special};
-    };
-
-    my $resp = $self->_get ('perl/dl.pl', ID => $catnum);
-# At this point, assuming we succeeded, we should have headers
-# content-disposition: attachment; filename=the_desired_file_name
-# content-type: application/force-download
-# In the above, the_desired_file_name is (e.g.) something like
-#   spec_interest_2l_2005_03_22_am.txt.gz
-
-=begin comment
-
-It is possible (e.g. 04-May-2007) to get the following instead:
-
-<html>
-<body><script type="text/javascript">
-alert("There was a problem processing your request!\nPlease email admin@space-track.org
-Requested file  doesn't exist");history.go(-1);
-</script>
-</body></html>
-
-=end comment
-
-=cut
-
-    $resp->is_success()
-	or return $resp;
-
-    my $content = $resp->content ();
-    if ($content =~ m/ <html> /smx) {
-	if ($content =~ m/ Requested \s file \s doesn't \s exist/smxi) {
-	    $resp = HTTP::Response->new (HTTP_NOT_FOUND,
-		"The file for catalog $catnum is missing.\n",
-		undef, $content);
-	} else {
-	    $resp = HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
-		"The file for catalog $catnum could not be retrieved.\n",
-		undef, $content);
-	}
-    } else {
-	$catnum and $resp->content (
-	    Compress::Zlib::memGunzip ($resp->content));
-	# SpaceTrack returns status 200 on a non-existent catalog
-	# number, but whatever content they send back doesn't unzip, so
-	# we catch it here.
-	defined ($resp->content ())
-	    or return $self->_no_such_catalog (spacetrack => 1, $catnum);
-	$resp->remove_header ('content-disposition');
-	$resp->header (
-	    'content-type' => 'text/plain',
-##	    'content-length' => length ($resp->content),
-	);
-
-	$self->_convert_content( $resp );
-
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'orbit',
-	    'spacetrack-source' => 'spacetrack',
-	    'spacetrack-interface' => 1,
-	);
-    }
-    return $resp;
-}
-
-{
 
     my %unpack_query = (
 	HASH	=> sub { return $_[0] },
@@ -4065,7 +3607,7 @@ Requested file  doesn't exist");history.go(-1);
 
 }
 
-sub _spacetrack_v2 {
+sub spacetrack {
     my ( $self, @args ) = @_;
 
     my ( $opt, $catalog ) = _parse_args(
@@ -4081,7 +3623,7 @@ sub _spacetrack_v2 {
 	and croak "Catalog '$catalog' is deprecated in favor of '$info->{deprecate}'";
 
     defined $info->{favorite}
-	and return $self->_favorite_v2( $opt, $info->{favorite} );
+	and return $self->favorite( $opt, $info->{favorite} );
 
     my %retrieve_opt = %{
 	$self->_convert_retrieve_options_to_rest( $opt )
@@ -4120,7 +3662,7 @@ sub _spacetrack_v2 {
 
 	}
 
-	$rslt = $self->_retrieve_v2( \%retrieve_opt,
+	$rslt = $self->retrieve( \%retrieve_opt,
 	    sort { $a <=> $b } keys %oid );
 
 	$rslt->is_success()
@@ -4233,7 +3775,7 @@ C<'tle_latest'>,
 
 	$self->_check_cookie_generic( 2 )
 	    or do {
-	    my $resp = $self->_login_v2();
+	    my $resp = $self->login();
 	    $resp->is_success()
 		or return $resp;
 	};
@@ -4405,7 +3947,7 @@ lost as the individual OIDs are updated.
 	    $self->getv( 'with_name' ) ? '3le' : 'tle';
 	$opt->{format} = 'json';
 
-	my $resp = $self->_retrieve_v2( $opt, sort { $a <=> $b } @oids );
+	my $resp = $self->retrieve( $opt, sort { $a <=> $b } @oids );
 
 	if ( $resp->code() == HTTP_NOT_FOUND ) {
 
@@ -4813,67 +4355,6 @@ sub _format_launch_date_rest {
     return sprintf '~~%04d', $parts[0];
 }
 
-#	_get gets the given path on the domain. Arguments after the
-#	first are the CGI parameters. It checks the currency of the
-#	session cookie, and executes a login if it deems it necessary.
-#	The normal return is the HTTP::Response object from the get (),
-#	but if a login was attempted and failed, the HTTP::Response
-#	object from the login will be returned.
-#
-#	THIS IS TO BE USED ONLY FOR THE SPACETRACK V1 INTERFACE
-
-sub _get {
-    my ( $self, $path, %args ) = @_;
-
-    my $uri = URI->new(
-	join '/', $self->_make_space_track_base_url( 1 ), $path );
-    $uri->query_form( \%args );
-
-#   my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
-
-    if ( my $resp = $self->_dump_request(
-	    args	=> \%args,
-	    method	=> 'GET',
-	    url		=> $uri->as_string(),
-	    version	=> 1,
-	) ) {
-	return $resp;
-    }
-
-#    my $cgi = '';
-#    foreach my $name ( sort keys %args ) {
-#	my $val = $args{$name};
-#	defined $val
-#	    or $val = '';
-#	$cgi .= sprintf '&%s=%s', map { URI::Escape::uri_escape( $_ ) }
-#	    $name, $val;
-#    }
-#    $cgi and substr( $cgi, 0, 1, '?' );
-
-    {	# Single-iteration loop
-
-	$self->_check_cookie_generic( 1 )
-	    or do {
-	    my $resp = $self->_login_v1();
-	    $resp->is_success()
-		or return $resp;
-	};
-
-#	my $resp = $self->_get_agent()->get( $url . $cgi);
-	my $resp = $self->_get_agent()->get( $uri );
-	$self->_dump_headers( $resp );
-	$resp->is_success()
-	    or return $resp;
-	local $_ = $resp->content;
-	m/ login [.] pl /smxi and do {
-	    $self->logout();
-	    redo;
-	};
-	return $resp;
-    }	# end of single-iteration loop
-    return;	# Should never get here.
-}
-
 #	Note: If we have a bad cookie, we get a success status, with
 #	the text
 # <?xml version="1.0" encoding="iso-8859-1"?>
@@ -4996,54 +4477,6 @@ sub _make_space_track_base_url {
     return $self->{scheme_space_track} . '://' .
 	$self->_get_space_track_domain( $version );
 }
-
-=begin comment
-
-#	_merge_names( $resp, $names );
-#
-#	This subroutine takes an HTTP response object and a reference to
-#	a hash of OID names, and merges those names into the response.
-#	If the response is JSON, the names go in the OBJECT_NAME key,
-#	overriding whatever was there before. If the response is TLE,
-#	the names before the "1" line, and any names that were there
-#	before get dropped.
-
-sub _merge_names {
-    my ( $self, $resp, $name ) = @_;
-    my $content = $resp->content();
-    if ( $content =~ m/ \A \s* [[]? \s* [{] /smx ) {
-	my $json = $self->_get_json_object();
-	my $data = $json->decode( $content );
-	foreach my $body ( @{ $data } ) {
-	    my $oid = _normalize_oid( $body->{NORAD_CAT_ID} );
-	    $name->{$oid}
-		or next;
-	    $body->{OBJECT_NAME} = $name->{$oid};
-	    $body->{TLE_LINE0} = "0 $name->{$oid}";
-	}
-	$resp->content( $json->encode( $data ) );
-    } else {
-	my $rslt;
-	foreach my $tle_line (
-	    split qr{ (?<= \n ) }smx, $content
-	) {
-	    if ( $tle_line =~ m/ \A ( [12] ) \s* ( \d+ ) /smx ) {
-		if ( $1 == 1 ) {
-		    my $oid = _normalize_oid( $2 );
-		    $name->{$oid}
-			and $rslt .= "$name->{$oid}\n";
-		}
-		$rslt .= $tle_line;
-	    }
-	}
-	$resp->content( $rslt );
-    }
-    return;
-}
-
-=end comment
-
-=cut
 
 # _mung_login_status() takes as its argument an HTTP::Response object.
 # If the code is 500 and the message suggests a certificate problem, add
@@ -5217,15 +4650,6 @@ EOD
 	);
     }
 
-}
-
-#	_normalize_oid takes an OID and normalizes it. This is supposed
-#	to be an opaque operation, but really it just adds 0 to force
-#	numification, and returns the result.
-
-sub _normalize_oid {
-    my ( $oid ) = @_;
-    return $oid + 0;
 }
 
 #	_parse_args parses options off an argument list. The first
@@ -5472,278 +4896,6 @@ EOD
     }
 
     return @args;
-}
-
-#	_post is just like _get, except for the method used. DO NOT use
-#	this method in the login() method, or you get a bottomless
-#	recursion.
-#
-# THIS IS TO BE USED ONLY FOR THE SPACE TRACK V1 INTERFACE
-
-sub _post {
-    my ( $self, $path, %args ) = @_;
-
-    my $url = join '/', $self->_make_space_track_base_url( 1 ), $path;
-
-    if ( my $resp = $self->_dump_request(
-	    args	=> \%args,
-	    method	=> 'POST',
-	    url		=> $url,
-	    version	=> 1,
-	) ) {
-	return $resp;
-    }
-
-    {	# Single-iteration loop
-	$self->_check_cookie_generic( 1 )
-	    or do {
-	    my $resp = $self->_login_v1();
-	    return $resp unless $resp->is_success;
-	};
-
-	my $resp = $self->_get_agent()->post( $url, \%args );
-	$self->_dump_headers( $resp );
-	$resp->is_success()
-	    or return $resp;
-	local $_ = $resp->content;
-	m/ login [.] pl /smxi and do {
-	    $self->logout();
-	    redo;
-	};
-	return $resp;
-    }	# end of single-iteration loop
-    return;	# Should never arrive here.
-}
-
-# _scrape_table_v1 scrapes a table from a web page. It assumes the V1
-# interface. The arguments are:
-# * The invocant;
-# * Possible command-type options, or a reference to an options hash;
-# * An arguments hash.
-# The recognized keys in the arguments hash are:
-#   {caller} --- Name of caller for error messages. Defaults to
-#		( caller 1 )[3].
-#   {encode} --- The reference to be encoded into JSON. Required.
-#   {num_head} - The number of header rows in the table. Required.
-#		Usually 1.
-#   {path} ---- Path to desired web page, relative to base URL. Required.
-#   {processor} - Code reference to the processor for the row. Optional,
-#		but it is an error to specify -json unless this is
-#		present.
-#   {table} --- The number of the table of interest. Required. Ususally 0.
-#   {type} ---- The value to put in pragma spacetrack-type. Required.
-#   {wantarray} - If true and called in list context, returns a
-#		a reference to the parsed data in addition to the
-#		HTTP::Response object.
-# All lower-case keys are reserved for the use of this method. Other
-# keys can be provided for (or added by) the {processor} code, but these
-# must not be all lower-case.
-#
-# The {processor} code is passed three arguments: the invocant, a
-# reference to the argument hash, and a reference to the row to be
-# processed. The code is expected to add relevant data from the row
-# being processed to the {encode} reference. The return value is
-# ignored.
-
-sub _scrape_table_v1 {
-#   my ( $self, $path, $table, $type ) = @_;
-    my ( $self, @args ) = @_;
-
-    my $arg = pop @args;
-
-    ( my $opt, @args ) = _parse_args(
-	[
-	    'json!'	=> 'Return data in JSON format',
-	], @args );
-
-    delete $self->{_pragmata};
-
-    $opt->{json}
-	and not $arg->{processor}
-	and do {
-	my $caller = defined $arg->{caller} ? $arg->{caller} : ( caller 1 )[3];
-       	croak "${caller}() does not support -json";
-    };
-
-    my $resp = $self->_get( $arg->{path} );
-    $resp->is_success()
-	or return $resp;
-
-    my $content = $resp->content;
-    $content =~ s/ &nbsp; / /smxg;
-
-    my $p = Astro::SpaceTrack::Parser->new ();
-    my @this_page = @{$p->parse_string (table => $content)};
-
-    ref $this_page[0] eq 'ARRAY'
-	or return HTTP::Response->new ( HTTP_INTERNAL_SERVER_ERROR,
-	BAD_SPACETRACK_RESPONSE, undef, $content);
-
-    my @data = @{ $this_page[ $arg->{table} ] };
-    $content = '';
-    my $line = 1;
-
-    # The first line of headers turn out to have an empty cell at the
-    # end.
-    while ( ! defined $data[0][-1] || $data[0][-1] eq '' ) {
-	pop @{ $data[0] };
-    }
-
-    if ( $opt->{json} ) {
-
-	foreach my $datum ( @data[ $arg->{num_head} .. $#data ] ) {
-	    $arg->{processor}->( $self, $arg, $datum );
-	}
-	$content = $self->_get_json_object()->encode( $arg->{encode} );
-
-    } else {
-
-	foreach my $datum ( @data ) {
-	    if ( $line++ == $arg->{num_head} ) {
-		foreach ( @{ $datum } ) {
-		    s/ \s* [(] key [)] \s* \z //smxi;
-		}
-	    }
-	    $content .= join( "\t", @{ $datum } ) . "\n";
-	}
-    }
-
-    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
-
-    $self->_add_pragmata($resp,
-	'spacetrack-type'	=> $arg->{type},
-	'spacetrack-source'	=> 'spacetrack',
-	'spacetrack-interface'	=> 1,
-    );
-
-    wantarray
-	and $arg->{wantarray}
-	and return ( $resp, \@data );
-
-    return $resp;
-}
-
-#	_search wraps the specific search functions. It is called
-#	O-O style, with the first argument (after $self) being a
-#	reference to the code that actually requests the data from
-#	the server. This code takes two arguments ($self and $name,
-#	the latter being the thing to search for), and returns the
-#	HTTP::Response object from the request.
-#
-#	The referenced code is given three arguments: $self, the name
-#	of the object to search for, and the option hash. If the
-#	referenced code needs the name parsed further, it must do so
-#	itself, returning undef if the parse fails.
-
-sub _search_generic {
-    my ($self, $poster, @args) = @_;
-    delete $self->{_pragmata};
-
-    @args = _parse_retrieve_args( @args );
-    my $opt = shift @args;
-
-    @args or return HTTP::Response->new(
-	HTTP_PRECONDITION_FAILED, NO_OBJ_NAME );
-
-    my %id;
-    my $resp;
-    $resp = $self->_search_generic_tabulate( \%id, $poster, $opt, @args )
-	and return $resp;
-
-    exists $opt->{tle} or $opt->{tle} = 1;
-    if ( $opt->{tle} ) {
-	delete $id{0};	# Not interested in headings.
-	my $with_name = $self->getv( 'with_name' );
-	$resp = $self->_retrieve_v1 ($opt, sort {$a <=> $b} keys %id);
-	if ( $opt->{rcs} ) {
-	    my $content = $resp->content();
-
-	    substr $content, 0, 0, "\n";
-	    my $pattern = $with_name ? ' --rcs %s' : "\n--rcs %s";
-	    my $replace = sub {
-		my ( $oid ) = $1;
-		$oid = sprintf '%05d', $oid;
-		$id{$oid}[0]
-		    and $id{$oid}[-1]
-		    or return '';
-		return sprintf $pattern, $id{$oid}[-1];
-	    };
-	    $content =~ s{ (?= (?: \A | \n ) 1 \s* ( \d+ ) ) }
-		{ $replace->( $1 ) }smxge;
-	    $content =~ s/ \A \n //smx;
-
-	    $resp->content( $content );
-	}
-
-    } else {
-
-	my $content;
-	foreach my $oid ( sort { $a <=> $b } keys %id ) {
-	    $content .= join( "\t", @{ $id{$oid} } ) . "\n";
-	}
-	$resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'search',
-	    'spacetrack-source' => 'spacetrack',
-	    'spacetrack-interface' => 1,
-	);
-    }
-    wantarray or return $resp;
-    my @table;
-    foreach my $oid ( sort { $a <=> $b } keys %id ) {
-	push @table, [
-	    map { ( defined $_ && $_ ne '' ) ? $_ : undef }
-	    @{ $id{$oid} } ];
-    }
-    return ($resp, \@table);
-}
-
-sub _search_generic_tabulate {
-    my ( $self, $id, $poster, $opt, @args ) = @_;
-
-    my $splice = -2;
-    if ( ref $poster eq 'HASH' ) {
-	exists $poster->{splice} and $splice = $poster->{splice};
-	exists $poster->{poster}
-	    or confess 'Programming error - no {poster} key in options hash';
-	$poster = $poster->{poster};
-    }
-    my $p = Astro::SpaceTrack::Parser->new ();
-
-    foreach my $name ( @args ) {
-	defined (my $resp = $poster->($self, $name, $opt)) or next;
-	$resp->is_success()
-	    or return $resp;
-	my $content = $resp->content;
-	next if $content =~ m/ No \s results \s found /smxi;
-	$content =~ s/ &nbsp; / /smxg;
-	my @this_page = @{$p->parse_string (table => $content)};
-	ref $this_page[0] eq 'ARRAY'
-	    or return HTTP::Response->new (HTTP_INTERNAL_SERVER_ERROR,
-	    BAD_SPACETRACK_RESPONSE, undef, $content);
-	my @data = @{$this_page[0]};
-	if ( $splice ) {
-	    foreach my $row (@data) {
-		splice @{ $row }, $splice;
-	    }
-	}
-	if ( $id->{0} ) {
-	    shift @data;
-	} else {
-	    foreach ( @{ $data[0] } ) {
-		s/ \s* [(] key [)] \s* \z //smxi;
-	    }
-	    $id->{0} = shift @data;
-	}
-	foreach my $row (@data) {
-	    my $oid = $row->[0] or next;
-	    $oid = sprintf '%05d', $oid;
-	    $id->{$oid} and next;
-	    $id->{$oid} = $row;
-	}
-    }
-
-    return;
 }
 
 =begin comment
@@ -6246,7 +5398,7 @@ stability of the layout of the relevant web pages.
 This software has not been tested under a HUGE number of operating
 systems, Perl versions, and Perl module versions. It is rather likely,
 for example, that the module will die horribly if run with an
-insufficiently-up-to-date version of LWP or HTML::Parser.
+insufficiently-up-to-date version of LWP.
 
 =head1 MODIFICATIONS
 

@@ -15,7 +15,6 @@ inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/BulkData.pod
-lib/Astro/SpaceTrack/Parser.pm
 LICENSES/Artistic
 LICENSES/Copying
 META.yml
