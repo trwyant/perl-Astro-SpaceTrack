@@ -103,6 +103,7 @@ is_resp qw{retrieve -last5 25544}, [ {
 ;
 
 {
+    no warnings qw{ uninitialized };
     local $ENV{SPACETRACK_REST_FRACTIONAL_DATE} = undef;
 
     is_resp qw{retrieve -start_epoch 2009-04-01 25544}, [ {
@@ -177,6 +178,7 @@ EOD
 
     local $Astro::SpaceTrack::RETRIEVAL_SIZE = 50;
     # Force undocumented hack to be turned off.
+    no warnings qw{ uninitialized };
     local $ENV{SPACETRACK_REST_RANGE_OPERATOR} = undef;
 
     is_resp retrieve => 1 .. 66, [
