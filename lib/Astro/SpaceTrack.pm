@@ -52,12 +52,10 @@ C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
 argument, because of the end of the Space Shuttle program on July 21
 2011.
 
-With this release (0.071), all uses of C<celestrak()> C<'sts'> or
-C<spaceflight()> C<'SHUTTLE'> will generate an exception.
-
-With the first release on or after August 16 2013, the deprecated
-functionality will be removed.  This means (probably) you will get a
-C<404> error when you try to use it.
+With this release ([%% next_version %%]), the deprecated functionality
+will be removed.  This means (probably) you will get a C<404> error when
+you try to use it, though Celestrak may retain the last TLE relating to
+a Space Shuttle flight.
 
 =head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
@@ -188,7 +186,6 @@ our $DEFAULT_SPACE_TRACK_STATUS = 'all';
 
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
-	sts => {name => 'Current Space Shuttle Mission (deprecated)'},
 	'tle-new' => {name => "Last 30 Days' Launches"},
 	stations => {name => 'International Space Station'},
 	visual => {name => '100 (or so) brightest'},
@@ -242,9 +239,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
     spaceflight => {
 	iss => {name => 'International Space Station',
 	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
-	},
-	shuttle => {name => 'Current shuttle mission (deprecated)',
-##	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/SHUTTLE/SVPOST.html',
 	},
     },
     spacetrack => [	# Numbered by space_track_version
@@ -878,11 +872,6 @@ Designator 2012-044C), which exploded October 16 2012. As of October 25
 there were 81 pieces of debris in the data set.
 
 =back
-
-Before the end of the Space Shuttle program, data on the current mission
-(if any) was available as data set C<'sts'>. This catalog is now
-deprecated, and will be removed in a future release. See the
-L</DEPRECATION NOTICE> for details.
 
 If this method succeeds, the response will contain headers
 
@@ -3350,11 +3339,10 @@ This method downloads current orbital elements from NASA's human
 spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 21 2011
 you only get the International Space Station.
 
-You can specify either or both of the arguments 'ISS' and 'SHUTTLE'
-(case-insensitive) to retrieve the data for the International Space
-Station or the Space Shuttle respectively. Since the end of the Space
-Shuttle program, the C<'SHUTTLE'> argument retrieves nothing, and is
-deprecated. See the L</DEPRECATION NOTICE> for details.
+You can specify the argument 'ISS' (case-insensitive) to explicitly
+retrieve the data for the International Space Station, but as of July 21
+2011 this is equivalent to specifying no argument and getting
+everything.
 
 In addition you can specify options, either as command-style options
 (e.g. C<-all>) or by passing them in a hash as the first argument (e.g.
@@ -4154,12 +4142,12 @@ sub _check_cookie_generic {
 {
 
     my %deprecate = (
-	celestrak => {
-	    sts	=> 3,
-	},
-	spaceflight => {
-	    shuttle	=> 3,
-	},
+#	celestrak => {
+#	    sts	=> 3,
+#	},
+#	spaceflight => {
+#	    shuttle	=> 3,
+#	},
     );
 
     sub _deprecation_notice {
