@@ -52,7 +52,7 @@ C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
 argument, because of the end of the Space Shuttle program on July 21
 2011.
 
-With this release ([%% next_version %%]), the deprecated functionality
+With this release (0.077_01), the deprecated functionality
 will be removed.  This means (probably) you will get a C<404> error when
 you try to use it, though Celestrak may retain the last TLE relating to
 a Space Shuttle flight.
@@ -112,7 +112,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.077';
+our $VERSION = '0.077_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
