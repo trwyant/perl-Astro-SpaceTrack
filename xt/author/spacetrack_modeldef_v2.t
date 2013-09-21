@@ -752,6 +752,14 @@ if ( $rslt->is_success() ) {
       {
          "Default" : null,
          "Extra" : "",
+         "Field" : "ORBITAL_TBA",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "decimal(23,0)"
+      },
+      {
+         "Default" : null,
+         "Extra" : "",
          "Field" : "ORBITAL_PAYLOAD_COUNT",
          "Key" : "",
          "Null" : "YES",
