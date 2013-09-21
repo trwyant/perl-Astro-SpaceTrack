@@ -630,7 +630,7 @@ sub is_success (@) {	## no critic (RequireArgUnpacking)
 }
 
 sub not_defined ($$) {
-    $_[0] = ! defined $_[0];
+    @_ = ( ! defined $_[0], @_[1 .. $#_] );
     goto &ok;
 }
 
