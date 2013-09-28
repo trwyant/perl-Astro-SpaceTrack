@@ -179,13 +179,6 @@ use constant SPACE_TRACK_V2_OPTIONS => [
     'json!'	=> '(Return TLEs in JSON format)',
 ];
 
-# TODO get rid of this hack once the version 1 interface is retired. The
-# reason for the hack is that I want to have the default status to be
-# 'onorbit' under the REST interface, but do not want to change the
-# default under the version 1 interface.
-
-our $DEFAULT_SPACE_TRACK_STATUS = 'all';
-
 my %catalogs = (	# Catalog names (and other info) for each source.
     celestrak => {
 	'tle-new' => {name => "Last 30 Days' Launches"},
@@ -2325,10 +2318,7 @@ sub retrieve {
 	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
-	{
-	    local $DEFAULT_SPACE_TRACK_STATUS = 'onorbit';
-	    @args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
-	}
+	@args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
 	my $opt = shift @args;
 
 	if ( $pred eq 'OBJECT_NUMBER' ) {
@@ -4823,7 +4813,7 @@ sub _parse_search_args {
     my $opt = $args[0];
     _parse_retrieve_dates( $opt );
 
-    $opt->{status} ||= $DEFAULT_SPACE_TRACK_STATUS;
+    $opt->{status} ||= 'onorbit';
 
     $legal_search_status{$opt->{status}} or croak <<"EOD";
 Error - Illegal status '$opt->{status}'. You must specify one of
