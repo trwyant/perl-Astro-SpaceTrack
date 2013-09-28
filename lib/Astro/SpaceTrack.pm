@@ -326,27 +326,15 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    navigation => {
 		name => 'Navigation satellites',
 		favorite	=> 'Navigation',
-#		tle	=> {
-#		    favorites	=> 'Navigation',
-#		    EPOCH	=> '>now-30',
-#		},
 #		number => 5,
 	    },
 	    weather => {
 		name => 'Weather satellites',
 		favorite	=> 'Weather',
-#		tle	=> {
-#		    favorites	=> 'Weather',
-#		    EPOCH	=> '>now-30',
-#		},
 #		number => 7,
 	    },
 	    iridium => {
 		name	=> 'Iridium satellites',
-#		satcat	=> {
-#		    OBJECT_TYPE	=> 'PAYLOAD',
-#		    OBJECT_NAME	=> '~~IRIDIUM',
-#		},
 		tle => {
 		    EPOCH	=> '>now-30',
 		    OBJECT_NAME	=> 'iridium~~',
@@ -356,16 +344,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    orbcomm	=> {
 		name	=> 'OrbComm satellites',
-#		satcat	=> [
-#		    {
-#			OBJECT_TYPE	=> 'PAYLOAD',
-#			OBJECT_NAME	=> '~~ORBCOMM',
-#		    },
-#		    {
-#			OBJECT_TYPE	=> 'PAYLOAD',
-#			OBJECT_NAME	=> '~~VESSELSAT',
-#		    },
-#		],
 		tle	=> {
 		    EPOCH	=> '>now-30',
 		    OBJECT_NAME	=> 'ORBCOMM~~,VESSELSAT~~',
@@ -375,10 +353,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    globalstar => {
 		name	=> 'Globalstar satellites',
-#		satcat	=> {
-#		    OBJECT_TYPE => 'PAYLOAD',
-#		    OBJECT_NAME	=> '~~GLOBALSTAR',
-#		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
 		    OBJECT_NAME	=> 'globalstar~~',
@@ -388,10 +362,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    intelsat => {
 		name	=> 'Intelsat satellites',
-#		satcat	=> {
-#		    OBJECT_TYPE => 'PAYLOAD',
-#		    OBJECT_NAME	=> '~~INTELSAT',
-#		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
 		    OBJECT_NAME	=> 'intelsat~~',
@@ -401,10 +371,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    inmarsat => {
 		name	=> 'Inmarsat satellites',
-#		satcat	=> {
-#		    OBJECT_TYPE => 'PAYLOAD',
-#		    OBJECT_NAME	=> '~~INMARSAT',
-#		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
 		    OBJECT_NAME	=> 'inmarsat~~',
@@ -415,28 +381,16 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    amateur => {
 		favorite	=> 'Amateur',
 		name => 'Amateur Radio satellites',
-#		tle	=> {
-#		    favorites	=> 'Amateur',
-#		    EPOCH	=> '>now-30',
-#		},
 #		number => 19,
 	    },
 	    visible => {
 		favorite	=> 'Visible',
 		name => 'Visible satellites',
-#		tle	=> {
-#		    favorites	=> 'Visible',
-#		    EPOCH	=> '>now-30',
-#		},
 #		number => 21,
 	    },
 	    special => {
 		favorite	=> 'Special_interest',
 		name => 'Special interest satellites',
-#		tle	=> {
-#		    favorites	=> 'Special_interest',
-#		    EPOCH	=> '>now-30',
-#		},
 #		number => 23,
 	    },
 	},
@@ -2247,21 +2201,6 @@ sub retrieve {
 	my %rest = ( class	=> 'tle_latest' );
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
-
-=begin comment
-
-	    $rest{EPOCH} = sprintf
-#		'%04d-%02d-%02d %02d:%02d:%02d--%04d-%02d-%02d %02d:%02d:%02d',
-#		@{ $opt->{_start_epoch} }[ 0 .. 5 ],
-#		@{ $opt->{_end_epoch} }[ 0 .. 5 ];
-		'%04d-%02d-%02d--%04d-%02d-%02d',
-		@{ $opt->{_start_epoch} }[ 0 .. 2 ],
-		@{ $opt->{_end_epoch} }[ 0 .. 2 ];
-
-=end comment
-
-=cut
-
 	    $rest{EPOCH} = join '--', map { _rest_date( $opt->{$_} ) }
 	    qw{ _start_epoch _end_epoch };
 	    $rest{class} = 'tle';
@@ -2432,8 +2371,6 @@ sub retrieve {
 		or return $rslt;
 
 	    my $data = $self->_get_json_object()->decode( $rslt->content() );
-
-##	    $self->_simulate_rest_exclude( $opt, $data );
 
 	    push @found , @{ $data };
 
@@ -4906,45 +4843,6 @@ EOD
     return @args;
 }
 
-=begin comment
-
-# This code was used to emulate the Space Track v1 classification of
-# bodies under v2, for the purposes of the -exclude search option. It is
-# currently implemented in terms of the OBJECT_TYPE field, but the code
-# is retained (commented-out) in case there turns out to be a crying
-# need to emulate v1 in this area.
-
-{
-    my %exclude_names = (
-	rocket	=> [ map { quotemeta $_ } qw{ r/b akm pkm } ],
-	debris	=> [ map { quotemeta $_ } qw{ deb debris coolant
-	    shroud }, 'westford needles' ],
-    );
-
-    # _simulate_rest_exclude() simulates the results of a v1 exclusion
-    # on a v2 search, by filtering out all the bodies whose names meet
-    # the exclusion criteria.
-
-    sub _simulate_rest_exclude {
-	my ( $self, $opt, $data ) = @_;
-	defined $opt->{exclude}
-	    or return;
-	my @exclusion;
-	foreach my $exclude ( @{ $opt->{exclude} } ) {
-	    push @exclusion, @{ $exclude_names{$exclude} };
-	}
-	@exclusion
-	    or return;
-	my $re = join '|', @exclusion;
-	@{ $data } = grep { $_->{OBJECT_NAME} !~ m/$re/smxi } @{ $data };
-	return;
-    }
-}
-
-=end comment
-
-=cut
-
 #	@keys = _sort_rest_arguments( \%rest_args );
 #
 #	This subroutine sorts the argument names in the desired order.
@@ -4987,7 +4885,7 @@ sub _spacetrack_v2_response_is_empty {
     return $resp->content() =~ m/ \A \s* (?: [[] \s* []] )? \s* \z /smx;
 }
 
-# The following UNDOCUMENTED hack will disappear when the REST
+# TODO The following UNDOCUMENTED hack will disappear when the REST
 # interface's behavior when you have ranges in a list of OIDs
 # stabilizes.
 sub _rest_range_operator {
@@ -4996,7 +4894,7 @@ sub _rest_range_operator {
 	undef;
 }
 
-# The following UNDOCUMENTED hack will disappear when the REST
+# TODO The following UNDOCUMENTED hack will disappear when the REST
 # interface's behavior with fractional days stabilizes.
 
 sub _rest_date {
