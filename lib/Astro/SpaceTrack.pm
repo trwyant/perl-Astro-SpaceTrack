@@ -345,7 +345,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		name	=> 'Iridium satellites',
 #		satcat	=> {
 #		    OBJECT_TYPE	=> 'PAYLOAD',
-#		    SATNAME	=> '~~IRIDIUM',
+#		    OBJECT_NAME	=> '~~IRIDIUM',
 #		},
 		tle => {
 		    EPOCH	=> '>now-30',
@@ -359,11 +359,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 #		satcat	=> [
 #		    {
 #			OBJECT_TYPE	=> 'PAYLOAD',
-#			SATNAME		=> '~~ORBCOMM',
+#			OBJECT_NAME	=> '~~ORBCOMM',
 #		    },
 #		    {
 #			OBJECT_TYPE	=> 'PAYLOAD',
-#			SATNAME		=> '~~VESSELSAT',
+#			OBJECT_NAME	=> '~~VESSELSAT',
 #		    },
 #		],
 		tle	=> {
@@ -377,7 +377,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		name	=> 'Globalstar satellites',
 #		satcat	=> {
 #		    OBJECT_TYPE => 'PAYLOAD',
-#		    SATNAME	=> '~~GLOBALSTAR',
+#		    OBJECT_NAME	=> '~~GLOBALSTAR',
 #		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
@@ -390,7 +390,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		name	=> 'Intelsat satellites',
 #		satcat	=> {
 #		    OBJECT_TYPE => 'PAYLOAD',
-#		    SATNAME	=> '~~INTELSAT',
+#		    OBJECT_NAME	=> '~~INTELSAT',
 #		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
@@ -403,7 +403,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		name	=> 'Inmarsat satellites',
 #		satcat	=> {
 #		    OBJECT_TYPE => 'PAYLOAD',
-#		    SATNAME	=> '~~INMARSAT',
+#		    OBJECT_NAME	=> '~~INMARSAT',
 #		},
 		tle	=> {
 		    EPOCH	=> '>now-30',
@@ -2193,7 +2193,7 @@ sub retrieve {
     while ( @args ) {
 
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
-	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
+	$rest->{OBJECT_NUMBER} = _stringify_oid_list( {
 		separator	=> ',',
 		range_operator	=> _rest_range_operator(),
 	    }, @batch );
@@ -2237,7 +2237,7 @@ sub retrieve {
 {
 
     my %rest_sort_map = (
-	catnum	=> 'NORAD_CAT_ID',
+	catnum	=> 'OBJECT_NUMBER',
 	epoch	=> 'EPOCH',
     );
 
@@ -2270,7 +2270,7 @@ sub retrieve {
 	}
 
 	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum'} ||
-	    'NORAD_CAT_ID' )
+	    'OBJECT_NUMBER' )
 	.  ( $opt->{descending} ? ' desc' : ' asc' );
 
 	$opt->{json}
@@ -2365,9 +2365,9 @@ sub retrieve {
 {
 
     my %headings = (
-	NORAD_CAT_ID	=> 'Catalog Number',
-	SATNAME		=> 'Common Name',
-	INTLDES		=> 'International Designator',
+	OBJECT_NUMBER	=> 'Catalog Number',
+	OBJECT_NAME	=> 'Common Name',
+	OBJECT_ID	=> 'International Designator',
 	COUNTRY		=> 'Country',
 	LAUNCH		=> 'Launch Date',
 	SITE		=> 'Launch Site',
@@ -2378,8 +2378,8 @@ sub retrieve {
 	RCSVALUE	=> 'RCS',
     );
     my @heading_order = qw{
-	NORAD_CAT_ID SATNAME INTLDES COUNTRY LAUNCH SITE DECAY PERIOD
-	APOGEE PERIGEE RCSVALUE
+	OBJECT_NUMBER OBJECT_NAME OBJECT_ID COUNTRY LAUNCH SITE DECAY
+	PERIOD APOGEE PERIGEE RCSVALUE
     };
 
     sub _search_rest {
@@ -2392,7 +2392,7 @@ sub retrieve {
 	}
 	my $opt = shift @args;
 
-	if ( $pred eq 'NORAD_CAT_ID' ) {
+	if ( $pred eq 'OBJECT_NUMBER' ) {
 
 	    @args = $self->_expand_oid_list( @args )
 		or return HTTP::Response->new(
@@ -2450,15 +2450,15 @@ sub retrieve {
 	    {
 		local $self->{pretty} = 0;
 		$rslt = $self->retrieve( $opt,
-		    map { $_->{NORAD_CAT_ID} } @found );
+		    map { $_->{OBJECT_NUMBER} } @found );
 	    }
 	    $rslt->is_success()
 		or return $rslt;
-	    my %search_info = map { $_->{NORAD_CAT_ID} => $_ } @found;
+	    my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @found;
 	    my $bodies = $self->_get_json_object()->decode( $rslt->content() );
 	    my $content;
 	    foreach my $body ( @{ $bodies } ) {
-		my $info = $search_info{$body->{NORAD_CAT_ID}};
+		my $info = $search_info{$body->{OBJECT_NUMBER}};
 		if ( $opt->{json} ) {
 		    if ( $opt->{rcs} ) {
 			$body->{RCSVALUE} = $info->{RCSVALUE};
@@ -2466,8 +2466,8 @@ sub retrieve {
 		} else {
 		    my @line_0;
 		    $with_name
-			and push @line_0, defined $info->{SATNAME} ?
-			    $info->{SATNAME} :
+			and push @line_0, defined $info->{OBJECT_NAME} ?
+			    $info->{OBJECT_NAME} :
 			    $body->{TLE_LINE0};
 		    $opt->{rcs}
 			and defined $info->{RCSVALUE}
@@ -2530,9 +2530,9 @@ EOD
 	return ( $rslt, \@table );
 
 	# Note - if we're doing the tab output, the names and order are:
-	# Catalog Number: NORAD_CAT_ID
-	# Common Name: SATNAME
-	# International Designator: INTLDES
+	# Catalog Number: OBJECT_NUMBER
+	# Common Name: OBJECT_NAME
+	# International Designator: OBJECT_ID
 	# Country: COUNTRY
 	# Launch Date: LAUNCH (yyyy-mm-dd)
 	# Launch Site: SITE
@@ -2550,7 +2550,7 @@ EOD
 sub __search_rest_raw {
     my ( $self, %args ) = @_;
     delete $self->{_pragmata};
-    # https://beta.space-track.org/basicspacedata/query/class/satcat/CURRENT/Y/NORAD_CAT_ID/25544/predicates/all/limit/10,0/metadata/true
+    # https://beta.space-track.org/basicspacedata/query/class/satcat/CURRENT/Y/OBJECT_NUMBER/25544/predicates/all/limit/10,0/metadata/true
 
     %args
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
@@ -2565,7 +2565,7 @@ sub __search_rest_raw {
     exists $args{predicates}
 	or $args{predicates} = 'all';
     exists $args{orderby}
-	or $args{orderby} = 'NORAD_CAT_ID asc';
+	or $args{orderby} = 'OBJECT_NUMBER asc';
 #   exists $args{limit}
 #	or $args{limit} = 1000;
 
@@ -2809,7 +2809,7 @@ containing the actual search results.
 =cut
 
 sub search_id {	## no critic (RequireArgUnpacking)
-    splice @_, 1, 0, INTLDES => \&_format_international_id_rest;
+    splice @_, 1, 0, OBJECT_ID => \&_format_international_id_rest;
     goto &_search_rest;
 }
 
@@ -2864,7 +2864,7 @@ containing the actual search results.
 =cut
 
 sub search_name {	## no critic (RequireArgUnpacking)
-    splice @_, 1, 0, SATNAME => sub { return "~~$_[0]" };
+    splice @_, 1, 0, OBJECT_NAME => sub { return "~~$_[0]" };
     goto &_search_rest;
 }
 
@@ -2943,7 +2943,7 @@ containing the actual search results.
 
 sub search_oid {	## no critic (RequireArgUnpacking)
     my ( $self, @args ) = @_;
-    splice @_, 1, 0, NORAD_CAT_ID => sub { return $_[0] };
+    splice @_, 1, 0, OBJECT_NUMBER => sub { return $_[0] };
     goto &_search_rest;
 }
 
@@ -3084,8 +3084,7 @@ my %known_meta = (
 		my $data = $self->_get_json_object()->decode( $content );
 		foreach my $datum ( @{ $data } ) {
 		    push @lines, [
-			sprintf '%05d', $datum->{NORAD_CAT_ID},
-			defined $datum->{SATNAME} ? $datum->{SATNAME} :
+			sprintf '%05d', $datum->{OBJECT_NUMBER},
 			defined $datum->{OBJECT_NAME} ? $datum->{OBJECT_NAME} :
 			(),
 		    ];
@@ -3665,7 +3664,7 @@ sub spacetrack {
 		basicspacedata	=> 'query',
 		class		=> 'satcat',
 		format		=> 'json',
-		predicates	=> 'NORAD_CAT_ID',
+		predicates	=> 'OBJECT_NUMBER',
 		CURRENT		=> 'Y',
 		DECAY		=> 'null-val',
 		_sort_rest_arguments( $query ),
@@ -3677,7 +3676,7 @@ sub spacetrack {
 	    foreach my $body ( @{
 		$self->_get_json_object()->decode( $rslt->content() )
 	    } ) {
-		$oid{ $body->{NORAD_CAT_ID} + 0 } = 1;
+		$oid{ $body->{OBJECT_NUMBER} + 0 } = 1;
 	    }
 
 	}
@@ -3952,7 +3951,7 @@ lost as the individual OIDs are updated.
 	my $file = -1;
 	my @oids;
 	foreach my $datum ( @{ $data } ) {
-	    push @oids, $datum->{NORAD_CAT_ID};
+	    push @oids, $datum->{OBJECT_NUMBER};
 	    my $ff = defined $datum->{_file_of_record} ?
 		delete $datum->{_file_of_record} :
 		$datum->{FILE};
@@ -3983,10 +3982,10 @@ lost as the individual OIDs are updated.
 	    $resp->is_success()
 		or return $resp;
 
-	    my %merge = map { $_->{NORAD_CAT_ID} => $_ } @{ $data };
+	    my %merge = map { $_->{OBJECT_NUMBER} => $_ } @{ $data };
 
 	    foreach my $datum ( @{ $json->decode( $resp->content() ) } ) {
-		%{ $merge{$datum->{NORAD_CAT_ID}} } = %{ $datum };
+		%{ $merge{$datum->{OBJECT_NUMBER}} } = %{ $datum };
 	    }
 
 	    {
@@ -4339,25 +4338,14 @@ sub _expand_oid_list {
 # formatting prefixes the 'contains' wildcard '~~' unless year, sequence
 # and part are all present.
 
-{
-    my %two_digit_year_class = map { $_ => 1 } qw{ tle tle_latest };
-
-    sub _format_international_id_rest {
-	my ( $intl_id, $class ) = @_;
-	my @parts = _parse_international_id( $intl_id );
-	my $yt;
-	if ( $two_digit_year_class{$class} ) {
-	    $parts[0] %= 100;
-	    $yt = '%02d';
-	} else {
-	    $yt = '%04d-';
-	}
-	@parts >= 3
-	    and return sprintf "$yt%03d%s", @parts;
-	@parts >= 2
-	    and return sprintf "~~$yt%03d", @parts;
-	return sprintf "~~$yt", $parts[0];
-    }
+sub _format_international_id_rest {
+    my ( $intl_id, $class ) = @_;
+    my @parts = _parse_international_id( $intl_id );
+    @parts >= 3
+	and return sprintf '%04d-%03d%s', @parts;
+    @parts >= 2
+	and return sprintf '~~%04d-%03d', @parts;
+    return sprintf '~~%04d-', $parts[0];
 }
 
 # Parse a launch date, and format it for a Space-Track REST query. The
@@ -4712,7 +4700,7 @@ sub _parse_international_id {
 
     if ( $intl_id =~
 	m< \A ( \d+ ) [^[:alpha:][:digit:]\s]
-	    (?: ( \d{3} ) ( [[:alpha:]]* ) )? \z >smx
+	    (?: ( \d{1,3} ) ( [[:alpha:]]* ) )? \z >smx
     ) {
 	( $year, $launch, $part ) = ( $1, $2, $3 );
     } elsif ( $intl_id =~
