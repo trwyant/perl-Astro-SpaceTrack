@@ -1,4 +1,7 @@
-0.077_01	2013-09-21	T. R. Wyant
+0.078		2013-09-28	T. R. Wyant
+  No change since 0.077_02.
+
+0.077_02	2013-09-21	T. R. Wyant
   Fix attempt to modify read-only variable in t/query.t.
 
 0.077_01	2013-09-10	T. R. Wyant
