@@ -173,10 +173,19 @@ use constant DUMP_COOKIE => 0x08;	# Dump cookies.
 use constant DUMP_HEADERS => 0x10;	# Dump headers.
 use constant DUMP_CONTENT => 0x20;	# Dump content
 
-use constant SPACE_TRACK_V2_OPTIONS => [
-    'since_file=i'
-    		=> '(Return only results added after the given file number)',
-    'json!'	=> '(Return TLEs in JSON format)',
+# These are the Space Track version 1 retrieve Getopt::Long option
+# specifications, and the descriptions of each option. These need to
+# survive the returement of Version 1 as a separate entity because I
+# emulated them in the celestrak() and spaceflight() methods. I'm _NOT_
+# emulating the options added in version 2 because they require parsing
+# the TLE.
+use constant CLASSIC_RETRIEVE_OPTIONS => [
+    descending => '(direction of sort)',
+    'end_epoch=s' => 'date',
+    last5 => '(ignored if -start_epoch or -end_epoch specified)',
+    'sort=s' =>
+	"type ('catnum' or 'epoch', with 'catnum' the default)",
+    'start_epoch=s' => 'date',
 ];
 
 my %catalogs = (	# Catalog names (and other info) for each source.
@@ -845,11 +854,9 @@ sub celestrak {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    not $self->{direct}
-	and $self->getv( 'space_track_version' ) > 1
-	and unshift @args, SPACE_TRACK_V2_OPTIONS;
-
-    ( my $opt, @args ) = _parse_retrieve_args( @args );
+    ( my $opt, @args ) = $self->{direct} ?
+	_parse_args( CLASSIC_RETRIEVE_OPTIONS, @args ) :
+	_parse_retrieve_args( @args );
 
     my $name = shift @args;
     $self->_deprecation_notice( celestrak => $name );
@@ -1289,8 +1296,6 @@ You can specify the L</retrieve> options on this method as well.
 sub file {
     my ($self, @args) = @_;
 
-    $self->get( 'space_track_version' ) > 1
-	and unshift @args, SPACE_TRACK_V2_OPTIONS;
     my ( $opt, $file ) = _parse_retrieve_args( @args );
 
     delete $self->{_pragmata};
@@ -2118,9 +2123,7 @@ sub retrieve {
     my ( $self, @args ) = @_;
     delete $self->{_pragmata};
 
-    @args = _parse_retrieve_args(
-	SPACE_TRACK_V2_OPTIONS,
-	@args );
+    @args = _parse_retrieve_args( @args );
     my $opt = _parse_retrieve_dates( shift @args );
 
     my $rest = $self->_convert_retrieve_options_to_rest( $opt );
@@ -2318,7 +2321,7 @@ sub retrieve {
 	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
-	@args = _parse_search_args( SPACE_TRACK_V2_OPTIONS, @args );
+	@args = _parse_search_args( @args );
 	my $opt = shift @args;
 
 	if ( $pred eq 'OBJECT_NUMBER' ) {
@@ -3344,15 +3347,20 @@ sub spaceflight {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    @args = _parse_retrieve_args(
+    @args = _parse_args(
 	[
 	    'all!' => 'retrieve all data',
 	    'effective!' => 'include effective date',
+	    # The below are the version 1 retrieval options, which are
+	    # emulated for this method. See the definition of
+	    # CLASSIC_RETRIEVE_OPTIONS for more information.
+	    @{ CLASSIC_RETRIEVE_OPTIONS() },
 	],
 	@args );
     my $opt = _parse_retrieve_dates( shift @args );
 
     $opt->{all} = 0 if $opt->{last5} || $opt->{start_epoch};
+    $opt->{sort} ||= _validate_sort( $opt->{sort} );
 
     my @list;
     if (@args) {
@@ -3855,8 +3863,7 @@ lost as the individual OIDs are updated.
     sub update {
 	my ( $self, @args ) = @_;
 
-	my ( $opt, $fn ) = _parse_retrieve_args(
-	    SPACE_TRACK_V2_OPTIONS, @args );
+	my ( $opt, $fn ) = _parse_retrieve_args( @args );
 
 	$opt = { %{ $opt } };	# Since we modify it.
 
@@ -4599,18 +4606,39 @@ EOD
 
 sub _parse_args {
     my ( $lgl_opts, @args ) = @_;
-    ref $args[0] eq 'HASH' and return @args;
-    my %lgl = @{ $lgl_opts };
-    my $opt = {};
-    local @ARGV = @args;
-    GetOptions ($opt, keys %lgl) or croak <<"EOD";
-Error - Legal options are@{[map {(my $q = $_) =~ s/=.*//;
-	$q =~ s/!//;
-	"\n  -$q $lgl{$_}"} sort keys %lgl]}
+    if ( 'HASH' eq ref $args[0] ) {
+	my $opt = { %{ shift @args } };	# Poor man's clone.
+	# NOTE that I can not actually validate the options here, since
+	# the search code involves passing a search_*() options hash to
+	# retrieve(). If I want validation here I have to sanitize the
+	# hash first, and I have no way to do that.
+	return ( $opt, @args );
+    } else {
+	my $opt = {};
+	my %lgl = @{ $lgl_opts };
+	local @ARGV = @args;
+	GetOptions ($opt, keys %lgl)
+	    or _parse_args_failure( undef, %lgl );
+	return ( $opt, @ARGV );
+    }
+}
+
+sub _parse_args_failure {
+    my ( $name, %lgl ) = @_;
+    my $msg = defined $name ?
+	"Error - Option -$name illegal. Legal options are\n" :
+	"Error - Legal options are\n";
+    foreach my $opt ( sort keys %lgl ) {
+	my $desc = $lgl{$opt};
+	$opt =~ s/ [=|!] .* //smx;
+	$msg .= "  -$opt - $desc\n";
+    }
+    $msg .= <<"EOD";
 with dates being either Perl times, or numeric year-month-day, with any
-non-numeric character valid as punctuation.
+non-numeric character valid as punctuation
 EOD
-    return ( $opt, @ARGV );
+    chomp $msg;
+    croak $msg;
 }
 
 # Parse an international launch ID in the form yyyy-sssp or yysssp.
@@ -4677,42 +4705,48 @@ sub _parse_launch_date {
 #	it simply returns its argument list, under the assumption that
 #	it has already been called.
 
-my @legal_retrieve_args = (
-    descending => '(direction of sort)',
-    'end_epoch=s' => 'date',
-    last5 => '(ignored if -start_epoch or -end_epoch specified)',
-    'sort=s' => "type ('catnum' or 'epoch', with 'catnum' the default)",
-    'start_epoch=s' => 'date',
-);
+{
 
-sub _parse_retrieve_args {
-    my @args = @_;
-    my $extra_args = ref $args[0] eq 'ARRAY' ? shift @args : undef;
+    my @legal_retrieve_options = (
+	@{ CLASSIC_RETRIEVE_OPTIONS() },
+	# Space Track Version 2 interface options
+	'since_file=i'
+	    => '(Return only results added after the given file number)',
+	'json!'	=> '(Return TLEs in JSON format)',
+    );
 
-    my $opt;
+    sub _parse_retrieve_args {
+	my @args = @_;
+	my $extra_options = ref $args[0] eq 'ARRAY' ?
+	    shift @args :
+	    undef;
 
-    if ( 'HASH' eq ref $args[0] ) {
+	( my $opt, @args ) = _parse_args(
+	    ( $extra_options ?
+		[ @legal_retrieve_options, @{ $extra_options } ] :
+		\@legal_retrieve_options ),
+	    @args );
 
-	$opt = { %{ shift @args } };	# Poor man's clone
+	$opt->{sort} ||= _validate_sort( $opt->{sort} );
 
-    } else {
-
-	( $opt, @args ) = _parse_args(
-	    ( $extra_args ? [ @legal_retrieve_args, @{ $extra_args } ] :
-		\@legal_retrieve_args ), @args );
-
+	return ( $opt, @args );
     }
+}
 
-    $opt->{sort} ||= 'catnum';
-
-    $opt->{sort} eq 'catnum'
-	or $opt->{sort} eq 'epoch'
-	or die <<"EOD";
-Error - Illegal sort '$opt->{sort}'. You must specify 'catnum'
-        (the default) or 'epoch'.
-EOD
-
-    return ( $opt, @args );
+# my $sort = _validate_sort( $sort );
+#
+# Validate and canonicalize the value of the -sort option.
+{
+    my %valid = map { $_ => 1 } qw{ catnum epoch };
+    sub _validate_sort {
+	my ( $sort ) = @_;
+	defined $sort
+	    or return 'catnum';
+	$sort = lc $sort;
+	$valid{$sort}
+	    or croak "Illegal sort '$sort'";
+	return $sort;
+    }
 }
 
 #	$opt = _parse_retrieve_dates ($opt);
@@ -4805,7 +4839,9 @@ my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
 sub _parse_search_args {
     my @args = @_;
     unless (ref ($args[0]) eq 'HASH') {
-	ref $args[0] eq 'ARRAY' and my @extra = @{shift @args};
+	my @extra;
+	ref $args[0] eq 'ARRAY'
+	    and @extra = @{shift @args};
 	@args = _parse_retrieve_args(
 	    [ @legal_search_args, @extra ], @args );
     }
