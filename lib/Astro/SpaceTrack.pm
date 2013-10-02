@@ -124,6 +124,7 @@ use Carp;
 use Getopt::Long;
 use HTTP::Response;
 use HTTP::Status qw{
+    HTTP_PAYMENT_REQUIRED
     HTTP_NOT_FOUND
     HTTP_I_AM_A_TEAPOT
     HTTP_INTERNAL_SERVER_ERROR
@@ -152,6 +153,7 @@ use constant BAD_SPACETRACK_RESPONSE =>
 	'Unable to parse SpaceTrack response';
 use constant INVALID_CATALOG =>
 	'Catalog name %s invalid. Legal names are %s.';
+use constant LAPSED_FUNDING => 'Funding lapsed.';
 use constant LOGIN_FAILED => 'Login failed';
 use constant NO_CREDENTIALS => 'Username or password not specified.';
 use constant NO_CAT_ID => 'No catalog IDs specified.';
@@ -3383,6 +3385,35 @@ method.
 
 =cut
 
+{
+    my %dig_deeper = (
+	'http://notice.usa.gov'	=> sub {
+	    my ( $resp ) = @_;
+	    my $content = $resp->content();
+	    $content =~ m/ \b funding \b /smx
+		and $content =~ m/ \b not \s+ available \b /smx
+		or return;
+	    $resp->code( HTTP_PAYMENT_REQUIRED );
+	    $resp->message( LAPSED_FUNDING );
+	    return;
+	},
+    );
+
+    sub __tweak_response {
+	my ( $resp ) = @_;
+	$resp->is_success()
+	    or return;
+	my $url = $resp->request()->url();
+	ref $url
+	    and $url = $url->as_string();
+	$url =~ s{ / \z }{}smx;
+	my $code = $dig_deeper{$url}
+	    or return;
+	$code->( $resp );
+	return;
+    }
+}
+
 sub spaceflight {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
@@ -3419,6 +3450,7 @@ sub spaceflight {
     my %tle;
     foreach my $url (@list) {
 	my $resp = $self->_get_agent()->get ($url);
+	__tweak_response( $resp );
 	return $resp unless $resp->is_success;
 	$html .= $resp->content();
 	my (@data, $acquire, $effective);

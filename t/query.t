@@ -744,6 +744,7 @@ sub not_defined ($$) {
 	    ssl_opts	=> { verify_hostname => VERIFY_HOSTNAME },
 	);
 	my $rslt = $ua->get( $url );
+	Astro::SpaceTrack::__tweak_response( $rslt );
 	$rslt->is_success()
 	    or return ( $skip_site{$site} =
 		"$site not available: " . $rslt->status_line() );
