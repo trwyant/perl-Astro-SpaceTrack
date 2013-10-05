@@ -688,7 +688,7 @@ sub not_defined ($$) {
 		url	=> 'http://celestrak.com/',
 	    },
 	    'mike.mccants'	=> {
-		url	=> 'http://www.io.com/~mmccants/tles/iridium.html',
+		url	=> 'http://www.prismnet.com/~mmccants/tles/iridium.html',
 	    },
 	    'rod.sladen'	=> {
 		url	=> 'http://www.rod.sladen.org.uk/iridium.htm',
