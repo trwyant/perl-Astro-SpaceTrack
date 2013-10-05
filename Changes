@@ -1,3 +1,7 @@
+0.080		2013-10-05	T. R. Wyant
+  Correct failures in t/query.t due to incorrect URL being used to see
+    if Mike McCants' web site is actually available.
+
 0.079		2013-10-02	T. R. Wyant
   Try to handle failures due to the U. S. government shutdown so that
     they do not cause test failures. They're still errors, though, just
