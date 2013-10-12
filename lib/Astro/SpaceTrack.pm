@@ -2266,9 +2266,9 @@ sub retrieve {
 
     my @exclude_query = (
 	undef,
-	'PAYLOAD,DEBRIS,UNKNOWN,OTHER',
-	'PAYLOAD,ROCKET BODY,UNKNOWN,OTHER',
-	'PAYLOAD,UNKNOWN,OTHER',
+	'PAYLOAD,DEBRIS,UNKNOWN,TBA,OTHER',
+	'PAYLOAD,ROCKET BODY,UNKNOWN,TBA,OTHER',
+	'PAYLOAD,UNKNOWN,TBA,OTHER',
     );
 
     sub _convert_search_options_to_rest {
@@ -2587,8 +2587,10 @@ Examples:
 
 The C<-exclude> option is implemented in terms of the C<OBJECT_TYPE>
 predicate, which is one of the values C<'PAYLOAD'>, C<'ROCKET BODY'>,
-C<'DEBRIS'>, C<'UNKNOWN'>, or C<'OTHER'>. It works by selecting all
-values other than the ones specifically excluded.
+C<'DEBRIS'>, C<'UNKNOWN'>, C<'TBA'>, or C<'OTHER'>. It works by
+selecting all values other than the ones specifically excluded. The
+C<'TBA'> status was introduced October 1 2013, supposedly replacing
+C<'UNKNOWN'>, but I have retained both.
 
 This method implicitly calls the C<login()> method if the session cookie
 is missing or expired. If C<login()> fails, you will get the
