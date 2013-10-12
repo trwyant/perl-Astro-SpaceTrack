@@ -1,3 +1,11 @@
+0.080_01	2013-10-12	T. R. Wyant
+  Add object status 'TBA' (added by Space Track October 1 2013). This
+    _should_ only affect the -exclude option.
+  Delete commented-out code that goes back to the v1 interface.
+  Build queries using standard names and data represenations, rather
+    than Space-Track-specific ones. This change _should_ not affect the
+    user.
+
 0.080		2013-10-05	T. R. Wyant
   Correct failures in t/query.t due to incorrect URL being used to see
     if Mike McCants' web site is actually available.
