@@ -1,3 +1,6 @@
+0.081		2013-10-21	T. R. Wyant
+  No changes (other than version) since 0.080_01.
+
 0.080_01	2013-10-12	T. R. Wyant
   Add object status 'TBA' (added by Space Track October 1 2013). This
     _should_ only affect the -exclude option.
