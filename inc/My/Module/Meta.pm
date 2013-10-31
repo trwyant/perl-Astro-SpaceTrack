@@ -67,7 +67,7 @@ sub requires {
 	'Carp'			=> 0,
 	'Data::Dumper'		=> 0,
 	'Exporter'		=> 0,
-	'Getopt::Long'		=> 0,
+	'Getopt::Long'		=> 2.33,
 	'HTTP::Response'	=> 0,
 	'HTTP::Status'		=> 6.03,	# For the teapot status
 	'IO::File'		=> 0,
