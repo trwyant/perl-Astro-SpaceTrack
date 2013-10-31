@@ -45,25 +45,32 @@ You should consult the above link for the full text of the user
 agreement before using this software to retrieve content from the Space
 Track web site.
 
-=head1 DEPRECATION NOTICE: SPACE SHUTTLE
-
-It is with a sense of regret that I announce the deprecation of the
-C<celestrak()> C<'sts'> catalog and the C<spaceflight()> C<'SHUTTLE'>
-argument, because of the end of the Space Shuttle program on July 21
-2011.
-
-With this release (0.077_01), the deprecated functionality
-will be removed.  This means (probably) you will get a C<404> error when
-you try to use it, though Celestrak may retain the last TLE relating to
-a Space Shuttle flight.
-
 =head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
 
 The Space Track version 1 API was taken out of service July 16 2013 at
-18:00 UT. Therefore, as of version 0.077, an attempt to
-set the C<space_track_version> attribute to C<1> will result in a fatal
-error. Subsequent releases of this package will remove the code related
-to the version 1 API.
+18:00 UT. Therefore, as of version 0.077, an attempt to set the
+C<space_track_version> attribute to C<1> will result in a fatal error.
+Subsequent releases of this package will remove the code related to the
+version 1 API.
+
+=head1 NOTICE: HASH REFERENCE ARGUMENTS NOW VALIDATED
+
+Some of the methods of this class take options as either a leading hash
+reference, or as command-line-style options, named with a leading dash.
+Before version [%% next_version %%], options passed as a hash reference
+were not validated, and extra hash keys were simply ignored. I have
+decided that this behavior is undesirable because it leaves a calling
+program with no way to know whether options passed in this way were
+honored.
+
+Beginning with version [%% next_version %%], extra hash keys will
+produce warnings. My intent is that these will become fatal after a
+phase-in cycle.
+
+Temporaroly, environment variable
+L<SPACETRACK_SKIP_OPTION_HASH_VALIDATION|/SPACETRACK_SKIP_OPTION_HASH_VALIDATION>
+has been provided to help manage the warnings while changes are being
+made.
 
 =head1 DESCRIPTION
 
@@ -2375,11 +2382,14 @@ sub retrieve {
 
 	    my $with_name = $self->{with_name};
 
-	    $opt->{format} = 'json';
+	    my $ropt = _remove_search_options( $opt );
+
+##	    $ropt->{format} = 'json';
+	    $ropt->{json} = 1;
 
 	    {
 		local $self->{pretty} = 0;
-		$rslt = $self->retrieve( $opt,
+		$rslt = $self->retrieve( $ropt,
 		    map { $_->{OBJECT_NUMBER} } @found );
 	    }
 	    $rslt->is_success()
@@ -4265,6 +4275,31 @@ sub _expand_oid_list {
     return @rslt;
 }
 
+# Take as input a reference to one of the legal options arrays, and
+# extract the equivalent keys. The return is suitable for assigning to a
+# hash used to test the keys; that is, it is ( key0 => 1, key1 => 1, ...
+# ).
+
+{
+    my $strip = qr{ [=:|!+] .* }smx;
+
+    sub _extract_keys {
+	my ( $lgl_opts ) = @_;
+	if ( 'ARRAY' eq ref $lgl_opts ) {
+	    my $len = @{ $lgl_opts };
+	    my @rslt;
+	    for ( my $inx = 0; $inx < $len; $inx += 2 ) {
+		( my $key = $lgl_opts->[$inx] ) =~ s/ $strip //smxo;
+		push @rslt, $key, 1;
+	    }
+	    return @rslt;
+	} else {
+	    $lgl_opts =~ s/ $strip //smxo;
+	    return $lgl_opts;
+	}
+    }
+}
+
 # The following are data transform routines for _search_rest().
 # The arguments are the datum and the class for which it is being
 # formatted.
@@ -4610,37 +4645,72 @@ sub _parse_args {
     my ( $lgl_opts, @args ) = @_;
     if ( 'HASH' eq ref $args[0] ) {
 	my $opt = { %{ shift @args } };	# Poor man's clone.
-	# NOTE that I can not actually validate the options here, since
-	# the search code involves passing a search_*() options hash to
-	# retrieve(). If I want validation here I have to sanitize the
-	# hash first, and I have no way to do that.
+	# Validation is new, so I insert a hack to turn it off if need
+	# be.
+	unless ( $ENV{SPACETRACK_SKIP_OPTION_HASH_VALIDATION} ) {
+	    my %lgl = _extract_keys( $lgl_opts );
+	    my @bad;
+	    foreach my $key ( keys %{ $opt } ) {
+		$lgl{$key}
+		    or push @bad, $key;
+	    }
+	    @bad
+		and _parse_args_failure(
+		    carp	=> 1,
+		    name	=> \@bad,
+		    legal	=> { @{ $lgl_opts } },
+		    suffix	=> <<'EOD',
+
+You cam suppress this warning by setting environment variable
+SPACETRACK_SKIP_OPTION_HASH_VALIDATION to a value Perl understands as
+true (say, like 1), but this should be considered a stopgap while you
+fix the calling code, or have it fixed, since my plan is to make this
+fatal.
+EOD
+		);
+	}
 	return ( $opt, @args );
     } else {
 	my $opt = {};
 	my %lgl = @{ $lgl_opts };
 	local @ARGV = @args;
 	GetOptions ($opt, keys %lgl)
-	    or _parse_args_failure( undef, %lgl );
+	    or _parse_args_failure( legal => \%lgl );
 	return ( $opt, @ARGV );
     }
 }
 
 sub _parse_args_failure {
-    my ( $name, %lgl ) = @_;
-    my $msg = defined $name ?
-	"Error - Option -$name illegal. Legal options are\n" :
-	"Error - Legal options are\n";
-    foreach my $opt ( sort keys %lgl ) {
-	my $desc = $lgl{$opt};
-	$opt =~ s/ [=|!] .* //smx;
-	$msg .= "  -$opt - $desc\n";
+    my %arg = @_;
+    my $msg = $arg{carp} ? 'Warning - ' : 'Error - ';
+    if ( defined $arg{name} ) {
+	my @names = ( 'ARRAY' eq ref $arg{name} ) ?
+	    @{ $arg{name} } :
+	    $arg{name};
+	@names
+	    or return;
+	my $opt = @names > 1 ? 'Options' : 'Option';
+	my $txt = join ', ', map { "-$_" } sort @names;
+	$msg .= "$opt $txt illegal.\n";
     }
-    $msg .= <<"EOD";
+    if ( defined $arg{legal} ) {
+	$msg .= "Legal options are\n";
+	foreach my $opt ( sort keys %{ $arg{legal} } ) {
+	    my $desc = $arg{legal}{$opt};
+	    $opt = _extract_keys( $opt );
+	    $msg .= "  -$opt - $desc\n";
+	}
+	$msg .= <<"EOD";
 with dates being either Perl times, or numeric year-month-day, with any
-non-numeric character valid as punctuation
+non-numeric character valid as punctuation.
 EOD
-    chomp $msg;
-    croak $msg;
+    }
+    defined $arg{suffix}
+	and $msg .= $arg{suffix};
+    $arg{carp}
+	or croak $msg;
+    carp $msg;
+    return;
 }
 
 # Parse an international launch ID in the form yyyy-sssp or yysssp.
@@ -4829,46 +4899,64 @@ EOD
 #	returns its argument list, under the assumption that it
 #	has already been called.
 
-my @legal_search_args = (
-    'rcs!' => '(append --rcs radar_cross_section to name)',
-    'tle!' => '(return TLE data from search (defaults true))',
-    'status=s' => q{('onorbit', 'decayed', or 'all')},
-    'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
-);
-my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
-my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
+{
 
-sub _parse_search_args {
-    my @args = @_;
-    unless (ref ($args[0]) eq 'HASH') {
-	my @extra;
-	ref $args[0] eq 'ARRAY'
-	    and @extra = @{shift @args};
-	@args = _parse_retrieve_args(
-	    [ @legal_search_args, @extra ], @args );
-    }
+    my @legal_search_args = (
+	'rcs!' => '(append --rcs radar_cross_section to name)',
+	'tle!' => '(return TLE data from search (defaults true))',
+	'status=s' => q{('onorbit', 'decayed', or 'all')},
+	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
+    );
+    my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
+    my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
 
-    my $opt = $args[0];
-    _parse_retrieve_dates( $opt );
+    sub _parse_search_args {
+	my @args = @_;
+	unless (ref ($args[0]) eq 'HASH') {
+	    my @extra;
+	    ref $args[0] eq 'ARRAY'
+		and @extra = @{shift @args};
+	    @args = _parse_retrieve_args(
+		[ @legal_search_args, @extra ], @args );
+	}
 
-    $opt->{status} ||= 'onorbit';
+	my $opt = $args[0];
+	_parse_retrieve_dates( $opt );
 
-    $legal_search_status{$opt->{status}} or croak <<"EOD";
+	$opt->{status} ||= 'onorbit';
+
+	$legal_search_status{$opt->{status}} or croak <<"EOD";
 Error - Illegal status '$opt->{status}'. You must specify one of
-        @{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
+	@{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
 EOD
 
-    $opt->{exclude} ||= [];
-    $opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
-    foreach (@{$opt->{exclude}}) {
-	$legal_search_exclude{$_} or croak <<"EOD";
+	$opt->{exclude} ||= [];
+	$opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
+	foreach (@{$opt->{exclude}}) {
+	    $legal_search_exclude{$_} or croak <<"EOD";
 Error - Illegal exclusion '$_'. You must specify one or more of
-        @{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
+	@{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
 EOD
 
+	}
+
+	return @args;
     }
 
-    return @args;
+    my %search_opts = _extract_keys( \@legal_search_args );
+
+    # _remove_search_options
+    #
+    # Shallow clone the argument hasn, remove any search arguments from
+    # it, and return a reference to the clone. Used for sanitizing the
+    # options for a search before passing them to retrieve() to actually
+    # get the TLEs.
+    sub _remove_search_options {
+	my ( $opt ) = @_;
+	my %rslt = %{ $opt };
+	delete @rslt{ keys %search_opts };
+	return \%rslt;
+    }
 }
 
 #	@keys = _sort_rest_arguments( \%rest_args );
@@ -5307,6 +5395,17 @@ nearest second.  The default is to query to the nearest second.
 Support for this environment variable will be removed the first release
 after January 1 2014, since I think fractional-day query support in the
 REST interface is stable.
+
+=head2 SPACETRACK_SKIP_OPTION_HASH_VALIDATION
+
+As of version [%% next_version %%], method options passed as a hash
+reference will be validate. Before this, only command-line-style options
+were validated. If the validation causes problem, set this environment
+variable to a value Perl sees as true (i.e. anything but C<0> or C<''>)
+to revert to the old behavior.
+
+Support for this environment variable will be put through a deprecation
+cycle and removed once the validation code is deemed solid.
 
 =head1 EXECUTABLES
 
