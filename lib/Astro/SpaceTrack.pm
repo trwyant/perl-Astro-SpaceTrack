@@ -67,7 +67,7 @@ Beginning with version [%% next_version %%], extra hash keys will
 produce warnings. My intent is that these will become fatal after a
 phase-in cycle.
 
-Temporaroly, environment variable
+Temporarily, environment variable
 L<SPACETRACK_SKIP_OPTION_HASH_VALIDATION|/SPACETRACK_SKIP_OPTION_HASH_VALIDATION>
 has been provided to help manage the warnings while changes are being
 made.
@@ -128,7 +128,7 @@ our %EXPORT_TAGS = (
 );
 
 use Carp;
-use Getopt::Long;
+use Getopt::Long 2.33;
 use HTTP::Response;
 use HTTP::Status qw{
     HTTP_PAYMENT_REQUIRED
@@ -4641,25 +4641,28 @@ EOD
 #	non-option arguments. If the first argument after the list
 #	reference is a hash reference, it simply returns.
 
-sub _parse_args {
-    my ( $lgl_opts, @args ) = @_;
-    if ( 'HASH' eq ref $args[0] ) {
-	my $opt = { %{ shift @args } };	# Poor man's clone.
-	# Validation is new, so I insert a hack to turn it off if need
-	# be.
-	unless ( $ENV{SPACETRACK_SKIP_OPTION_HASH_VALIDATION} ) {
-	    my %lgl = _extract_keys( $lgl_opts );
-	    my @bad;
-	    foreach my $key ( keys %{ $opt } ) {
-		$lgl{$key}
-		    or push @bad, $key;
-	    }
-	    @bad
-		and _parse_args_failure(
-		    carp	=> 1,
-		    name	=> \@bad,
-		    legal	=> { @{ $lgl_opts } },
-		    suffix	=> <<'EOD',
+{
+    my $go = Getopt::Long::Parser->new();
+
+    sub _parse_args {
+	my ( $lgl_opts, @args ) = @_;
+	if ( 'HASH' eq ref $args[0] ) {
+	    my $opt = { %{ shift @args } };	# Poor man's clone.
+	    # Validation is new, so I insert a hack to turn it off if need
+	    # be.
+	    unless ( $ENV{SPACETRACK_SKIP_OPTION_HASH_VALIDATION} ) {
+		my %lgl = _extract_keys( $lgl_opts );
+		my @bad;
+		foreach my $key ( keys %{ $opt } ) {
+		    $lgl{$key}
+			or push @bad, $key;
+		}
+		@bad
+		    and _parse_args_failure(
+			carp	=> 1,
+			name	=> \@bad,
+			legal	=> { @{ $lgl_opts } },
+			suffix	=> <<'EOD',
 
 You cam suppress this warning by setting environment variable
 SPACETRACK_SKIP_OPTION_HASH_VALIDATION to a value Perl understands as
@@ -4667,16 +4670,20 @@ true (say, like 1), but this should be considered a stopgap while you
 fix the calling code, or have it fixed, since my plan is to make this
 fatal.
 EOD
-		);
+		    );
+	    }
+	    return ( $opt, @args );
+	} else {
+	    my $opt = {};
+	    my %lgl = @{ $lgl_opts };
+	    $go->getoptionsfromarray(
+		\@args,
+		$opt,
+		keys %lgl,
+	    )
+		or _parse_args_failure( legal => \%lgl );
+	    return ( $opt, @args );
 	}
-	return ( $opt, @args );
-    } else {
-	my $opt = {};
-	my %lgl = @{ $lgl_opts };
-	local @ARGV = @args;
-	GetOptions ($opt, keys %lgl)
-	    or _parse_args_failure( legal => \%lgl );
-	return ( $opt, @ARGV );
     }
 }
 
