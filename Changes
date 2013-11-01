@@ -1,3 +1,13 @@
+0.081_01	2013-10-31	T. R. Wyant
+  Use O-O version of Getopt::Long to parse command-style options, to
+    prevent configuration leaking in (or out).
+  Validate options passed as a hash reference, at least for unexpected
+    keys. The previous version simply ignored these, but I decided I
+    wanted feedback to the caller. It is a warning for now, but will
+    eventually become fatal.
+  Environment variable SPACETRACK_SKIP_OPTION_HASH_VALIDATION can be set
+    to suppress the warning.
+
 0.081		2013-10-21	T. R. Wyant
   No changes (other than version) since 0.080_01.
 

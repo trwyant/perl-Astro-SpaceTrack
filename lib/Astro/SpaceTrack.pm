@@ -57,13 +57,13 @@ version 1 API.
 
 Some of the methods of this class take options as either a leading hash
 reference, or as command-line-style options, named with a leading dash.
-Before version [%% next_version %%], options passed as a hash reference
+Before version 0.081_01, options passed as a hash reference
 were not validated, and extra hash keys were simply ignored. I have
 decided that this behavior is undesirable because it leaves a calling
 program with no way to know whether options passed in this way were
 honored.
 
-Beginning with version [%% next_version %%], extra hash keys will
+Beginning with version 0.081_01, extra hash keys will
 produce warnings. My intent is that these will become fatal after a
 phase-in cycle.
 
@@ -119,7 +119,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.081';
+our $VERSION = '0.081_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -5405,7 +5405,7 @@ REST interface is stable.
 
 =head2 SPACETRACK_SKIP_OPTION_HASH_VALIDATION
 
-As of version [%% next_version %%], method options passed as a hash
+As of version 0.081_01, method options passed as a hash
 reference will be validate. Before this, only command-line-style options
 were validated. If the validation causes problem, set this environment
 variable to a value Perl sees as true (i.e. anything but C<0> or C<''>)
