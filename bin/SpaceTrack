@@ -18,13 +18,19 @@ use warnings;
 our $VERSION = '0.081_01';
 
 use Astro::SpaceTrack qw{shell};
-use Getopt::Long;
+use Getopt::Long 2.39;
 
 my %opt = (
     filter => 0,
-    );
+);
 
-GetOptions (\%opt, qw{filter}) or die <<eod;
+my $go = Getopt::Long::Parser->new();
+
+$go->getoptionsfromarray(
+    \@ARGV,
+    \%opt,
+    qw{ filter! }
+) or die <<'EOD';
 
 SpaceTrack - Retrieve orbital elements from the Space Track database.
 
@@ -33,7 +39,7 @@ usage: SpaceTrack [option] [command ...]
 with the only legal option being
   -filter
     to supress all output to stdout except orbital data.
-eod
+EOD
 
 my $st = Astro::SpaceTrack->new (filter => $opt{filter});
 $st->shell (@ARGV);

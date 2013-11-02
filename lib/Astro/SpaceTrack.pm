@@ -128,7 +128,7 @@ our %EXPORT_TAGS = (
 );
 
 use Carp;
-use Getopt::Long 2.33;
+use Getopt::Long 2.39;
 use HTTP::Response;
 use HTTP::Status qw{
     HTTP_PAYMENT_REQUIRED
