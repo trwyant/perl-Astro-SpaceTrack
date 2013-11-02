@@ -1,3 +1,7 @@
+0.081_02	2013-11-02	T, R, Wyant
+  Require Getopt::Long 2.39, since it appears that is when the
+    getoptionsfromarray() method was added.
+
 0.081_01	2013-10-31	T. R. Wyant
   Use O-O version of Getopt::Long to parse command-style options, to
     prevent configuration leaking in (or out).
