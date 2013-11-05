@@ -175,7 +175,7 @@ foreach (["Mike McCants' Iridium status",
  27373   Iridium 90     ?        Spare (new plane Jan. 2008)   was called Iridium 91
  27374   Iridium 94              Next to Iridium 23
  27375   Iridium 95              Replaced Iridium 28 about July 26, 2008
- 27376   Iridium 96     ?        Spare
+ 27376   Iridium 96     ?        Inclination 87.2 - migrating between planes
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Spare (new plane May 2007)
 EOD
