@@ -74,23 +74,13 @@ made.
 
 =head1 DESCRIPTION
 
-This package accesses the Space-Track web site,
-L<http://www.space-track.org>, and retrieves orbital data from this
-site. You must register and get a username and password before you
-can make use of this package, and you must abide by the site's
-restrictions, which include not making the data available to a
-third party.
+This package retrieves orbital data from the Space Track web site
+L<https://www.space-track.org> and several others. You must register and
+get a user name and password before you can get data from Space Track.
 
-In addition, the celestrak method queries L<http://celestrak.com/> for
-a named data set, and then queries L<http://www.space-track.org/> for
-the orbital elements of the objects in the data set. This method may not
-require a Space Track username and password, depending on how you have
-the Astro::SpaceTrack object configured. See the documentation on this
-method for the details.
-
-Other methods (amsat(), spaceflight() ...) have been added to access
-other repositories of orbital data, and in general these do not require
-a Space Track username and password.
+Other methods (C<celestrak()>, C<amsat()>, C<spaceflight()> ...) have
+been added to access other repositories of orbital data, and in general
+these do not require a Space Track username and password.
 
 Nothing is exported by default, but the shell method/subroutine
 and the BODY_STATUS constants (see L</iridium_status>) can be
