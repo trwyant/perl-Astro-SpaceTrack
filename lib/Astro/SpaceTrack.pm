@@ -2295,6 +2295,49 @@ sub retrieve {
 }
 
 {
+    my @heading_info = (
+	[ undef,	OBJECT_NUMBER	=> 'Catalog Number' ],
+	[ undef,	OBJECT_NAME	=> 'Common Name' ],
+	[ undef,	OBJECT_ID	=> 'International Designator' ],
+	[ undef,	COUNTRY		=> 'Country' ],
+	[ undef,	LAUNCH		=> 'Launch Date' ],
+	[ undef,	SITE		=> 'Launch Site' ],
+	[ undef,	DECAY		=> 'Decay Date' ],
+	[ undef,	PERIOD		=> 'Period' ],
+	[ undef,	APOGEE		=> 'Apogee' ],
+	[ undef,	PERIGEE		=> 'Perigee' ],
+	[ 'comment',	COMMENT		=> 'Comment' ],
+	[ undef,	RCSVALUE	=> 'RCS' ],
+    );
+
+    sub _search_heading_order {
+	my ( $opt ) = @_;
+	return ( map { $_->[1] }
+	    _search_heading_relevant( $opt )
+	);
+    }
+
+    sub _search_heading_relevant {
+	my ( $opt ) = @_;
+	return (
+	    grep { ! defined $_->[0] || $opt->{$_->[0]} }
+	    @heading_info
+	);
+    }
+
+    sub _search_heading_hash_ref {
+	my ( $opt ) = @_;
+	return {
+	    map { $_->[1] => $_->[2] }
+	    _search_heading_relevant( $opt )
+	};
+    }
+
+}
+
+{
+
+=begin comment
 
     my %headings = (
 	OBJECT_NUMBER	=> 'Catalog Number',
@@ -2314,12 +2357,19 @@ sub retrieve {
 	PERIOD APOGEE PERIGEE RCSVALUE
     };
 
+=end comment
+
+=cut
+
     sub _search_rest {
 	my ( $self, $pred, $xfrm, @args ) = @_;
 	delete $self->{_pragmata};
 
 	@args = _parse_search_args( @args );
 	my $opt = shift @args;
+
+	my $headings = _search_heading_hash_ref( $opt );
+	my @heading_order = _search_heading_order( $opt );
 
 	if ( $pred eq 'OBJECT_NUMBER' ) {
 
@@ -2428,7 +2478,7 @@ EOD
 		$content = $self->_get_json_object()->encode( \@found );
 	    } else {
 		foreach my $datum (
-		    \%headings,
+		    $headings,
 		    @found
 		) {
 		    $content .= join( "\t",
@@ -2451,7 +2501,7 @@ EOD
 
 	my @table;
 	foreach my $datum (
-	    \%headings,
+	    $headings,
 	    @found
 	) {
 	    push @table, [ map { $datum->{$_} } @heading_order ];
@@ -2572,6 +2622,12 @@ options may be specified:
    of the response object is the results of the search,
    one line per body found, with the fields tab-
    delimited.
+ -comment
+   specifies that you want the comment field. This will
+   not appear in the TLE data, but in the satcat data
+   returned in array context, or if C<-notle> is
+   specified. The default is C<-nocomment> for backward
+   compatibility.
 
 Examples:
 
@@ -4903,6 +4959,7 @@ EOD
 	'tle!' => '(return TLE data from search (defaults true))',
 	'status=s' => q{('onorbit', 'decayed', or 'all')},
 	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
+	'comment!' => '(include comment in satcat data)',
     );
     my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
     my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
