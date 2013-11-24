@@ -1,3 +1,7 @@
+0.083		2013-11-23	T. R. Wyant
+  Add Space Track search option -comment. This adds the Comment field to
+    the satcat results returned by the search_* methods.
+
 0.082		2013-11-08	T. R. Wyant
   No functional changes from 0.081_02.
 

@@ -9,7 +9,7 @@ use warnings;
 use Astro::SpaceTrack;
 use Getopt::Long;
 
-our $VERSION = '0.082';
+our $VERSION = '0.083';
 
 my %opt;
 my $usage = <<eod;
