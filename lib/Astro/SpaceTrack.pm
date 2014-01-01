@@ -5059,9 +5059,10 @@ sub _spacetrack_v2_response_is_empty {
 # interface's behavior when you have ranges in a list of OIDs
 # stabilizes.
 sub _rest_range_operator {
-    return _get_env( SPACETRACK_REST_RANGE_OPERATOR => 1 ) ?
-	'--' :
-	undef;
+#   return _get_env( SPACETRACK_REST_RANGE_OPERATOR => 1 ) ?
+#	'--' :
+#	undef;
+    return '--';
 }
 
 # TODO The following UNDOCUMENTED hack will disappear when the REST
@@ -5069,9 +5070,11 @@ sub _rest_range_operator {
 
 sub _rest_date {
     my ( $time ) = @_;
-    my $fmt = _get_env( SPACETRACK_REST_FRACTIONAL_DATE => 1 ) ?
-    '%04d-%02d-%02d %02d:%02d:%02d' : '%04d-%02d-%02d';
-    return sprintf $fmt, @{ $time };
+#   my $fmt = _get_env( SPACETRACK_REST_FRACTIONAL_DATE => 1 ) ?
+#	'%04d-%02d-%02d %02d:%02d:%02d' :
+#	'%04d-%02d-%02d';
+#   return sprintf $fmt, @{ $time };
+    return sprintf '%04d-%02d-%02d %02d:%02d:%02d', @{ $time };
 }
 
 sub _get_env {
@@ -5424,37 +5427,11 @@ An explicit username and/or password passed to the new () method
 overrides the environment variable, as does any subsequently-set
 username or password.
 
-=head2 SPACETRACK_REST_RANGE_OPERATOR
-
-This environment variable controls whether the Space Track version 2
-interface (a.k.a. the REST interface) uses OID ranges in its queries.
-A value Perl sees as false (i.e. C<0> or C<''>) causes ranges not to be
-used. A value Perl sees as true (i.e. anything else) causes ranges to be
-used. The default is to use ranges.
-
-Support for this environment variable will be removed the first release
-after January 1 2014, since I think range support in the REST interface
-is stable.
-
-=head2 SPACETRACK_REST_FRACTIONAL_DATE
-
-This environment variable controls whether the Space Track version 2
-interface (a.k.a. the REST interface) will query epoch ranges (i.e. the
-C<-start_epoch> and C<-end_epoch> C<retrieve()> options) to
-fractional-day resolution.  A value Perl sees as false (i.e. C<0> or
-C<''>) causes epoch queries to be truncated to even days. A value Perl
-sees as true (i.e. anything else) causes epoch queries to be to the
-nearest second.  The default is to query to the nearest second.
-
-Support for this environment variable will be removed the first release
-after January 1 2014, since I think fractional-day query support in the
-REST interface is stable.
-
 =head2 SPACETRACK_SKIP_OPTION_HASH_VALIDATION
 
-As of version 0.081_01, method options passed as a hash
-reference will be validate. Before this, only command-line-style options
-were validated. If the validation causes problem, set this environment
+As of version 0.081_01, method options passed as a hash reference will
+be validated. Before this, only command-line-style options were
+validated. If the validation causes problem, set this environment
 variable to a value Perl sees as true (i.e. anything but C<0> or C<''>)
 to revert to the old behavior.
 
