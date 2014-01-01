@@ -230,6 +230,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	glonass		=> { name => 'Glonass',		rms => 1 },
 	meteosat	=> { name => 'Meteosat',	rms => 1 },
 	intelsat	=> { name => 'Intelsat',	rms => 1 },
+	ses		=> { name => 'SES',		rms => 1 },
 	orbcomm		=> { name => 'Orbcomm (no rms data)' },
     },
     iridium_status => {
