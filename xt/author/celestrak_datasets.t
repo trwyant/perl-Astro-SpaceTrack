@@ -17,7 +17,7 @@ my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');
 $rslt->is_success()
     or plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
 
-my %got = parse_string ($rslt->content);
+my %got = parse_string( $rslt->content, source => 'celestrak' );
 
 my $st = Astro::SpaceTrack->new (direct => 1);
 
@@ -93,7 +93,7 @@ ok ( !%got, 'The above is all there is' ) or do {
 
 $rslt = $ua->get ('http://celestrak.com/NORAD/elements/supplemental/');
 
-%got = parse_string ($rslt->content);
+%got = parse_string( $rslt->content, source => 'celestrak_supplemental' );
 
 foreach my $key ( keys %got ) {
     $key !~ m{ / }smx
@@ -128,14 +128,14 @@ foreach my $key (sort keys %expect) {
 ok ( !%got, 'The above is all there is' ) or do {
     diag( 'The following have been added:' );
     foreach (sort keys %got) {
-	diag( "    $_ => '$got{$_}{name}'" );
+	diag( "    $got{$_}{source} $_ => '$got{$_}{name}'" );
     }
 };
 
 done_testing;
 
 sub parse_string {
-    my $string = shift;
+    my ( $string, %extra ) = @_;
     my $psr = HTML::Parser->new (api_version => 3);
     $psr->case_sensitive (0);
     my %data;
@@ -143,6 +143,7 @@ sub parse_string {
     $psr->handler (start => sub {
 	    if ($_[1] eq 'a' && $_[2]{href} && $_[2]{href} =~ s/\.txt$//i) {
 		$data{$_[2]{href}} = $collect = {
+		    %extra,
 		    name => undef,
 		};
 	    }
