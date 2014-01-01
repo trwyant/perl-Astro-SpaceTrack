@@ -275,13 +275,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		},
 #		number	=> 1,
 	    },
-	    full_fast => {
-		deprecate	=> 'full',
-		name	=> 'Full catalog, with some objects no longer in orbit',
-		tle	=> {
-		    EPOCH	=> '>now-30',
-		},
-	    },
 	    payloads	=> {
 		name	=> 'All payloads',
 		satcat	=> {
@@ -306,16 +299,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 #		    ECCENTRICITY	=> '<0.01',
 ##		    MEAN_MOTION		=> '0.99--1.01',
 #		},
-		tle	=> {
-		    ECCENTRICITY	=> '<0.01',
-		    EPOCH		=> '>now-30',
-		    MEAN_MOTION		=> '0.99--1.01',
-		    OBJECT_TYPE		=> 'payload',
-		},
-	    },
-	    geosynchronous_fast => {
-		deprecated	=> 'geosynchronous',
-		name	=> 'Geosynchronous satellites',
 		tle	=> {
 		    ECCENTRICITY	=> '<0.01',
 		    EPOCH		=> '>now-30',
@@ -3532,14 +3515,10 @@ The following catalogs are available:
 
     Name            Description
     full            Full catalog
-    full_fast       Full catalog, faster but less
-                        accurate query (DEPRECATED)
     payloads        All payloads
     navigation      Navigation satellites
     weather         Weather satellites
     geosynchronous  Geosynchronous bodies
-    geosynchronous_fast Geosynchronous bodies, faster
-                        but less accurate query (DEPRECATED)
     iridium         Iridium satellites
     orbcomm         OrbComm satellites
     globalstar      Globalstar satellites
@@ -3549,15 +3528,13 @@ The following catalogs are available:
     visible         Visible satellites
     special         Special satellites
 
-The C<*_fast> queries are, as of version 0.069_02, the same
-as their un-fast versions. The queries are those implemented on the
-Space Track web site, and B<may> included recently-decayed satellites.
-
-The C<*_fast> queries are also deprecated as of version
-0.069_02. Because these were always considered unsupported,
-the deprecation cycle will be accelerated. They will C<carp()> on every
-use, and six months after release 0.070 will produce fatal errors. Six
-months after they become fatal, they will be removed completely.
+The C<full_fast> and C<geosynchronous_fast> queries became, as of
+version 0.069_02, the same as their un-fast versions. The queries are
+those implemented on the Space Track web site, and B<may> included
+recently-decayed satellites. These queries were deprecated as of version
+0.069_02, and removed as of [%% next_version %%]. All reference to them
+(meaning, this paragraph) will be removed in the first release after
+July 1 2014.
 
 The following option is supported:
 
