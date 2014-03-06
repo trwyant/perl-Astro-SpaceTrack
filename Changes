@@ -1,3 +1,12 @@
+0.084		2014-01-01	T, R, Wyant
+  Have celestrak() and celestrak_supplemental() return error status if
+    the argument is undefined.
+  Drop deprecated spacetrack() catalogs full_fast and
+    geosynchronous_fast.
+  Add celestrak_supplemental() catalog 'ses'.
+  Remove support for environment variables SPACETRACK_REST_RANGE_OPERATOR
+    and SPACETRACK_REST_FRACTIONAL_DATE.
+
 0.083		2013-11-23	T. R. Wyant
   Add Space Track search option -comment. This adds the Comment field to
     the satcat results returned by the search_* methods.

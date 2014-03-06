@@ -109,7 +109,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.083';
+our $VERSION = '0.084';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -3541,7 +3541,7 @@ The C<full_fast> and C<geosynchronous_fast> queries became, as of
 version 0.069_02, the same as their un-fast versions. The queries are
 those implemented on the Space Track web site, and B<may> included
 recently-decayed satellites. These queries were deprecated as of version
-0.069_02, and removed as of [%% next_version %%]. All reference to them
+0.069_02, and removed as of 0.084. All reference to them
 (meaning, this paragraph) will be removed in the first release after
 July 1 2014.
 
