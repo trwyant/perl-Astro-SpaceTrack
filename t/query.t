@@ -569,6 +569,43 @@ subtest q{Sladen's Iridium status}, sub {
 
 };
 
+subtest 'McCants data' => sub {
+    my $skip;
+    $skip = site_check 'mike.mccants'
+	and plan skip_all => $skip;
+
+    is_success $st, qw{ mccants classified }, 'Get classified elements';
+
+    is $st->content_type(), 'orbit', "Content type is 'orbit'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+    is_success $st, qw{ mccants integrated }, 'Get integrated elements';
+
+    is $st->content_type(), 'orbit', "Content type is 'orbit'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+    is_success $st, qw{ mccants mcnames }, 'Get molczan-style magnitudes';
+
+    is $st->content_type(), 'molczan', "Content type is 'molczan'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+    is_success $st, qw{ mccants quicksat }, 'Get quicksat-style magnitudes';
+
+    is $st->content_type(), 'quicksat', "Content type is 'quicksat'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+    is_success $st, qw{ mccants vsnames }, 'Get molczan-style magnitudes for visual satellites';
+
+    is $st->content_type(), 'molczan', "Content type is 'molczan'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+};
+
 $st->set( webcmd => undef );
 
 is_success $st, 'help', 'Get internal help';

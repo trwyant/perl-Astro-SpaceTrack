@@ -64,6 +64,7 @@ sub requires {
     my ( $self, @extra ) = @_;
 
     return {
+	'Archive::Zip'		=> 0,		# For mccants().
 	'Carp'			=> 0,
 	'Data::Dumper'		=> 0,
 	'Exporter'		=> 0,

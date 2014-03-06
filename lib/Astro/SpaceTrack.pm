@@ -117,6 +117,7 @@ our %EXPORT_TAGS = (
 	BODY_STATUS_IS_TUMBLING}],
 );
 
+use Archive::Zip;
 use Carp;
 use Getopt::Long 2.39;
 use HTTP::Response;
@@ -128,6 +129,7 @@ use HTTP::Status qw{
     HTTP_OK
     HTTP_PRECONDITION_FAILED
     HTTP_UNAUTHORIZED
+    HTTP_INTERNAL_SERVER_ERROR
 };
 use IO::File;
 use JSON qw{};
@@ -238,9 +240,42 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	mccants => {name => 'McCants'},
 	sladen => {name => 'Sladen'},
     },
+    mccants	=> {
+	classified	=> {
+	    name	=> 'Classified TLE file',
+	    member	=> undef,	# classfd.tle
+	    type	=> 'orbit',
+	    url		=> 'http://www.prismnet.com/~mmccants/tles/classfd.zip',
+	},
+	integrated	=> {
+	    name	=> 'Integrated TLE file',
+	    member	=> undef,	# inttles.tle
+	    type	=> 'orbit',
+	    url		=> 'http://www.prismnet.com/~mmccants/tles/inttles.zip',
+	},
+	mcnames	=> {
+	    name	=> 'Molczan-format magnitude file',
+	    member	=> undef,	# mcnames
+	    type	=> 'molczan',
+	    url		=> 'http://www.prismnet.com/~mmccants/tles/mcnames.zip',
+	},
+	quicksat	=> {
+	    name	=> 'Quicksat-format magnitude file',
+	    member	=> undef,	# qs.mag
+	    type	=> 'quicksat',
+	    url		=> 'http://www.prismnet.com/~mmccants/programs/qsmag.zip',
+	},
+	vsnames	=> {
+	    name	=> 'Molczan-format magnitude file (visual only)',
+	    member	=> undef,	# vsnames
+	    type	=> 'molczan',
+	    url		=> 'http://www.prismnet.com/~mmccants/tles/vsnames.zip',
+	},
+    },
     spaceflight => {
-	iss => {name => 'International Space Station',
-	    url => 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
+	iss => {
+	    name	=> 'International Space Station',
+	    url		=> 'http://spaceflight.nasa.gov/realdata/sightings/SSapplications/Post/JavaSSOP/orbit/ISS/SVPOST.html',
 	},
     },
     spacetrack => [	# Numbered by space_track_version
@@ -1018,11 +1053,17 @@ If the content_type method returns C<'iridium-status'>, you can expect
 content_source values of C<'kelso'>, C<'mccants'>, or C<'sladen'>,
 corresponding to the main source of the data.
 
+If the content_type method returns C<'molczan'>, you can expect a
+content_source value of C<'mccants'>.
+
 If the C<content_type()> method returns C<'orbit'>, you can expect
-content-source values of C<'amsat'>, C<'celestrak'>, C<'spaceflight'>,
-or C<'spacetrack'>, corresponding to the actual source of the TLE data.
-Note that the C<celestrak()> method may return a content_type of
-C<'spacetrack'> if the C<direct> attribute is false.
+content-source values of C<'amsat'>, C<'celestrak'>, C<'mccants'>,
+C<'spaceflight'>, or C<'spacetrack'>, corresponding to the actual source
+of the TLE data.  Note that the C<celestrak()> method may return a
+content_type of C<'spacetrack'> if the C<direct> attribute is false.
+
+If the content_type method returns C<'quicksat'>, you can expect a
+content_source value of C<'mccants'>.
 
 If the C<content_type()> method returns C<'search'>, you can expect a
 content-source value of C<'spacetrack'>.
@@ -1060,7 +1101,9 @@ following values are supported:
  'help': The content is help text.
  'iridium_status': The content is Iridium status.
  'modeldef': The content is a REST model definition.
+ 'molczan': Molczan-format magnitude data.
  'orbit': The content is NORAD data sets.
+ 'quicksat': Quicksat-format magnitude data.
  'search': The content is Space Track search results.
  'set': The content is the result of a 'set' operation.
  undef: No spacetrack-type pragma was specified. The
@@ -1071,6 +1114,9 @@ from the last method call that returned an HTTP::Response object.
 
 If the response object B<is> provided, you can call this as a static
 method (i.e. as Astro::SpaceTrack->content_type($response)).
+
+For the format of the magnitude data, see
+L<http://www.prismnet.com/~mmccants/tles/index.html>.
 
 =cut
 
@@ -1975,16 +2021,95 @@ sub logout {
 	HTTP_OK, undef, undef, "Logout successful.\n" );
 }
 
+=for html <a name="mccants"></a>
+
+=item $resp = $st->mccants( catalog )
+
+This method retrieves one of several pieces of data that Mike McCants
+makes available on his web site. The return is the
+L<HTTP::Response|HTTP::Response> object from the retrieval. Valid
+catalog names are:
+
+ classified: Classified TLE file (classfd.zip)
+ integrated: Integrated TLE file (inttles.zip)
+ mcnames: Molczan-format magnitude file (mcnames.zip)
+ quicksat: Quicksat-format magnitude file (qsmag.zip)
+ vsnames: Molczan-format magnitudes of visual bodies (vsnames.zip)
+
+On success, the content of the returned object is the actual data,
+unzipped and with line endings normalized for the current system.
+
+If this method succeeds, the response will contain headers
+
+ Pragma: spacetrack-type = (see below)
+ Pragma: spacetrack-source = mccants
+
+If the catalog name was C<'classified'> or C<'integrated'>, the
+C<spacetrack-type> will be C<'orbit'>. If the catalog name was
+C<'mcnames'> or C<'vsnames'>, the C<spacetrack-type> will be
+C<'molczan'>. If the catalog name was C<'quicksat'>, the
+C<spacetrack-name> will be C<'quicksat'>.
+
+No Space Track username and password are required to use this method.
+
+=cut
+
+sub mccants {
+    my ( $self, $cat ) = @_;
+    delete $self->{_pragmata};
+
+    my $info = $catalogs{mccants}{$cat}
+	or return HTTP::Response->new(
+	HTTP_NOT_FOUND, "McCants catalog '$cat' not known" );
+    my $resp = $self->_get_agent()->get( $info->{url} );
+    $resp->is_success()
+	or return $resp;
+    if ( exists $info->{member} ) {
+	my $archive = Archive::Zip->new();
+	open my $fh, '+<', \( $resp->content() )	## no critic (RequireBriefOpen)
+	    or return HTTP::Response->new(
+	    HTTP_INTERNAL_SERVER_ERROR, "Can not open scalar ref: $!" );
+	$archive->readFromFileHandle( $fh );
+	if ( defined $info->{member} ) {
+	    my $member = $archive->memberNamed( $info->{member} )
+		or return HTTP::Response->new(
+		HTTP_NOT_FOUND,
+		"$info->{url} does not contain member $info->{member}" );
+	    $resp->content( scalar $member->contents() );
+	} else {
+	    my @members = $archive->members()
+		or return HTTP::Response->new(
+		HTTP_NOT_FOUND,
+		"$info->{url} contains no members" );
+	    @members > 1
+		and return HTTP::Response->new(
+		HTTP_NOT_FOUND,
+		"$info->{url} contains multiple members" );
+	    $resp->content( scalar $members[0]->contents() );
+	}
+	close $fh;
+
+    }
+    $self->_convert_content ($resp);
+    $self->_add_pragmata($resp,
+	'spacetrack-type'	=> $info->{type},
+	'spacetrack-source'	=> 'mccants',
+    );
+    $self->_dump_headers( $resp );
+    return $resp;
+}
+
 =for html <a name="names"></a>
 
 =item $resp = $st->names (source)
 
 This method retrieves the names of the catalogs for the given source,
-either C<'celestrak'>, C<'iridium_status'>, C<'spaceflight'>, or
-C<'spacetrack'>, in the content of the given HTTP::Response object. In
-list context, you also get a reference to a list of two-element lists;
-each inner list contains the description and the catalog name, in that
-order (suitable for inserting into a Tk Optionmenu).
+either C<'celestrak'>, C<'iridium_status'>, C<'mccants'>,
+C<'spaceflight'>, or C<'spacetrack'>, in the content of the given
+HTTP::Response object. In list context, you also get a reference to a
+list of two-element lists; each inner list contains the description and
+the catalog name, in that order (suitable for inserting into a Tk
+Optionmenu).
 
 No Space Track username and password are required to use this method,
 since all it is doing is returning data kept by this module.
