@@ -226,6 +226,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	cubesat => {name => 'CubeSats'},
 	other => {name => 'Other'},
 	beidou => { name => 'Beidou navigational satellites' },
+	argos	=> { name => 'ARGOS Data Collection System' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
