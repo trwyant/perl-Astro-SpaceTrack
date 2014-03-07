@@ -562,8 +562,7 @@ The legal options are:
    of the returned HTTP::Response object end up the
    same.
 
-On a successful
-return, the response object will contain headers
+On a successful return, the response object will contain headers
 
  Pragma: spacetrack-type = orbit
  Pragma: spacetrack-source = amsat
@@ -963,10 +962,38 @@ sets.
 
 These TLE data are B<not> redistributed from Space Track, but are
 derived from publicly available ephemeris data for the satellites in
-question.
+question. Valid data set names are:
 
-The C<-rms> option can be specified to return the RMS data, if it is
-available.
+ glonass: Glonass satellites
+ gps: GPS satellites
+ intelsat: Intelsat satellites
+ meteosat: Meteosat satellites
+ orbcomm: Orbcomm satellites (no RMS data)
+ ses: SES satellites
+
+You can specify options as either command-type options (e.g.
+C<< amsat( '-file', 'foo.dat' ) >>) or as a leading hash reference (e.g.
+C<< amsat( { file => 'foo.dat' } ) >>). If you specify the hash
+reference, option names must be specified in full, without the leading
+'-', and the argument list will not be parsed for command-type options.
+If you specify command-type options, they may be abbreviated, as long as
+the abbreviation is unique. Errors in either sort result in an exception
+being thrown.
+
+The legal options are:
+
+ -file
+   specifies the name of the cache file. If the data
+   on line are newer than the modification date of
+   the cache file, the cache file will be updated.
+   Otherwise the data will be returned from the file.
+   Either way the content of the file and the content
+   of the returned HTTP::Response object end up the
+   same.
+ -rms
+   specifies that RMS data be returned rather than TLE
+   data, if available. If RMS data are not available
+   for the data set, an error is returned.
 
 A list of valid names and brief descriptions can be obtained by calling
 C<< $st->names( 'celestrak_supplemental' ) >>. If you have set the
@@ -982,46 +1009,39 @@ L<http://celestrak.com/NORAD/elements/supplemental/>.
 =cut
 
 sub celestrak_supplemental {
-    my ($self, @args) = @_;
-    delete $self->{_pragmata};
-
+    my ( $self, @args ) = @_;
     ( my $opt, @args ) = _parse_args(
 	[
-	    'rms!' => '(Return RMS data)',
+	    'file=s'	=> 'Name of cache file',
+	    'rms!'	=> 'Return RMS data',
 	], @args );
-
-    my $name = shift @args;
-    defined $name
-	or return HTTP::Response->new(
-	HTTP_PRECONDITION_FAILED,
-	'No catalog name specified' );
-
-    not $opt->{rms}
-	or $catalogs{celestrak_supplemental}{$name}{rms}
-	or return HTTP::Response->new(
-	    HTTP_PRECONDITION_FAILED,
-	    "$name does not take the -rms option" );
-
-    $self->_deprecation_notice( celestrak_supplemental => $name );
-
-    my $sfx = $opt->{rms} ? 'rms.txt' : 'txt';
-    my $resp = $self->_get_agent()->get (
-	"http://celestrak.com/NORAD/elements/supplemental/$name.$sfx" );
-
-    my $check;
-    $check = $self->_response_check(
-	$resp, celestrak_supplemental => $name, 'direct')
-	and return $check;
-
-    $self->_convert_content( $resp );
-
-    $self->_add_pragmata($resp,
-	'spacetrack-type'	=> ( $opt->{rms} ? 'rms' : 'orbit' ),
-	'spacetrack-source'	=> 'celestrak',
+    my $name = $args[0];
+    return $self->_get_from_net(
+	%{ $opt },
+	catalog		=> $name,
+	pre_process	=> sub {
+	    my ( undef, $arg, $info ) = @_;	# Invocant not used
+	    not $arg->{rms}
+		or $info->{rms}
+		or return HTTP::Response->new(
+		HTTP_PRECONDITION_FAILED,
+		"$name does not take the -rms option" );
+	    ( $info->{spacetrack_type}, my $sfx ) = $arg->{rms} ?
+		( 'rms', 'rms.txt' ) :
+		( 'orbit', 'txt' );
+	    $info->{url} = "http://celestrak.com/NORAD/elements/supplemental/$name.$sfx";
+	    return;
+	},
+	post_process	=> sub {
+	    my ( $self, $resp ) = @_;
+	    my $check;
+	    $check = $self->_response_check( $resp,
+		celestrak_supplemental => $name, 'direct' )
+		and return $check;
+	    return $resp;
+	},
+	spacetrack_source	=> 'celestrak',
     );
-
-    $self->_dump_headers( $resp );
-    return $resp;
 }
 
 sub _celestrak_direct {
@@ -4641,7 +4661,9 @@ sub _get_agent {
 # The optional name/value pairs are:
 #
 #   catalog => catalog_name
-#      If this is defined, it is the name of the catalog to retrieve.
+#      If this exists, it is the name of the catalog to retrieve. An
+#      error is returned if it is not defined, or if the catalog does
+#      not exist.
 #   file => cache_file_name
 #      If this is defined, the data are returned only if it has been
 #      modified since the modification date of the file. If the data
@@ -4651,11 +4673,20 @@ sub _get_agent {
 #      If this is defined, it is the name of the method doing the
 #      catalog lookup. This is unused unless 'catalog' is defined, and
 #      defaults to the name of the calling method.
+#   pre_process => code_reference
+#      If 'catalog' was specified and this is defined, it is called and
+#      passed the invocant, a reference to the %arg hash, and a
+#      reference to the catalog information hash, which it is allowed to
+#      modify. The retrurn is either nothing or an HTTP::Response
+#      object. In the latter case, the HTTP::Response object is returned
+#      to the caller if it does not represent success.
 #   post_process => code reference
 #      If the network operation succeeded and this is defined, it is
-#      called and passed the HTTP::Response object, The HTTP::Response
-#      object returned (which may or may not be the one passed in) is
-#      the basis for any further processing.
+#      called and passed the invocant, the HTTP::Response object, and
+#      a reference to the catalog information hash (or to an empty hash
+#      if 'url' was specified). The HTTP::Response object returned
+#      (which may or may not be the one passed in) is the basis for any
+#      further processing.
 #   spacetrack_source => spacetrack_source
 #      If this is defined, the corresponding-named pragma is set. The
 #      default comes from the same-named key in the catalog info if that
@@ -4665,7 +4696,7 @@ sub _get_agent {
 #   url => URL
 #      If this is defined, it is the URL of the data to retrieve.
 #
-# Either 'catalog' or 'url' MUST be specified. If both are specified,
+# Either 'catalog' or 'url' MUST be specified. If 'url' is defined,
 # 'catalog' is ignored.
 
 sub _get_from_net {
@@ -4680,10 +4711,19 @@ sub _get_from_net {
     if ( defined $arg{url} ) {
 	$url = $arg{url};
 	$info	= {};
-    } elsif ( defined $arg{catalog} ) {
-	$catalogs{$method}
+    } elsif ( exists $arg{catalog} ) {
+	defined $arg{catalog}
+	    and $catalogs{$method}
 	    and $info = $catalogs{$method}{$arg{catalog}}
 	    or return $self->_no_such_catalog( $method, $arg{catalog} );
+	$self->_deprecation_notice( $method => $arg{catalog} );
+	if ( defined $arg{pre_process} ) {
+	    $info = { %{ $info } };	# Shallow clone
+	    my $resp = $arg{pre_process}->( $self, \%arg, $info );
+	    $resp
+		and not $resp->is_success()
+		and return $resp;
+	}
 	$url = $info->{url}
 	    or confess "Programming error - No url defined for $method( '$arg{catalog}' )";
     } else {
@@ -4980,9 +5020,11 @@ sub _mutate_verify_hostname {
 
 	my $name = $no_such_name{$source} || $source;
 
-	my $lead = $info->{$catalog} ?
-	    "Missing $name catalog '$catalog'" :
-	    "No such $name catalog as '$catalog'";
+	my $lead = defined $catalog ?
+	    $info->{$catalog} ?
+		"Missing $name catalog '$catalog'" :
+		"No such $name catalog as '$catalog'" :
+	    'Catalog name not defined';
 	$lead .= defined $note ? " ($note)." : '.';
 
 	return HTTP::Response->new (HTTP_NOT_FOUND, "$lead\n")
