@@ -120,12 +120,15 @@ our %EXPORT_TAGS = (
 use Archive::Zip;
 use Carp;
 use Getopt::Long 2.39;
+use HTTP::Date ();
+use HTTP::Request;
 use HTTP::Response;
 use HTTP::Status qw{
     HTTP_PAYMENT_REQUIRED
     HTTP_NOT_FOUND
     HTTP_I_AM_A_TEAPOT
     HTTP_INTERNAL_SERVER_ERROR
+    HTTP_NOT_MODIFIED
     HTTP_OK
     HTTP_PRECONDITION_FAILED
     HTTP_UNAUTHORIZED
@@ -245,31 +248,31 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	classified	=> {
 	    name	=> 'Classified TLE file',
 	    member	=> undef,	# classfd.tle
-	    type	=> 'orbit',
+	    spacetrack_type	=> 'orbit',
 	    url		=> 'http://www.prismnet.com/~mmccants/tles/classfd.zip',
 	},
 	integrated	=> {
 	    name	=> 'Integrated TLE file',
 	    member	=> undef,	# inttles.tle
-	    type	=> 'orbit',
+	    spacetrack_type	=> 'orbit',
 	    url		=> 'http://www.prismnet.com/~mmccants/tles/inttles.zip',
 	},
 	mcnames	=> {
 	    name	=> 'Molczan-format magnitude file',
 	    member	=> undef,	# mcnames
-	    type	=> 'molczan',
+	    spacetrack_type	=> 'molczan',
 	    url		=> 'http://www.prismnet.com/~mmccants/tles/mcnames.zip',
 	},
 	quicksat	=> {
 	    name	=> 'Quicksat-format magnitude file',
 	    member	=> undef,	# qs.mag
-	    type	=> 'quicksat',
+	    spacetrack_type	=> 'quicksat',
 	    url		=> 'http://www.prismnet.com/~mmccants/programs/qsmag.zip',
 	},
 	vsnames	=> {
 	    name	=> 'Molczan-format magnitude file (visual only)',
 	    member	=> undef,	# vsnames
-	    type	=> 'molczan',
+	    spacetrack_type	=> 'molczan',
 	    url		=> 'http://www.prismnet.com/~mmccants/tles/vsnames.zip',
 	},
     },
@@ -548,7 +551,29 @@ weekly.
 
 No Space Track account is needed to access this data, even if the
 'direct' attribute is false. But if the 'direct' attribute is true,
-the setting of the 'with_name' attribute is ignored. On a successful
+the setting of the 'with_name' attribute is ignored.
+
+You can specify options as either command-type options (e.g.
+C<< amsat( '-file', 'foo.dat' ) >>) or as a leading hash reference (e.g.
+C<< amsat( { file => 'foo.dat' } ) >>). If you specify the hash
+reference, option names must be specified in full, without the leading
+'-', and the argument list will not be parsed for command-type options.
+If you specify command-type options, they may be abbreviated, as long as
+the abbreviation is unique. Errors in either sort result in an exception
+being thrown.
+
+The legal options are:
+
+ -file
+   specifies the name of the cache file. If the data
+   on line are newer than the modification date of
+   the cache file, the cache file will be updated.
+   Otherwise the data will be returned from the file.
+   Either way the content of the file and the content
+   of the returned HTTP::Response object end up the
+   same.
+
+On a successful
 return, the response object will contain headers
 
  Pragma: spacetrack-type = orbit
@@ -563,6 +588,9 @@ web page will break this method.
 =cut
 
 sub amsat {
+
+=begin comment
+
     my $self = shift;
     delete $self->{_pragmata};
     my $content = '';
@@ -593,7 +621,46 @@ sub amsat {
     );
     $self->_dump_headers( $resp );
     return $resp;
+
+=end comment
+
+=cut
+
+    my ( $self, @args ) = @_;
+
+    ( my $opt, @args ) = _parse_args( [
+	    'file=s'	=> 'Name of cache file',
+	], @args );
+
+    return $self->_get_from_net(
+	%{ $opt },
+	url	=> 'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
+	post_process	=> sub {
+	    my ( $self, $resp ) = @_;
+	    unless ( $self->{direct} || $self->{with_name} ) {
+		my @content = split qr{ \015? \012 }smx,
+		    $resp->content();
+		@content % 3
+		    and return HTTP::Response->new(
+		    HTTP_PRECONDITION_FAILED,
+		    'Response does not contain a multiple of 3 lines' );
+		my $ct = '';
+		while ( @content ) {
+		    shift @content;
+		    $ct .= join '', map { "$_\n" } splice @content, 0, 2;
+		}
+		$resp->content( $ct );
+	    }
+	    '' eq $resp->content()
+		and return HTTP::Response->new(
+		HTTP_PRECONDITION_FAILED, NO_CAT_ID );
+	    return $resp;
+	},
+	spacetrack_type	=> 'orbit',
+    );
 }
+
+=for html <a name="attribute_names"></a>
 
 =item @names = $st->attribute_names
 
@@ -1041,6 +1108,23 @@ sub _celestrak_repack_iridium {
 
 }	# End local symbol block.
 
+=item $bool = $st->cache_hit( $resp );
+
+This method takes the given HTTP::Response object and returns the cache
+hit indicator specified by the 'Pragma: spacetrack-cache-hit =' header.
+This will be true if the response came from cache, false if it did not,
+and C<undef> if cache was not available.
+
+If the response object is not provided, it returns the data type
+from the last method call that returned an HTTP::Response object.
+
+=cut
+
+sub cache_hit {
+    $_[2] = 'spacetrack-cache-hit';
+    goto &_get_pragma_value;
+}
+
 =item $source = $st->content_source($resp);
 
 This method takes the given HTTP::Response object and returns the data
@@ -1082,12 +1166,8 @@ method (i.e. as Astro::SpaceTrack->content_source($response)).
 =cut
 
 sub content_source {
-    my ($self, $resp) = @_;
-    defined $resp or return $self->{_pragmata}{'spacetrack-source'};
-    foreach ($resp->header ('Pragma')) {
-	m/ spacetrack-source \s+ = \s+ (.+) /smxi and return $1;
-    }
-    return;
+    $_[2] = 'spacetrack-source';
+    goto &_get_pragma_value;
 }
 
 =item $type = $st->content_type ($resp);
@@ -1122,12 +1202,8 @@ L<http://www.prismnet.com/~mmccants/tles/index.html>.
 =cut
 
 sub content_type {
-    my ($self, $resp) = @_;
-    defined $resp or return $self->{_pragmata}{'spacetrack-type'};
-    foreach ($resp->header ('Pragma')) {
-	m/ spacetrack-type \s+ = \s+ (.+) /smxi and return $1;
-    }
-    return;
+    $_[2] = 'spacetrack-type';
+    goto &_get_pragma_value;
 }
 
 =item $type = $st->content_interface( $resp );
@@ -1150,10 +1226,18 @@ method (i.e. as Astro::SpaceTrack->content_type($response)).
 =cut
 
 sub content_interface {
-    my ($self, $resp) = @_;
-    defined $resp or return $self->{_pragmata}{'spacetrack-interface'};
-    foreach ($resp->header ('Pragma')) {
-	m/ spacetrack-interface \s+ = \s+ (.+) /smxi and return $1;
+    $_[2] = 'spacetrack-interface';
+    goto &_get_pragma_value;
+}
+
+sub _get_pragma_value {
+    my ( $self, $resp, $pragma ) = @_;
+    defined $resp
+	or return $self->{_pragmata}{$pragma};
+    ( my $re = $pragma ) =~ s/ _ /-/smxg;
+    $re = qr{ \Q$re\E }smxi;
+    foreach ( $resp->header( 'Pragma' ) ) {
+	m/ $re \s+ = \s+ (.+) /smxi and return $1;
     }
     return;
 }
@@ -2037,6 +2121,26 @@ catalog names are:
  quicksat: Quicksat-format magnitude file (qsmag.zip)
  vsnames: Molczan-format magnitudes of visual bodies (vsnames.zip)
 
+You can specify options as either command-type options (e.g. C<<
+mccants( '-file', 'foo.dat', ... ) >>) or as a leading hash reference
+(e.g. C<< mccants( { file => 'foo.dat' }, ...) >>). If you specify the
+hash reference, option names must be specified in full, without the
+leading '-', and the argument list will not be parsed for command-type
+options.  If you specify command-type options, they may be abbreviated,
+as long as the abbreviation is unique. Errors in either sort result in
+an exception being thrown.
+
+The legal options are:
+
+ -file
+   specifies the name of the cache file. If the data
+   on line are newer than the modification date of
+   the cache file, the cache file will be updated.
+   Otherwise the data will be returned from the file.
+   Either way the content of the file and the content
+   of the returned HTTP::Response object end up the
+   same.
+
 On success, the content of the returned object is the actual data,
 unzipped and with line endings normalized for the current system.
 
@@ -2056,48 +2160,46 @@ No Space Track username and password are required to use this method.
 =cut
 
 sub mccants {
-    my ( $self, $cat ) = @_;
-    delete $self->{_pragmata};
+    my ( $self, @args ) = @_;
 
-    my $info = $catalogs{mccants}{$cat}
-	or return HTTP::Response->new(
-	HTTP_NOT_FOUND, "McCants catalog '$cat' not known" );
-    my $resp = $self->_get_agent()->get( $info->{url} );
-    $resp->is_success()
-	or return $resp;
-    if ( exists $info->{member} ) {
-	my $archive = Archive::Zip->new();
-	open my $fh, '+<', \( $resp->content() )	## no critic (RequireBriefOpen)
-	    or return HTTP::Response->new(
-	    HTTP_INTERNAL_SERVER_ERROR, "Can not open scalar ref: $!" );
-	$archive->readFromFileHandle( $fh );
-	if ( defined $info->{member} ) {
-	    my $member = $archive->memberNamed( $info->{member} )
-		or return HTTP::Response->new(
-		HTTP_NOT_FOUND,
-		"$info->{url} does not contain member $info->{member}" );
-	    $resp->content( scalar $member->contents() );
-	} else {
-	    my @members = $archive->members()
-		or return HTTP::Response->new(
-		HTTP_NOT_FOUND,
-		"$info->{url} contains no members" );
-	    @members > 1
-		and return HTTP::Response->new(
-		HTTP_NOT_FOUND,
-		"$info->{url} contains multiple members" );
-	    $resp->content( scalar $members[0]->contents() );
-	}
-	close $fh;
+    ( my $opt, @args ) = _parse_args( [
+	    'file=s'	=> 'Name of cache file',
+	], @args );
 
-    }
-    $self->_convert_content ($resp);
-    $self->_add_pragmata($resp,
-	'spacetrack-type'	=> $info->{type},
-	'spacetrack-source'	=> 'mccants',
+    return $self->_get_from_net(
+	%{ $opt },
+	catalog	=> $args[0],
+	post_process	=> sub {
+	    my ( $self, $resp, $info ) = @_;
+	    if ( exists $info->{member} ) {
+		my $archive = Archive::Zip->new();
+		open my $fh, '+<', \( $resp->content() )	## no critic (RequireBriefOpen)
+		    or return HTTP::Response->new(
+		    HTTP_INTERNAL_SERVER_ERROR, "Can not open scalar ref: $!" );
+		$archive->readFromFileHandle( $fh );
+		if ( defined $info->{member} ) {
+		    my $member = $archive->memberNamed( $info->{member} )
+			or return HTTP::Response->new(
+			HTTP_NOT_FOUND,
+			"$info->{url} does not contain member $info->{member}" );
+		    $resp->content( scalar $member->contents() );
+		} else {
+		    my @members = $archive->members()
+			or return HTTP::Response->new(
+			HTTP_NOT_FOUND,
+			"$info->{url} contains no members" );
+		    @members > 1
+			and return HTTP::Response->new(
+			HTTP_NOT_FOUND,
+			"$info->{url} contains multiple members" );
+		    $resp->content( scalar $members[0]->contents() );
+		}
+		close $fh;
+
+	    }
+	    return $resp;
+	},
     );
-    $self->_dump_headers( $resp );
-    return $resp;
 }
 
 =for html <a name="names"></a>
@@ -3398,6 +3500,8 @@ EOD
 
 	if (ref $rslt eq 'ARRAY') {
 	    foreach (@$rslt) {print { $out } "$_\n"}
+	} elsif ( ! ref $rslt ) {
+	    print { $out } "$rslt\n";
 	} elsif ($rslt->is_success) {
 	    $self->content_type()
 		or not $self->{filter}
@@ -4120,11 +4224,16 @@ lost as the individual OIDs are updated.
 #	This method adds pragma headers to the given HTTP::Response
 #	object, of the form pragma => "$name = $value". The pragmata are
 #	also cached in $self.
+#
+#	Pragmata names are normalized by converting them to lower case
+#	and converting underscores to dashes.
 
 sub _add_pragmata {
     my ($self, $resp, @args) = @_;
     while (@args) {
 	my ( $name, $value ) = splice @args, 0, 2;
+	$name = lc $name;
+	$name =~ s/ _ /-/smxg;
 	$self->{_pragmata}{$name} = $value;
 	$resp->push_header(pragma => "$name = $value");
     }
@@ -4525,6 +4634,120 @@ sub _get_agent {
 	or $agent->cookie_jar( {} );
 
     return $agent;
+}
+
+# $resp = $self->_get_from_net( name => value ... )
+#
+# This private method retrieves a URL and returns the response object.
+# The optional name/value pairs are:
+#
+#   catalog => catalog_name
+#      If this is defined, it is the name of the catalog to retrieve.
+#   file => cache_file_name
+#      If this is defined, the data are returned only if it has been
+#      modified since the modification date of the file. If the data
+#      have been modified, the cache file is refreshed; otherwise the
+#      response is loaded from the cache file.
+#   method => method_name
+#      If this is defined, it is the name of the method doing the
+#      catalog lookup. This is unused unless 'catalog' is defined, and
+#      defaults to the name of the calling method.
+#   post_process => code reference
+#      If the network operation succeeded and this is defined, it is
+#      called and passed the HTTP::Response object, The HTTP::Response
+#      object returned (which may or may not be the one passed in) is
+#      the basis for any further processing.
+#   spacetrack_source => spacetrack_source
+#      If this is defined, the corresponding-named pragma is set. The
+#      default comes from the same-named key in the catalog info if that
+#      is defined, or the 'method' argument (as defaulted).
+#   spacetrack_type => spacetrack_type
+#      If this is defined, the corresponding-named pragma is set.
+#   url => URL
+#      If this is defined, it is the URL of the data to retrieve.
+#
+# Either 'catalog' or 'url' MUST be specified. If both are specified,
+# 'catalog' is ignored.
+
+sub _get_from_net {
+    my ( $self, %arg ) = @_;
+    delete $self->{_pragmata};
+
+    my $method = defined $arg{method} ? $arg{method} : ( caller 1)[3];
+    $method =~ s/ .* :: //smx;
+
+    my $url;
+    my $info;
+    if ( defined $arg{url} ) {
+	$url = $arg{url};
+	$info	= {};
+    } elsif ( defined $arg{catalog} ) {
+	$catalogs{$method}
+	    and $info = $catalogs{$method}{$arg{catalog}}
+	    or return $self->_no_such_catalog( $method, $arg{catalog} );
+	$url = $info->{url}
+	    or confess "Programming error - No url defined for $method( '$arg{catalog}' )";
+    } else {
+	confess q<Programming error - neither 'url' nor 'catalog' specified>;
+    }
+
+    my $agent = $self->_get_agent();
+    my $rqst = HTTP::Request->new( GET	=> $url );
+    if ( defined $arg{file} ) {
+	if ( my @stat = stat $arg{file} ) {
+	    $rqst->header(
+		if_modified_since => HTTP::Date::time2str( $stat[9] ) );
+	}
+    }
+    my $resp = $agent->request( $rqst );
+
+    if ( $resp->code() == HTTP_NOT_MODIFIED ) {
+	defined $arg{file}
+	    or confess q{Programming Error - argument 'file' not defined};
+	local $/ = undef;
+	open my $fh, '<', $arg{file}
+	    or return HTTP::Response->new(
+	    HTTP_INTERNAL_SERVER_ERROR,
+	    "Unable to read $arg{file}: $!" );
+	$resp->content( scalar <$fh> );
+	close $fh;
+	$resp->code( HTTP_OK );
+	$arg{spacetrack_cache_hit} = 1;
+    } else {
+	$resp->is_success()
+	    or return $resp;
+	$resp->is_success()
+	    and defined $arg{post_process}
+	    and $resp = $arg{post_process}->( $self, $resp, $info );
+	$resp->is_success()	# $resp may be a different object now.
+	    or return $resp;
+	$self->_convert_content( $resp );
+	if ( defined $arg{file} ) {
+	    open my $fh, '>', $arg{file}
+		or return HTTP::Response->new(
+		HTTP_INTERNAL_SERVER_ERROR,
+		"Unable to write $arg{file}: $!" );
+	    print { $fh } $resp->content();
+	    close $fh;
+	    $arg{spacetrack_cache_hit} = 0;
+	}
+    }
+
+    defined $arg{spacetrack_source}
+	or $arg{spacetrack_source} =
+	    defined $info->{spacetrack_source} ?
+		$info->{spacetrack_source} :
+		$method;
+
+    $self->_add_pragmata( $resp,
+	map {
+	    defined $arg{$_} ? ( $_ => $arg{$_} ) :
+	    defined $info->{$_} ? ( $_ => $info->{$_} ) :
+	    ()
+	}
+	qw{ spacetrack_type spacetrack_source spacetrack_cache_hit } );
+    $self->_dump_headers( $resp );
+    return $resp;
 }
 
 # _get_space_track_domain() returns the domain name portion of the Space

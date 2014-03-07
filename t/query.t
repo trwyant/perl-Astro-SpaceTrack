@@ -586,11 +586,34 @@ subtest 'McCants data' => sub {
 
     is $st->content_source(), 'mccants', "Content source is 'mccants'";
 
-    is_success $st, qw{ mccants mcnames }, 'Get molczan-style magnitudes';
+    my $temp = File::Temp->new();
+
+    # In order to try to force a cache miss, we set the access and
+    # modification time of the file to the epoch.
+    my @opt = eval { utime 0, 0, $temp->filename() } ?
+	( '-file' => $temp->filename() ) :
+	();
+
+    is_success $st, 'mccants', @opt, 'mcnames',
+	'Get molczan-style magnitudes';
 
     is $st->content_type(), 'molczan', "Content type is 'molczan'";
 
     is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
+    ok ! $st->cache_hit(), 'Content did not come from cache';
+
+    if ( @opt ) {
+	my $want = most_recent_http_response()->content();
+	is_success $st, qw{ mccants -file }, $temp->filename(), 'mcnames',
+	    'Get molczan-style magnitudes from cache';
+
+	ok $st->cache_hit(), 'This time content came from cache';
+	is most_recent_http_response()->content(), $want,
+	    'We got the same result from the cache as from on line';
+    } else {
+	note 'Cache test skipped';
+    }
 
     is_success $st, qw{ mccants quicksat }, 'Get quicksat-style magnitudes';
 
