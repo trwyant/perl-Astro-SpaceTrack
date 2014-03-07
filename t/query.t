@@ -621,6 +621,12 @@ subtest 'McCants data' => sub {
 
     is $st->content_source(), 'mccants', "Content source is 'mccants'";
 
+    is_success $st, qw{ mccants rcs }, 'Get McCants-format RCS data';
+
+    is $st->content_type(), 'rcs.mccants', "Content type is 'rcs.mccants'";
+
+    is $st->content_source(), 'mccants', "Content source is 'mccants'";
+
     is_success $st, qw{ mccants vsnames }, 'Get molczan-style magnitudes for visual satellites';
 
     is $st->content_type(), 'molczan', "Content type is 'molczan'";

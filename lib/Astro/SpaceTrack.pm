@@ -269,6 +269,12 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    spacetrack_type	=> 'quicksat',
 	    url		=> 'http://www.prismnet.com/~mmccants/programs/qsmag.zip',
 	},
+	rcs	=> {
+	    name	=> 'McCants-format RCS data',
+	    member	=> undef,	# rcs
+	    spacetrack_type	=> 'rcs.mccants',
+	    url		=> 'http://www.prismnet.com/~mmccants/catalogs/rcs.zip',
+	},
 	vsnames	=> {
 	    name	=> 'Molczan-format magnitude file (visual only)',
 	    member	=> undef,	# vsnames
@@ -2102,6 +2108,7 @@ catalog names are:
  integrated: Integrated TLE file (inttles.zip)
  mcnames: Molczan-format magnitude file (mcnames.zip)
  quicksat: Quicksat-format magnitude file (qsmag.zip)
+ rcs: McCants-format RCS file (rcs.zip)
  vsnames: Molczan-format magnitudes of visual bodies (vsnames.zip)
 
 You can specify options as either command-type options (e.g. C<<
@@ -2132,11 +2139,20 @@ If this method succeeds, the response will contain headers
  Pragma: spacetrack-type = (see below)
  Pragma: spacetrack-source = mccants
 
-If the catalog name was C<'classified'> or C<'integrated'>, the
-C<spacetrack-type> will be C<'orbit'>. If the catalog name was
-C<'mcnames'> or C<'vsnames'>, the C<spacetrack-type> will be
-C<'molczan'>. If the catalog name was C<'quicksat'>, the
-C<spacetrack-name> will be C<'quicksat'>.
+The content of the spacetrack-type pragma depends on the catalog
+fetched, as follows:
+
+ classified: 'orbit'
+ integrated: 'orbit'
+ mcnames:    'molczan'
+ quicksat:   'quicksat'
+ rcs:        'rcs.mccants'
+ vsnames:    'molczan'
+
+If the C<file> option was passed, the following additional header will
+be provided:
+
+ Pragma: spacetrack-cache-hit = (either true or false)
 
 No Space Track username and password are required to use this method.
 
