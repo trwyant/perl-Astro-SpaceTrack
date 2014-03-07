@@ -284,24 +284,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
     },
     spacetrack => [	# Numbered by space_track_version
 	undef,	# No interface version 0
-	{	# Interface version 1 (Original)
-	    md5 => {name => 'MD5 checksums', number => 0, special => 1},
-	    full => {name => 'Full catalog', number => 1},
-	    geosynchronous => {
-		name => 'Geosynchronous satellites',
-		number => 3
-	    },
-	    navigation => {name => 'Navigation satellites', number => 5},
-	    weather => {name => 'Weather satellites', number => 7},
-	    iridium => {name => 'Iridium satellites', number => 9},
-	    orbcomm => {name => 'OrbComm satellites', number => 11},
-	    globalstar => {name => 'Globalstar satellites', number => 13},
-	    intelsat => {name => 'Intelsat satellites', number => 15},
-	    inmarsat => {name => 'Inmarsat satellites', number => 17},
-	    amateur => {name => 'Amateur Radio satellites', number => 19},
-	    visible => {name => 'Visible satellites', number => 21},
-	    special => {name => 'Special satellites', number => 23},
-	},
+	undef,	# No interface version 1 any more
 	{	# Interface version 2 (REST)
 	    full => {
 		name	=> 'Full catalog',
@@ -4715,8 +4698,6 @@ sub _get_from_net {
 	$arg{spacetrack_cache_hit} = 1;
     } else {
 	$resp->is_success()
-	    or return $resp;
-	$resp->is_success()
 	    and defined $arg{post_process}
 	    and $resp = $arg{post_process}->( $self, $resp, $info );
 	$resp->is_success()	# $resp may be a different object now.
@@ -4966,31 +4947,17 @@ sub _mutate_verify_hostname {
 	spacetrack => 'Space Track',
     );
 
-    my %no_such_trail = (
-	spacetrack => [ undef, <<'EOD' ],
-The Space Track data sets are actually numbered. The given number
-corresponds to the data set without names; if you are requesting data
-sets by number and want names, add 1 to the given number. When
-requesting Space Track data sets by number the 'with_name' attribute is
-ignored.
-EOD
-    );
-
     sub _no_such_catalog {
 	my ( $self, $source, @args ) = @_;
 
 	my $info = $catalogs{$source}
 	    or confess "Programming error - No such source as '$source'";
 
-	my $trailer = $no_such_trail{$source} || '';
-
 	if ( 'ARRAY' eq ref $info ) {
 	    my $inx = shift @args;
 	    $info = $info->[$inx]
 		or confess "Programming error - Illegal index $inx ",
 		    "for '$source'";
-	    'ARRAY' eq ref $trailer
-		and $trailer = $trailer->[$inx];
 	}
 
 	my ( $catalog, $note ) = @args;
@@ -5007,7 +4974,7 @@ EOD
 
 	my $resp = $self->names ($source);
 	return HTTP::Response->new (HTTP_NOT_FOUND,
-	    join '', "$lead Try one of:\n", $resp->content, $trailer,
+	    join '', "$lead Try one of:\n", $resp->content,
 	);
     }
 
