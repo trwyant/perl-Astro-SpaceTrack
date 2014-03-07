@@ -483,13 +483,8 @@ sub new {
 	pretty => 0,		# Pretty-format content
 	scheme_space_track => 'https',
 	_space_track_interface	=> [
-	    undef,
-	    {	# Interface version 1
-		cookie_expires		=> 0,
-		cookie_name		=> 'spacetrack_session',
-		domain_space_track	=> 'www.space-track.org',
-		session_cookie		=> undef,
-	    },
+	    undef,	# No such thing as version 0
+	    undef,	# Interface version 1 retured.
 	    {	# Interface version 2
 		# This interface does not seem to put an expiration time
 		# on the cookie. But the docs say it's only good for a
