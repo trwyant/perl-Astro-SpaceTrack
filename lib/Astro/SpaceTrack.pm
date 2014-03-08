@@ -2073,9 +2073,12 @@ EOD
 	    password => $self->{password},
 	] );
 
-    $resp->is_success
+    $resp->is_success()
 	or return _mung_login_status( $resp );
     $self->_dump_headers( $resp );
+
+    $resp->content() =~ m/ \b failed \b /smxi
+	and return HTTP::Response->new( HTTP_UNAUTHORIZED, LOGIN_FAILED );
 
     $self->_record_cookie_generic( 2 )
 	or return HTTP::Response->new( HTTP_UNAUTHORIZED, LOGIN_FAILED );
