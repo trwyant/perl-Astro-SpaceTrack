@@ -13,6 +13,7 @@ eg/spaceflight
 eg/SpaceTrackTk
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
+inc/My/Module/Test.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/BulkData.pod
 LICENSES/Artistic
@@ -20,7 +21,15 @@ LICENSES/Copying
 META.yml
 t/basic.t
 t/file.dat
-t/query.t
+t/query_amsat.t
+t/query_celestrak.t
+t/query_human_space_flight.t
+t/query_iridium_status_kelso.t
+t/query_iridium_status_mccants.t
+t/query_iridium_status_sladen.t
+t/query_mccants.t
+t/query_misc.t
+t/query_spacetrack.t
 t/spacetrack_request.t
 xt/author/celestrak_datasets.t
 xt/author/changes.t
