@@ -1,3 +1,17 @@
+0.084_01	2014-03-08	T. R. Wyant
+  Fix problem in the login() method detecting a Space Track login
+    failure.
+  Add method mccants() to access TLE, magnitude, and RCS data mainteined
+    by Mike McCants on his web site. Because these do not get updated
+    that often, there is a 'file' option which, if specified, caches the
+    results and fetches them from the web only if the cache is stale.
+  Add 'file' option (as above) to amsat() and celestrak_supplemental().
+  Add cache_hit() and associated machinery to determine whether
+    information came from the web or from a file.
+  Add information on celestrak() catalog 'argos'.
+  Factor the query tests into multiple files, so they can run in
+    parallel.
+
 0.084		2014-01-01	T, R, Wyant
   Have celestrak() and celestrak_supplemental() return error status if
     the argument is undefined.
