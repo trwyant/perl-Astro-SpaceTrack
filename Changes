@@ -1,3 +1,8 @@
+0.084_02	2014-03-10	T. R. Wyant
+  Try to address test failures in mccants() under older Windows (plus
+    one under FreeBSD) due to unseekability of the handle produced by
+    open my $fh, '+<', \( $resp->content() );
+
 0.084_01	2014-03-08	T. R. Wyant
   Fix problem in the login() method detecting a Space Track login
     failure.
