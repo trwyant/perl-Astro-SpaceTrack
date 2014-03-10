@@ -2190,7 +2190,15 @@ sub mccants {
 	    my ( $self, $resp, $info ) = @_;
 	    if ( exists $info->{member} ) {
 		my $archive = Archive::Zip->new();
-		open my $fh, '+<', \( $resp->content() )	## no critic (RequireBriefOpen)
+		# The following line is an attempt to sanitize the
+		# content. It appears that \( $resp->content() )
+		# produces a non-seekable file handle under older
+		# Windows systems. I have a pass under 6.2, but fails
+		# under 5.2 and earlier. Plus the same fail under Cygwin
+		# 1.7.5, and I have no idea what the underlying Windows
+		# is here.
+		my $content = $resp->content();
+		open my $fh, '+<', \$content	## no critic (RequireBriefOpen)
 		    or return HTTP::Response->new(
 		    HTTP_INTERNAL_SERVER_ERROR, "Can not open scalar ref: $!" );
 		$archive->readFromFileHandle( $fh );
@@ -4514,6 +4522,12 @@ sub _dump_request {
     my $json = $self->_get_json_object( pretty => 1 )
 	or return;
 
+    foreach my $key ( keys %args ) {
+	'CODE' eq ref $args{$key}
+	    or next;
+	$args{$key} = $args{$key}->( \%args );
+    }
+
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
 	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( \%args )
@@ -4736,7 +4750,30 @@ sub _get_from_net {
 		if_modified_since => HTTP::Date::time2str( $stat[9] ) );
 	}
     }
-    my $resp = $agent->request( $rqst );
+
+    my $resp;
+    $resp = $self->_dump_request(
+	arg	=> sub {
+	    my %sanitary = %arg;
+	    foreach my $key ( qw{ pre_process post_process } ) {
+		delete $sanitary{$key}
+		    and $sanitary{$key} = 'CODE';
+	    }
+	    return \%sanitary;
+	},
+	method	=> 'GET',
+	url	=> $url,
+	hdrs	=> sub {
+	    my %rslt;
+	    foreach my $name ( $rqst->header_field_names() ) {
+		my @v = $rqst->header( $name );
+		$rslt{$name} = @v == 1 ? $v[0] : \@v;
+	    }
+	    return \%rslt;
+	},
+    )
+	and return $resp;
+    $resp = $agent->request( $rqst );
 
     if ( $resp->code() == HTTP_NOT_MODIFIED ) {
 	defined $arg{file}
