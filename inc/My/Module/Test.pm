@@ -8,7 +8,7 @@ use warnings;
 use Exporter qw{ import };
 use Test::More 0.96;	# For subtest
 
-our $VERSION = '0.084_02';
+our $VERSION = '0.084_03';
 
 # Set the following to zero if Space Track (or any other SSL host)
 # starts using a certificate that can not be verified.
