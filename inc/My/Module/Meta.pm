@@ -65,7 +65,6 @@ sub requires {
     my ( $self, @extra ) = @_;
 
     return {
-	'Archive::Zip'		=> 0,		# For mccants().
 	'Carp'			=> 0,
 	'Data::Dumper'		=> 0,
 	'Exporter'		=> 0,
@@ -75,6 +74,7 @@ sub requires {
 	'HTTP::Response'	=> 0,
 	'HTTP::Status'		=> 6.03,	# For the teapot status
 	'IO::File'		=> 0,
+	'IO::Uncompress::Unzip'	=> 0,	# For McCants
 	'JSON'			=> 0,	# For Space Track v2
 	'List::Util'		=> 0,	# For Space Track v2 FILE tracking
 	'LWP::UserAgent'	=> 0,

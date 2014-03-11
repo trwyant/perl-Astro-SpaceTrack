@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use Astro::SpaceTrack;
+use File::Temp;
 use Test::More 0.96;	# For subtest
 
 use lib qw{ inc };

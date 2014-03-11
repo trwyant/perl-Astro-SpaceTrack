@@ -117,7 +117,6 @@ our %EXPORT_TAGS = (
 	BODY_STATUS_IS_TUMBLING}],
 );
 
-use Archive::Zip;
 use Carp;
 use Getopt::Long 2.39;
 use HTTP::Date ();
@@ -135,6 +134,7 @@ use HTTP::Status qw{
     HTTP_INTERNAL_SERVER_ERROR
 };
 use IO::File;
+use IO::Uncompress::Unzip ();
 use JSON qw{};
 use List::Util qw{ max };
 use LWP::UserAgent;	# Not in the base.
@@ -2188,40 +2188,15 @@ sub mccants {
 	catalog	=> $args[0],
 	post_process	=> sub {
 	    my ( $self, $resp, $info ) = @_;
-	    if ( exists $info->{member} ) {
-		my $archive = Archive::Zip->new();
-		# The following line is an attempt to sanitize the
-		# content. It appears that \( $resp->content() )
-		# produces a non-seekable file handle under older
-		# Windows systems. I have a pass under 6.2, but fails
-		# under 5.2 and earlier. Plus the same fail under Cygwin
-		# 1.7.5, and I have no idea what the underlying Windows
-		# is here.
-		my $content = $resp->content();
-		open my $fh, '+<', \$content	## no critic (RequireBriefOpen)
-		    or return HTTP::Response->new(
-		    HTTP_INTERNAL_SERVER_ERROR, "Can not open scalar ref: $!" );
-		$archive->readFromFileHandle( $fh );
-		if ( defined $info->{member} ) {
-		    my $member = $archive->memberNamed( $info->{member} )
-			or return HTTP::Response->new(
-			HTTP_NOT_FOUND,
-			"$info->{url} does not contain member $info->{member}" );
-		    $resp->content( scalar $member->contents() );
-		} else {
-		    my @members = $archive->members()
-			or return HTTP::Response->new(
-			HTTP_NOT_FOUND,
-			"$info->{url} contains no members" );
-		    @members > 1
-			and return HTTP::Response->new(
-			HTTP_NOT_FOUND,
-			"$info->{url} contains multiple members" );
-		    $resp->content( scalar $members[0]->contents() );
-		}
-		close $fh;
-
-	    }
+	    my ( $content, @zip_opt );
+	    defined $info->{member}
+		and push @zip_opt, Name => $info->{member};
+	    IO::Uncompress::Unzip::unzip( \( $resp->content() ),
+		\$content, @zip_opt )
+		or return HTTP::Response->new(
+		HTTP_NOT_FOUND,
+		$IO::Uncompress::Unzip::UnzipError );
+	    $resp->content( $content );
 	    return $resp;
 	},
     );
