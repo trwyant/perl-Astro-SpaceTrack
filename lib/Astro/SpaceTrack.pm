@@ -565,50 +565,21 @@ On a successful return, the response object will contain headers
 These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
-This method is a web page scraper. any change in the location of the
+If the C<file> option was passed, the following additional header will
+be provided:
+
+ Pragma: spacetrack-cache-hit = (either true or false)
+
+This can be accessed by the C<cache_hit()> method. If this pragma is
+true, the C<Last-Modified> header of the response will contain the
+modification time of the file.
+
+This method is a web page scraper. Any change in the location of the
 web page will break this method.
 
 =cut
 
 sub amsat {
-
-=begin comment
-
-    my $self = shift;
-    delete $self->{_pragmata};
-    my $content = '';
-    my $agent = $self->_get_agent();
-    foreach my $url (
-	'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
-    ) {
-	my $resp = $agent->get( $url );
-	return $resp unless $resp->is_success;
-	$self->_dump_headers( $resp );
-	my @data;
-	foreach (split '\n', $resp->content) {
-	    push @data, "$_\n";
-	    @data == 3 or next;
-	    shift @data unless $self->{direct} || $self->{with_name};
-	    $content .= join '', @data;
-	    @data = ();
-	}
-    }
-
-    $content or
-	return HTTP::Response->new (HTTP_PRECONDITION_FAILED, NO_CAT_ID);
-
-    my $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
-    $self->_add_pragmata($resp,
-	'spacetrack-type' => 'orbit',
-	'spacetrack-source' => 'amsat',
-    );
-    $self->_dump_headers( $resp );
-    return $resp;
-
-=end comment
-
-=cut
-
     my ( $self, @args ) = @_;
 
     ( my $opt, @args ) = _parse_args( [
@@ -997,6 +968,15 @@ content of the error response will include this list. Note, however,
 that this list does not determine what can be retrieved; if Dr. Kelso
 adds a data set, it can be retrieved even if it is not on the list, and
 if he removes one, being on the list won't help.
+
+If the C<file> option was passed, the following additional header will
+be provided:
+
+ Pragma: spacetrack-cache-hit = (either true or false)
+
+This can be accessed by the C<cache_hit()> method. If this pragma is
+true, the C<Last-Modified> header of the response will contain the
+modification time of the file.
 
 For more information, see
 L<http://celestrak.com/NORAD/elements/supplemental/>.
@@ -2171,6 +2151,10 @@ If the C<file> option was passed, the following additional header will
 be provided:
 
  Pragma: spacetrack-cache-hit = (either true or false)
+
+This can be accessed by the C<cache_hit()> method. If this pragma is
+true, the C<Last-Modified> header of the response will contain the
+modification time of the file.
 
 No Space Track username and password are required to use this method.
 
@@ -4719,10 +4703,11 @@ sub _get_from_net {
 
     my $agent = $self->_get_agent();
     my $rqst = HTTP::Request->new( GET	=> $url );
+    my $file_time;
     if ( defined $arg{file} ) {
 	if ( my @stat = stat $arg{file} ) {
-	    $rqst->header(
-		if_modified_since => HTTP::Date::time2str( $stat[9] ) );
+	    $file_time = HTTP::Date::time2str( $stat[9] );
+	    $rqst->header( if_modified_since => $file_time );
 	}
     }
 
@@ -4761,6 +4746,8 @@ sub _get_from_net {
 	$resp->content( scalar <$fh> );
 	close $fh;
 	$resp->code( HTTP_OK );
+	defined $file_time
+	    and $resp->header( last_modified => $file_time );
 	$arg{spacetrack_cache_hit} = 1;
     } else {
 	$resp->is_success()

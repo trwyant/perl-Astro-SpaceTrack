@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use Exporter qw{ import };
+use HTTP::Date;
 use Test::More 0.96;	# For subtest
 
 our $VERSION = '0.084_03';
@@ -18,6 +19,7 @@ our @EXPORT = qw{
     is_error
     is_not_success
     is_success
+    last_modified
     most_recent_http_response
     not_defined
     site_check
@@ -67,7 +69,16 @@ sub is_success (@) {	## no critic (RequireArgUnpacking)
     goto &ok;
 }
 
-sub most_recent_http_response () {
+sub last_modified {
+    $rslt
+	or return;
+    foreach my $hdr ( $rslt->header( 'Last-Modified' ) ) {
+	return str2time( $hdr );
+    }
+    return;
+}
+
+sub most_recent_http_response {
     return $rslt;
 }
 
@@ -289,6 +300,10 @@ This Perl module contains testing routines for Astro::SpaceTrack. Some
 of them actually perform tests, others perform whatever miscellany of
 functions seemed appropriate.
 
+Everything in this module is B<private> to the C<Astro::SpaceTrack>
+package. The author reserves the right to change or revoke anything here
+without notice.
+
 =head1 SUBROUTINES
 
 This package exports the following subroutines, all by default.
@@ -336,6 +351,13 @@ arguments are:
   - The method's name
   - Zero or more arguments
   - The test name
+
+=head2 last_modified
+
+This subroutine returns the value of the C<Last-Modified> header from
+the most recent HTTP::Respose object, as a Perl time. If there is no
+HTTP::Response, or if it did not contain that header, C<undef> is
+returned.
 
 =head2 most_recent_http_response
 
