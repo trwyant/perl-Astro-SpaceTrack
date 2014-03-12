@@ -47,7 +47,11 @@ is $st->content_source(), 'mccants', "Content source is 'mccants'";
 
 ok ! $st->cache_hit(), 'Content did not come from cache';
 
-if ( @opt ) {
+if ( $ENV{AUTHOR_TEST} || $ENV{SPACETRACK_TEST_CACHE} ) {
+
+    @opt
+	or BAIL_OUT 'Cache test requires uname to work';
+
     my $want = most_recent_http_response()->content();
     is_success $st, qw{ mccants -file }, $temp->filename(), 'mcnames',
 	'Get molczan-style magnitudes from cache';
@@ -56,7 +60,7 @@ if ( @opt ) {
     is most_recent_http_response()->content(), $want,
 	'We got the same result from the cache as from on line';
 } else {
-    note 'Cache test skipped';
+    note 'Cache test skipped. AUTHOR_TEST not set.';
 }
 
 is_success $st, qw{ mccants quicksat }, 'Get quicksat-style magnitudes';
