@@ -1,3 +1,9 @@
+0.084_04	2014-03-13	T. R. Wyant
+  Wneh mccants() and friends return data from cache, fabricate
+    Last-Modified header with file modification date.
+  Bypass mccants() cache test for installation, since it seems to fail
+    sporadically, and the data appear to be unaffected.
+
 0.084_03	2014-03-11	T. R. Wyant
   The previous did not work, so try using IO::Uncompress::Unzip rather
     than Archive::Zip, since the former explicitly supports I/O to
