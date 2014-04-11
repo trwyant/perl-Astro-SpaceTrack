@@ -1712,7 +1712,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	);
     my %status_portable = (	# Map statuses to portable.
 	kelso => {
-	    ''	=> BODY_STATUS_IS_OPERATIONAL,
+#	    ''	=> BODY_STATUS_IS_OPERATIONAL,
 	    '[-]' => BODY_STATUS_IS_TUMBLING,
 	    '[S]' => BODY_STATUS_IS_SPARE,
 	    '[+]' => BODY_STATUS_IS_OPERATIONAL,
@@ -1728,9 +1728,10 @@ The BODY_STATUS constants are exportable using the :status tag.
 	},
 #	sladen => undef,	# Not needed; done programmatically.
     );
-    while (my ($key, $val) = each %{$status_portable{kelso}}) {
-	$key and $status_portable{kelso_inverse}{$val} = $key;
-    }
+
+    $status_portable{kelso_inverse} = { reverse %{
+	$status_portable{kelso} } };
+    $status_portable{kelso}{''}	= BODY_STATUS_IS_OPERATIONAL;
 
     sub iridium_status {
 	my $self = shift;
