@@ -109,7 +109,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.085';
+our $VERSION = '0.085_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (

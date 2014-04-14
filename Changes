@@ -1,3 +1,8 @@
+0.085_01	2014-04-14	T. R. Wyant
+  Eliminate ugly warning generated when searching Space Track if
+    -start_epoch or -end_epoch options are specified.
+  Eliminate use of each() built-in.
+
 0.085		2014-03-20	T. R. Wyant
   No changes since 0.084_04.
 
