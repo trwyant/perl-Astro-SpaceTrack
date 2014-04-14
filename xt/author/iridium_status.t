@@ -21,15 +21,20 @@ my %known_inconsistent = (
     24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
 				# McCants: failed 29-Oct-2012;
 				# Sladen: still operational.
-    24906 => { mccants => 1 },	# Kelso: spare; others: operational
+    24906 => { kelso => 1 },	# Kelso: spare; others: operational
 				# 16-Nov-2012: Sladen declares spare
+				# 08-Apr-2014: Sladen declares operational
     24944 => { kelso => 1 },	# 01-Apr-2014: Kelso declares spare
+    25104 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares spare;
+				#             others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
     25262 => { kelso => 1 },	# Kelso: spare; others: operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
     27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
-				# 18-Feb-2015 McCants: operational;
+				# 18-Feb-2014 McCants: operational;
+				#             others: spare
+    27376 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares operational;
 				#             others: spare
 );
 
@@ -281,7 +286,7 @@ EOD
  24793   Iridium 7      [+]      Plane 4
  24794   Iridium 6      [+]      Plane 4
  24795   Iridium 5      [+]      Plane 4
- 24796   Iridium 4      [+]      Plane 4
+ 24796   Iridium 4      [-]      Plane 4 - Failed on station?
  24836   Iridium 914    [-]      Plane 5
  24837   Iridium 12     [+]      Plane 5
  24839   Iridium 10     [+]      Plane 5
@@ -296,7 +301,7 @@ EOD
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [+]      Plane 2
  24905   Iridium 46     [+]      Plane 2
- 24906   Iridium 23     [S]      Plane 2
+ 24906   Iridium 23     [+]      Plane 2
  24907   Iridium 22     [+]      Plane 2
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
@@ -318,7 +323,7 @@ EOD
  25043   Iridium 38     [-]      Plane 6
  25077   Iridium 42     [+]      Plane 6
  25078   Iridium 44     [-]      Plane 6
- 25104   Iridium 45     [+]      Plane 2
+ 25104   Iridium 45     [S]      Plane 2
  25105   Iridium 24     [-]      Plane 2
  25106   Iridium 47     [+]      Plane 2
  25108   Iridium 49     [+]      Plane 2
@@ -366,7 +371,7 @@ EOD
  27373   Iridium 90     [S]      Plane 5
  27374   Iridium 94     [+]      Plane 2
  27375   Iridium 95     [+]      Plane 3
- 27376   Iridium 96     [S]      Plane 3
+ 27376   Iridium 96     [+]      Plane 4
  27450   Iridium 97     [+]      Plane 4
  27451   Iridium 98     [S]      Plane 6
 EOD
@@ -405,8 +410,38 @@ foreach my $id ( @keys ) {
 		and skip $skip, 1;
 
 	    cmp_ok $status{$pr->[0]}{$id}, '==', $status{$pr->[1]}{$id},
-	    "$id status consistent between $pr->[0] and $pr->[1]";
+	    "$id status consistent between $pr->[0] and $pr->[1]"
+		or diag xlate( $pr->[0], $pr->[1], $id );
 	}
+    }
+}
+
+{
+    my @xlation;
+    BEGIN {
+	foreach my $st ( qw{
+	    BODY_STATUS_IS_OPERATIONAL
+	    BODY_STATUS_IS_SPARE
+	    BODY_STATUS_IS_TUMBLING
+	    }
+	) {
+	    my $inx = Astro::SpaceTrack->$st();
+	    ( my $name = $st ) =~ s/ .* _ //smx;
+	    $name = lc $name;
+	    $xlation[$inx] = "$inx ($name)";
+	}
+    }
+
+    sub xlate {
+	my ( $left, $right, $id ) = @_;
+	my @args;
+	foreach my $src ( $left, $right ) {
+	    my $st = $status{$src}{$id};
+	    push @args, $src, $xlation[$st];
+	    defined $args[-1]
+		or $args[-1] = $st;
+	}
+	return sprintf '    %s: %s; %s: %s', @args;
     }
 }
 
