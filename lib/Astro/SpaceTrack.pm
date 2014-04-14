@@ -5307,9 +5307,8 @@ EOD
 #	_parse_search_args parses the search_*() options off its
 #	arguments, prefixes a reference to the resultant options
 #	hash to the remaining arguments, and returns the resultant
-#	list. If the first argument is a hash reference, it simply
-#	returns its argument list, under the assumption that it
-#	has already been called.
+#	list. If the first argument is a hash reference, it validates
+#	that the hash contains only legal options.
 
 {
 
@@ -5334,7 +5333,6 @@ EOD
 	}
 
 	my $opt = $args[0];
-	_parse_retrieve_dates( $opt );
 
 	$opt->{status} ||= 'onorbit';
 
@@ -5360,7 +5358,7 @@ EOD
 
     # _remove_search_options
     #
-    # Shallow clone the argument hasn, remove any search arguments from
+    # Shallow clone the argument hash, remove any search arguments from
     # it, and return a reference to the clone. Used for sanitizing the
     # options for a search before passing them to retrieve() to actually
     # get the TLEs.
