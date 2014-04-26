@@ -9,7 +9,7 @@ use Exporter qw{ import };
 use HTTP::Date;
 use Test::More 0.96;	# For subtest
 
-our $VERSION = '0.085_01';
+our $VERSION = '0.086';
 
 # Set the following to zero if Space Track (or any other SSL host)
 # starts using a certificate that can not be verified.
