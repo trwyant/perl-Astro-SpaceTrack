@@ -148,7 +148,8 @@ use URI qw{};
 # Number of OIDs to retrieve at once. This is a global variable so I can
 # play with it, but it is neither documented nor supported, and I
 # reserve the right to change it or delete it without notice.
-our $RETRIEVAL_SIZE = 200;
+our $RETRIEVAL_SIZE = $ENV{SPACETRACK_RETRIEVAL_SIZE};
+defined $RETRIEVAL_SIZE or $RETRIEVAL_SIZE = 200;
 
 use constant COPACETIC => 'OK';
 use constant BAD_SPACETRACK_RESPONSE =>
@@ -172,8 +173,7 @@ use constant DUMP_TRACE => 0x01;	# Logic trace
 use constant DUMP_REQUEST => 0x02;	# Request content
 use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
 use constant DUMP_COOKIE => 0x08;	# Dump cookies.
-use constant DUMP_HEADERS => 0x10;	# Dump headers.
-use constant DUMP_CONTENT => 0x20;	# Dump content
+use constant DUMP_RESPONSE => 0x10;	# Dump response.
 
 # These are the Space Track version 1 retrieve Getopt::Long option
 # specifications, and the descriptions of each option. These need to
@@ -415,7 +415,7 @@ my %mutator = (	# Mutators for the various attributes.
     cookie_name => \&_mutate_spacetrack_interface,
     direct => \&_mutate_attrib,
     domain_space_track => \&_mutate_spacetrack_interface,
-    dump_headers => \&_mutate_attrib,	# Dump all HTTP headers. Undocumented and unsupported.
+    dump_headers => \&_mutate_dump_headers,	# Dump all HTTP headers. Undocumented and unsupported.
     fallback => \&_mutate_attrib,
     filter => \&_mutate_attrib,
     iridium_status_format => \&_mutate_iridium_status_format,
@@ -689,15 +689,23 @@ EOD
 
 =item $resp = $st->box_score ();
 
-This method returns the SATCAT Satellite Box Score information from the
-Space Track web site. If it succeeds, the content will be the actual box
-score data, including headings and totals, with the fields
-tab-delimited.
+This method returns an HTTP::Response object. If the request succeeds,
+the content of the object will be the SATCAT Satellite Box Score
+information in the desired format. If the desired format is C<'legacy'>
+or C<'json'> and the method is called in list context, the second
+returned item will be a reference to an array containing the parsed
+data.
 
-This method takes option C<-json>, specified either command-style (i.e.
-C<< $st->box_score( '-json' ) >>) or as a hash reference (i.e. 
-C<< $st->box_score( { json => 1 } ) >>). This causes the body of the
-response to be the JSON data as returned from Space Track.
+This method takes the following options, specified either command-style
+or as a hash reference.
+
+C<-format> specifies the desired format of the retrieved data. Possible
+values are C<'xml'>, C<'json'>, C<'html'>, C<'csv'>, and C<'legacy'>,
+which is the default. The legacy format is tab-delimited text, such as
+was returned by the version 1 interface.
+
+C<-json> specifies JSON format. If you specify both C<-json> and
+C<-format> you will get an exception unless you specify C<-format=json>.
 
 This method requires a Space Track username and password. It implicitly
 calls the C<login()> method if the session cookie is missing or expired.
@@ -736,14 +744,26 @@ There are no arguments.
 
 	( my $opt, @args ) = _parse_args(
 	    [
-		'json!'	=> 'Return data in JSON format',
+		'json!'		=> 'Return data in JSON format',
+		'format=s'	=> 'Specify return format',
 	    ], @args );
+	my $format = _retrieval_format( box_score => $opt );
 
 	my $resp = $self->spacetrack_query_v2( qw{
-	    basicspacedata query class boxscore
-	    format json predicates all
-	} );
+	    basicspacedata query class boxscore },
+	    format	=> $format,
+	    qw{ predicates all },
+	);
 	$resp->is_success()
+	    or return $resp;
+
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'box_score',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 2,
+	);
+
+	'json' eq $format
 	    or return $resp;
 
 	my $data;
@@ -764,12 +784,6 @@ There are no arguments.
 
 	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
 	}
-
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'box_score',
-	    'spacetrack-source' => 'spacetrack',
-	    'spacetrack-interface' => 2,
-	);
 
 	wantarray
 	    or return $resp;
@@ -912,7 +926,7 @@ sub celestrak {
 	return $check;
     }
     $self->_convert_content ($resp);
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     $resp = $self->_handle_observing_list( $opt, $resp->content() );
     return ( $resp->is_success || !$self->{fallback} ) ? $resp :
 	$self->_celestrak_direct( $opt, $name );
@@ -1036,7 +1050,7 @@ sub _celestrak_direct {
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'celestrak',
     );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     return $resp;
 }
 
@@ -1230,17 +1244,23 @@ sub _get_pragma_value {
 
 =item $resp = $st->country_names()
 
-This method returns the list of country abbreviations and names from
-the Space Track web site. If it succeeds, the content will be the
-abbreviations and names, including headings, with the fields
-tab-delimited.
+This method returns an HTTP::Response object. If the request succeeds,
+the content of the object will be the known country names and their
+abbreviations in the desired format. If the desired format is
+C<'legacy'> or C<'json'> and the method is called in list context, the
+second returned item will be a reference to an array containing the
+parsed data.
 
-This method takes option C<-json>, specified either command-style
-(i.e. C<< $st->country_names( '-json' ) >>) or as a hash reference
-(i.e. C<< $st->country_names( { json => 1 } ) >>). This causes the
-body of the response to be the JSON representation of a hash whose
-keys are the country abbreviations, and whose values are the
-corresponding country names.
+This method takes the following options, specified either command-style
+or as a hash reference.
+
+C<-format> specifies the desired format of the retrieved data. Possible
+values are C<'xml'>, C<'json'>, C<'html'>, C<'csv'>, and C<'legacy'>,
+which is the default. The legacy format is tab-delimited text, such as
+was returned by the version 1 interface.
+
+C<-json> specifies JSON format. If you specify both C<-json> and
+C<-format> you will get an exception unless you specify C<-format=json>.
 
 This method requires a Space Track username and password. It
 implicitly calls the C<login()> method if the session cookie is
@@ -1249,7 +1269,7 @@ HTTP::Response from C<login()>.
 
 If this method succeeds, the response will contain headers
 
- Pragma: spacetrack-type = box_score
+ Pragma: spacetrack-type = country_names
  Pragma: spacetrack-source = spacetrack
 
 There are no arguments.
@@ -1263,15 +1283,26 @@ sub country_names {
     ( my $opt, @args ) = _parse_args(
 	[
 	    'json!'	=> 'Return data in JSON format',
+	    'format=s'	=> 'Specify return format',
 	], @args );
+    my $format = _retrieval_format( country_names => $opt );
 
     my $resp = $self->spacetrack_query_v2(
 	basicspacedata	=> 'query',
 	class		=> 'boxscore',
-	format		=> 'json',
+	format		=> $format,
 	predicates	=> 'COUNTRY,SPADOC_CD',
     );
     $resp->is_success()
+	or return $resp;
+
+    $self->_add_pragmata( $resp,
+	'spacetrack-type'	=> 'country_names',
+	'spacetrack-source'	=> 'spacetrack',
+	'spacetrack-interface'	=> 2,
+    );
+
+    'json' eq $format
 	or return $resp;
 
     my $json = $self->_get_json_object();
@@ -1298,12 +1329,6 @@ sub country_names {
 
     }
 
-    $self->_add_pragmata( $resp,
-	'spacetrack-type'	=> 'country_names',
-	'spacetrack-source'	=> 'spacetrack',
-	'spacetrack-interface'	=> 2,
-    );
-
     return $resp;
 }
 
@@ -1312,16 +1337,27 @@ sub country_names {
 
 =item $resp = $st->favorite( $name )
 
-This method takes the name of a C<favorite> set up by the user on the
-Space Track web site, and returns the bodies specified. The 'global'
-favorites (e.g.  C<'Navigation'>, C<'Weather'>, and so on) may also be
-fetched.  Additionally, the C<-json> option may be specified, either in
-command-line format or as a leading hash reference. For example,
+This method returns an HTTP::Response object. If the request succeeds,
+the content of the response will be TLE data specified by the named
+favorite in the desired format. The named favorite must have previously
+been set up by the user, or be one of the 'global' favorites (e.g.
+C<'Navigation'>, C<'Weather'>, and so on).
 
- $resp = $st->favorite( '-json', 'Weather' );
- $resp = $st->favorite( { json => 1 }, 'Weather' );
+This method takes the following options, specified either command-style
+or as a hash reference.
 
-both work.
+C<-format> specifies the desired format of the retrieved data. Possible
+values are C<'xml'>, C<'json'>, C<'html'>, C<'csv'>, and C<'legacy'>,
+which is the default. The legacy format is tab-delimited text, such as
+was returned by the version 1 interface.
+
+C<-json> specifies JSON format. If you specify both C<-json> and
+C<-format> you will get an exception unless you specify C<-format=json>.
+
+This method requires a Space Track username and password. It
+implicitly calls the C<login()> method if the session cookie is
+missing or expired.  If C<login()> fails, you will get the
+HTTP::Response from C<login()>.
 
 =cut
 
@@ -1332,6 +1368,7 @@ sub favorite {
     ( my $opt, @args ) = _parse_args(
 	[
 	    'json!'	=> 'Return data in JSON format',
+	    'format=s'	=> 'Specify return format',
 	], @args );
 
     @args
@@ -1446,7 +1483,7 @@ sub get {
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'get',
     );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     return wantarray ? ($resp, $value ) : $resp;
 }
 
@@ -1578,7 +1615,7 @@ EOD
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'help',
 	);
-	$self->_dump_headers( $resp );
+	$self->__dump_response( $resp );
 	return $resp;
     }
 }
@@ -1754,7 +1791,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    'spacetrack-type' => 'iridium-status',
 	    'spacetrack-source' => $fmt,
 	);
-	$self->_dump_headers( $resp );
+	$self->__dump_response( $resp );
 	return wantarray ? ($resp, [values %rslt]) : $resp;
     }
 
@@ -1934,17 +1971,28 @@ The BODY_STATUS constants are exportable using the :status tag.
 
 =item $resp = $st->launch_sites()
 
-This method returns the list of launch site abbreviations and names
-from the Space Track web site. If it succeeds, the content will be the
-abbreviations and names, including headings, with the fields
-tab-delimited.
+This method returns an HTTP::Response object. If the request succeeds,
+the content of the object will be the known launch sites and their
+abbreviations in the desired format. If the desired format is
+C<'legacy'> or C<'json'> and the method is called in list context, the
+second returned item will be a reference to an array containing the
+parsed data.
 
-This method takes option C<-json>, specified either command-style
-(i.e.  C<< $st->launch_sites( '-json' ) >>) or as a hash reference
-(i.e.  C<< $st->launch_sites( { json => 1 } ) >>). This causes the
-body of the response to be the JSON representation of a hash whose
-keys are the launch site abbreviations, and whose values are the
-corresponding launch site names.
+This method takes the following options, specified either command-style
+or as a hash reference.
+
+C<-format> specifies the desired format of the retrieved data. Possible
+values are C<'xml'>, C<'json'>, C<'html'>, C<'csv'>, and C<'legacy'>,
+which is the default. The legacy format is tab-delimited text, such as
+was returned by the version 1 interface.
+
+C<-json> specifies JSON format. If you specify both C<-json> and
+C<-format> you will get an exception unless you specify C<-format=json>.
+
+This method requires a Space Track username and password. It
+implicitly calls the C<login()> method if the session cookie is
+missing or expired.  If C<login()> fails, you will get the
+HTTP::Response from C<login()>.
 
 If this method succeeds, the response will contain headers
 
@@ -1964,16 +2012,27 @@ There are no arguments.
 	( my $opt, @args ) = _parse_args(
 	    [
 		'json!'	=> 'Return data in JSON format',
+		'format=s' => 'Specify return format',
 	    ], @args );
+	my $format = _retrieval_format( launch_sites => $opt );
 
 	my $resp = $self->spacetrack_query_v2( qw{
-	    basicspacedata query class launch_site
-	    format json },
-		orderby	=> 'SITE_CODE asc',
+	    basicspacedata query class launch_site },
+	    format	=> $format,
+	    orderby	=> 'SITE_CODE asc',
 	    qw{ predicates all
 	} );
 	$resp->is_success()
 	    or return $resp;
+
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'launch_sites',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 2,
+	);
+
+	'json' ne $format
+	    and return $resp;
 
 	my $json = $self->_get_json_object();
 
@@ -1997,12 +2056,6 @@ There are no arguments.
 	    );
 
 	}
-
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'launch_sites',
-	    'spacetrack-source' => 'spacetrack',
-	    'spacetrack-interface' => 2,
-	);
 
 	wantarray
 	    or return $resp;
@@ -2047,16 +2100,25 @@ EOD
 
     # Do not use the spacetrack_query_v2 method to retrieve the session
     # cookie, unless you like bottomless recursions.
-    my $url = $self->_make_space_track_base_url( 2 );
+    my $url = $self->_make_space_track_base_url( 2 ) .
+    '/ajaxauth/login';
+    $self->_dump_request(
+	arg	=> [
+	    identity => $self->{username},
+	    password => $self->{password},
+	],
+	method	=> 'POST',
+	url	=> $url,
+    );
     my $resp = $self->_get_agent()->post(
-	"$url/ajaxauth/login", [
+	$url, [
 	    identity => $self->{username},
 	    password => $self->{password},
 	] );
 
     $resp->is_success()
 	or return _mung_login_status( $resp );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
 
     $resp->content() =~ m/ \b failed \b /smxi
 	and return HTTP::Response->new( HTTP_UNAUTHORIZED, LOGIN_FAILED );
@@ -2270,8 +2332,10 @@ The legal options are:
    specifies the data be returned in descending order.
  -end_epoch date
    specifies the end epoch for the desired data.
+ -format format_name
+   specifies the format in which the data are retrieved.
  -json
-   specifies the TLE be returned in JSON format
+   specifies the TLE be returned in JSON format.
  -last5
    specifies the last 5 element sets be retrieved.
    Ignored if start_epoch or end_epoch specified.
@@ -2284,13 +2348,22 @@ The legal options are:
    specifies how to sort the data. Legal types are
    'catnum' and 'epoch', with 'catnum' the default.
 
+The C<-format> option takes any argument supported by the Space Track
+interface: C<tle>, C<3le>, C<json>, C<csv>, C<html>, or C<xml>.
+Specifying C<-json> is equivalent to specifying C<-format json>, and if
+you specify C<-json>, specifying C<-format> with any other value than
+C<'json'> results in an exception being thrown. In addition, you can
+specify format C<'legacy'> which is equivalent to C<'tle'> if the
+C<with_name> attribute is false, or C<'3le'> (but without the leading
+C<'0 '> before the common name) if C<with_name> is true. The default is
+C<'legacy'> unless C<-json> is specified.
+
 If you specify either start_epoch or end_epoch, you get data with epochs
 at least equal to the start epoch, but less than the end epoch (i.e. the
 interval is closed at the beginning but open at the end). If you specify
 only one of these, you get a one-day interval. Dates are specified
 either numerically (as a Perl date) or as numeric year-month-day (and
-optional hour, hour:minute, or hour:minute:second, but these are ignored
-under the Space Track version 1 interface), punctuated by any
+optional hour, hour:minute, or hour:minute:second), punctuated by any
 non-numeric string. It is an error to specify an end_epoch before the
 start_epoch.
 
@@ -2300,7 +2373,7 @@ interpreted in the Perl sense - that is, undef, 0, and '' are false,
 and anything else is true.
 
 In order not to load the Space Track web site too heavily, data are
-retrieved in batches of 50. Ranges will be subdivided and handled in
+retrieved in batches of 200. Ranges will be subdivided and handled in
 more than one retrieval if necessary. To limit the damage done by a
 pernicious range, ranges greater than the max_range setting (which
 defaults to 500) will be ignored with a warning to STDERR.
@@ -2338,10 +2411,15 @@ sub retrieve {
 
 ##  $rest->{orderby} = 'EPOCH desc';
 
-    my $context = {};
-    my $accumulator = (
-	$rest->{format} eq 'json' || $no_execute
-    ) ? \&_accumulate_data_json : \&_accumulate_data_tle;
+    my $accumulator = _accumulator_for (
+	$no_execute ?
+	    ( json => { pretty => 1 } ) :
+	    ( $rest->{format}, {
+		    file => 1,
+		    pretty => $self->getv( 'pretty' )
+		},
+	    )
+    );
 
     while ( @args ) {
 
@@ -2360,23 +2438,22 @@ sub retrieve {
 	    or $resp->code() == HTTP_I_AM_A_TEAPOT
 	    or return $resp;
 
-	$accumulator->( $self, $context, $resp );
+	$accumulator->( $self, $resp );
 
     }
 
-    $context->{data}
+    ( my $data = $accumulator->( $self ) )
 	or return HTTP::Response->new ( HTTP_NOT_FOUND, NO_RECORDS );
 
-    ref $context->{data}
-	and $context->{data} = $self->_get_json_object()->encode(
-	$context->{data} );
+    ref $data
+	and $data = $self->_get_json_object()->encode( $data );
 
     $no_execute
 	and return HTTP::Response->new(
-	    HTTP_I_AM_A_TEAPOT, undef, undef, $context->{data} );
+	    HTTP_I_AM_A_TEAPOT, undef, undef, $data );
 
     my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef,
-	$context->{data} );
+	$data );
 
     $self->_convert_content( $resp );
     $self->_add_pragmata( $resp,
@@ -2411,9 +2488,6 @@ sub retrieve {
 	    'OBJECT_NUMBER' )
 	.  ( $opt->{descending} ? ' desc' : ' asc' );
 
-	$opt->{json}
-	    and $rest{format} = 'json';
-
 	if ( $opt->{since_file} ) {
 	    $rest{FILE} = ">$opt->{since_file}";
 	    $rest{class} = 'tle';
@@ -2431,16 +2505,15 @@ sub retrieve {
 		and $rest{$name} = $opt->{$name};
 	}
 
-	defined $rest{format}
-	    or $rest{format} = 'tle';
-
-	$rest{format} eq 'tle'
-	    and $self->{with_name}
-	    and $rest{format} = '3le';
-
-	$rest{format} eq '3le'
-	    and not defined $rest{predicates}
-	    and $rest{predicates} = 'OBJECT_NAME,TLE_LINE1,TLE_LINE2';
+	if ( 'legacy' eq $rest{format} ) {
+	    if ( $self->{with_name} ) {
+		$rest{format} = '3le';
+		defined $rest{predicates}
+		    or $rest{predicates} = 'OBJECT_NAME,TLE_LINE1,TLE_LINE2';
+	    } else {
+		$rest{format} = 'tle';
+	    }
+	}
 
 	if ( $rest{class} eq 'tle_latest' ) {
 	    if ( defined $rest{sublimit} && $rest{sublimit} <= 5 ) {
@@ -2541,196 +2614,189 @@ sub retrieve {
 
 }
 
-{
+sub _search_rest {
+    my ( $self, $pred, $xfrm, @args ) = @_;
+    delete $self->{_pragmata};
 
-=begin comment
+    ( my $opt, @args ) = _parse_search_args( @args );
 
-    my %headings = (
-	OBJECT_NUMBER	=> 'Catalog Number',
-	OBJECT_NAME	=> 'Common Name',
-	OBJECT_ID	=> 'International Designator',
-	COUNTRY		=> 'Country',
-	LAUNCH		=> 'Launch Date',
-	SITE		=> 'Launch Site',
-	DECAY		=> 'Decay Date',
-	PERIOD		=> 'Period',
-	APOGEE		=> 'Apogee',
-	PERIGEE		=> 'Perigee',
-	RCSVALUE	=> 'RCS',
-    );
-    my @heading_order = qw{
-	OBJECT_NUMBER OBJECT_NAME OBJECT_ID COUNTRY LAUNCH SITE DECAY
-	PERIOD APOGEE PERIGEE RCSVALUE
-    };
+    my $headings = _search_heading_hash_ref( $opt );
+    my @heading_order = _search_heading_order( $opt );
 
-=end comment
+    if ( $pred eq 'OBJECT_NUMBER' ) {
 
-=cut
+	@args = $self->_expand_oid_list( @args )
+	    or return HTTP::Response->new(
+		HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
-    sub _search_rest {
-	my ( $self, $pred, $xfrm, @args ) = @_;
-	delete $self->{_pragmata};
-
-	@args = _parse_search_args( @args );
-	my $opt = shift @args;
-
-	my $headings = _search_heading_hash_ref( $opt );
-	my @heading_order = _search_heading_order( $opt );
-
-	if ( $pred eq 'OBJECT_NUMBER' ) {
-
-	    @args = $self->_expand_oid_list( @args )
-		or return HTTP::Response->new(
-		    HTTP_PRECONDITION_FAILED, NO_CAT_ID );
-
-	    @args = (
-		_stringify_oid_list( {
-			separator	=> ',',
-			range_operator	=> _rest_range_operator(),
-		    },
-		    @args
-		)
-	    );
-
-	}
-
-	my $want_tle = exists $opt->{tle} ? $opt->{tle} : 1;
-
-	my $rest_args = $self->_convert_search_options_to_rest( $opt );
-
-	my $class = defined $rest_args->{class} ?
-	    $rest_args->{class} :
-	    DEFAULT_SPACE_TRACK_REST_SEARCH_CLASS;
-
-	my @found;
-
-	foreach my $search_for ( map { $xfrm->( $_, $class ) } @args ) {
-
-	    my $rslt;
-	    {
-		local $self->{pretty} = 0;
-		$rslt = $self->__search_rest_raw( %{ $rest_args },
-		    $pred, $search_for );
-	    }
-
-	    $rslt->is_success()
-		or return $rslt;
-
-	    my $data = $self->_get_json_object()->decode( $rslt->content() );
-
-	    push @found , @{ $data };
-
-	}
-
-	my $rslt;
-
-	if ( $want_tle ) {
-
-	    my $with_name = $self->{with_name};
-
-	    my $ropt = _remove_search_options( $opt );
-
-##	    $ropt->{format} = 'json';
-	    $ropt->{json} = 1;
-
-	    {
-		local $self->{pretty} = 0;
-		$rslt = $self->retrieve( $ropt,
-		    map { $_->{OBJECT_NUMBER} } @found );
-	    }
-	    $rslt->is_success()
-		or return $rslt;
-	    my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @found;
-	    my $bodies = $self->_get_json_object()->decode( $rslt->content() );
-	    my $content;
-	    foreach my $body ( @{ $bodies } ) {
-		my $info = $search_info{$body->{OBJECT_NUMBER}};
-		if ( $opt->{json} ) {
-		    if ( $opt->{rcs} ) {
-			$body->{RCSVALUE} = $info->{RCSVALUE};
-		    }
-		} else {
-		    my @line_0;
-		    $with_name
-			and push @line_0, defined $info->{OBJECT_NAME} ?
-			    $info->{OBJECT_NAME} :
-			    $body->{TLE_LINE0};
-		    $opt->{rcs}
-			and defined $info->{RCSVALUE}
-			and push @line_0, "--rcs $info->{RCSVALUE}";
-		    @line_0
-			and $content .= join( ' ', @line_0 ) . "\n";
-		    $content .= <<"EOD";
-$body->{TLE_LINE1}
-$body->{TLE_LINE2}
-EOD
-		}
-	    }
-
-	    $opt->{json}
-		and $content = $self->_get_json_object()->encode( $bodies );
-
-	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
-	    $self->_add_pragmata( $rslt,
-		'spacetrack-type' => 'orbit',
-		'spacetrack-source' => 'spacetrack',
-		'spacetrack-interface' => 2,
-	    );
-
-	} else {
-
-	    my $content;
-	    if ( $opt->{json} ) {
-		$content = $self->_get_json_object()->encode( \@found );
-	    } else {
-		foreach my $datum (
-		    $headings,
-		    @found
-		) {
-		    $content .= join( "\t",
-			map { defined $datum->{$_} ? $datum->{$_} : '' }
-			@heading_order
-		    ) . "\n";
-		}
-	    }
-	    $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
-	    $self->_add_pragmata( $rslt,
-		'spacetrack-type' => 'search',
-		'spacetrack-source' => 'spacetrack',
-		'spacetrack-interface' => 2,
-	    );
-
-	}
-
-	wantarray
-	    or return $rslt;
-
-	my @table;
-	foreach my $datum (
-	    $headings,
-	    @found
-	) {
-	    push @table, [ map { $datum->{$_} } @heading_order ];
-	}
-
-	return ( $rslt, \@table );
-
-	# Note - if we're doing the tab output, the names and order are:
-	# Catalog Number: OBJECT_NUMBER
-	# Common Name: OBJECT_NAME
-	# International Designator: OBJECT_ID
-	# Country: COUNTRY
-	# Launch Date: LAUNCH (yyyy-mm-dd)
-	# Launch Site: SITE
-	# Decay Date: DECAY
-	# Period: PERIOD
-	# Incl.: INCLINATION
-	# Apogee: APOGEE
-	# Perigee: PERIGEE
-	# RCS: RCSVALUE
+	@args = (
+	    _stringify_oid_list( {
+		    separator	=> ',',
+		    range_operator	=> _rest_range_operator(),
+		},
+		@args
+	    )
+	);
 
     }
 
+    my $rest_args = $self->_convert_search_options_to_rest( $opt );
+    if ( $opt->{tle} || 'legacy' eq $opt->{format} ) {
+	$rest_args->{format} = 'json'
+    } else {
+	$rest_args->{format} = $opt->{format};
+    }
+
+    my $class = defined $rest_args->{class} ?
+	$rest_args->{class} :
+	DEFAULT_SPACE_TRACK_REST_SEARCH_CLASS;
+
+    my $accumulator = _accumulator_for( $rest_args->{format} );
+
+    foreach my $search_for ( map { $xfrm->( $_, $class ) } @args ) {
+
+	my $rslt;
+	{
+	    local $self->{pretty} = 0;
+	    $rslt = $self->__search_rest_raw( %{ $rest_args },
+		$pred, $search_for );
+	}
+
+	$rslt->is_success()
+	    or return $rslt;
+
+	$accumulator->( $self, $rslt );
+
+    }
+
+    my ( $content, $data ) = $accumulator->( $self );
+
+    if ( $opt->{tle} ) {
+	defined $opt->{format}
+	    or $opt->{format} = 'tle';
+	'ARRAY' eq ref $data
+	    or croak "Format $rest_args->{format} does not support TLE retrieval";
+	my $ropt = _remove_search_options( $opt );
+	my $load_content;
+	if ( $opt->{rcs} ) {
+	    delete $ropt->{json};
+	    $ropt->{format} = 'json';
+	    $load_content = $self->can( "_load_content_$opt->{format}" )
+		or croak "Format $opt->{format} does not support -rcs";
+	} else {
+	    $load_content = sub {};
+	}
+	my $rslt = $self->retrieve( $ropt,
+	    map { $_->{OBJECT_NUMBER} } @{ $data } );
+	$opt->{rcs}
+	    or return $rslt;
+	my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @{ $data };
+	my $json = $self->_get_json_object();
+	my $info = $json->decode( $rslt->content() );
+	foreach my $obj ( @{ $info } ) {
+	    $obj->{RCSVALUE} =
+		$search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
+	}
+	$load_content->( $self, $rslt, $info );
+	wantarray
+	    and $data
+	    and return ( $rslt, $data );
+	return $rslt;
+    } else {
+
+	if ( 'legacy' eq $opt->{format} ) {
+	    $content = '';
+	    foreach my $datum (
+		$headings,
+		@{ $data }
+	    ) {
+		$content .= join( "\t",
+		    map { defined $datum->{$_} ? $datum->{$_} : '' }
+		    @heading_order
+		) . "\n";
+	    }
+	}
+
+	my $rslt = HTTP::Response->new( HTTP_OK, undef, undef, $content );
+	$self->_add_pragmata( $rslt,
+	    'spacetrack-type' => 'search',
+	    'spacetrack-source' => 'spacetrack',
+	    'spacetrack-interface' => 2,
+	);
+	wantarray
+	    and $data
+	    and return ( $rslt, $data );
+	return $rslt;
+    }
+
+    # Note - if we're doing the tab output, the names and order are:
+    # Catalog Number: OBJECT_NUMBER
+    # Common Name: OBJECT_NAME
+    # International Designator: OBJECT_ID
+    # Country: COUNTRY
+    # Launch Date: LAUNCH (yyyy-mm-dd)
+    # Launch Site: SITE
+    # Decay Date: DECAY
+    # Period: PERIOD
+    # Incl.: INCLINATION
+    # Apogee: APOGEE
+    # Perigee: PERIGEE
+    # RCS: RCSVALUE
+
+}
+
+sub _load_content_3le {
+    my ( $self, $resp, $data ) = @_;
+    my $content;
+    foreach my $obj ( @{ $data } ) {
+	$content .= $obj->{TLE_LINE0};
+	defined $obj->{RCSVALUE}
+	    and $content .= " --rcs $obj->{RCSVALUE}";
+	$content .= "\n";
+	$content .= join '', map { "$obj->{$_}\n" } qw{ TLE_LINE1
+	TLE_LINE2 };
+    }
+    $resp->content( $content );
+    return $resp;
+}
+
+sub _load_content_json {
+    my ( $self, $resp, $data ) = @_;
+    my $json = $self->_get_json_object();
+    $resp->content( $json->encode( $data ) );
+    return $resp;
+}
+
+sub _load_content_legacy {
+    my ( $self, $resp, $data ) = @_;
+    my $with_name = $self->getv( 'with_name' );
+    my $content;
+    foreach my $obj ( @{ $data } ) {
+	my @line0;
+	$with_name
+	    and push @line0, $obj->{OBJECT_NAME};
+	defined $obj->{RCSVALUE}
+	    and push @line0, "--rcs $obj->{RCSVALUE}";
+	@line0
+	    and $content .= "@line0\n";
+	$content .= join '', map { "$obj->{$_}\n" }
+	    qw{ TLE_LINE1 TLE_LINE2 };
+    }
+    $resp->content( $content );
+    return $resp;
+}
+
+sub _load_content_tle {
+    my ( $self, $resp, $data ) = @_;
+    my $content;
+    foreach my $obj ( @{ $data } ) {
+	defined $obj->{RCSVALUE}
+	    and $content .= "--rcs $obj->{RCSVALUE}\n";
+	$content .= join '', map { "$obj->{$_}\n" }
+	    qw{ TLE_LINE1 TLE_LINE2 };
+    }
+    $resp->content( $content );
+    return $resp;
 }
 
 sub __search_rest_raw {
@@ -2810,7 +2876,8 @@ options may be specified:
    --rcs radar_cross_section. If the with_name attribute
    is false, the radar cross-section will be inserted as
    the name. Historical rcs data appear NOT to be
-   available.
+   available. This option is ignored if C<-notle> is
+   specified.
  -status
    specifies the desired status of the returned body
    (or bodies). Must be 'onorbit', 'decayed', or 'all'.
@@ -2834,6 +2901,10 @@ options may be specified:
    returned in array context, or if C<-notle> is
    specified. The default is C<-nocomment> for backward
    compatibility.
+
+The C<-rcs> option does not work with all values of C<-format>. An
+exception will be thrown unless C<-format> is C<'tle'>, C<'3le'>,
+C<'legacy'>, or C<'json'>.
 
 Examples:
 
@@ -2872,11 +2943,17 @@ These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 If you explicitly specified C<-notle> (or C<< { tle => 0 } >>), this
-method returns an HTTP::Response object whose content is the results of
-the relevant search, one line per object found. Within a line the fields
-are tab-delimited, and occur in the same order as the underlying web
-page. The first line of the content is the header lines from the
-underlying web page. It will also have the following headers set:
+method returns an HTTP::Response object whose content is in the format
+specified by the C<-format> retrieval option (q.v.). If the format is
+C<'legacy'> (the default if C<-json> is not specified) the content
+mimics what was returned under the version 1 interface; that is, it is
+the results of the relevant search, one line per object found. Within a
+line the fields are tab-delimited, and occur in the same order as the
+underlying web page. The first line of the content is the header lines
+from the underlying web page.
+
+The returned object will also have the following headers set if
+C<-notle> is specified:
 
  Pragma: spacetrack-type = search
  Pragma: spacetrack-source = spacetrack
@@ -3191,7 +3268,7 @@ sub set {	## no critic (ProhibitAmbiguousNames)
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'set',
     );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     return $resp;
 }
 
@@ -3316,7 +3393,7 @@ my %known_meta = (
 		    @lines
 		);
 	    }
-	    $self->_dump_headers( $rslt );
+	    $self->__dump_response( $rslt );
 	    return;
 	},
     },
@@ -3724,7 +3801,7 @@ sub spaceflight {
 	'spacetrack-type' => 'orbit',
 	'spacetrack-source' => 'spaceflight',
     );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     return $resp;
 }
 
@@ -3827,7 +3904,10 @@ sub spacetrack {
     my ( $opt, $catalog ) = _parse_args(
 	[
 	    'json!'	=> 'Return data in JSON format',
+	    'format=s'	=> 'Specify retrieval format',
 	], @args );
+
+    _retrieval_format( tle => $opt );
 
     defined $catalog
 	and my $info = $catalogs{spacetrack}[2]{$catalog}
@@ -4034,7 +4114,7 @@ C<'tle_latest'>,
 	    }
 	}
 
-	$self->_dump_headers( $resp );
+	$self->__dump_response( $resp );
 	return $resp;
     }
 }
@@ -4225,12 +4305,138 @@ sub _add_pragmata {
     return;
 }
 
-sub _accumulate_data_json {
-    my ( $self, $context, $resp ) = @_;
+{
+    my %format_map = qw{
+	3le	tle
+    };
 
-    my $json = $context->{json} ||= $self->_get_json_object();
+    # $accumulator = _accumulator_for( $format, \%opt )
+    #
+    # This subroutine manufactires and returns an accumulator for the
+    # named format. The reference to the options hash is itself
+    # optional. The supported options are:
+    #   file => true if the data contains a FILE key and the caller
+    #		requests that a _file_of_record key be generated if
+    #		possible and appropriate. Individual accumulators are at
+    #		liberty to ignore this.
+    #	pretty => true if the caller requests that the returned data be
+    #		nicely formatted. This normally comes from the 'pretty'
+    #		attribute. Individual accumulators are at liberty to
+    #		ignore this.
+    #
+    # The return is a code reference. This reference is intended to be
+    # called as
+    #	$accumulator->( $self, $resp )
+    # for each successful HTTP response. After all responses have been
+    # processed, the accumulated data are retrieved using
+    #  ( $content, $data ) = $accumulator( $self )
+    # The first return is the text representation of the accumulated
+    # data. The second is the decoded data, and is returned at the
+    # accumulator's option. In scalar context only $content is returned.
 
-    my $data = $json->decode( $resp->content() );
+    sub _accumulator_for {
+	my ( $format, $opt ) = @_;
+	my $name = $format_map{$format} || $format;
+	my $accumulator = __PACKAGE__->can( "_accumulate_${name}_data" )
+	    || \&_accumulate_unknown_data;
+	my $returner = __PACKAGE__->can( "_accumulate_${name}_return" )
+	|| sub {
+	    my ( undef, $context ) = @_;
+	    return $context->{data};
+	};
+	my $context = {
+	    format	=> $format,
+	    opt		=> $opt || {},
+	};
+	return sub {
+	    my ( $self, $resp ) = @_;
+	    defined $resp
+		or return $returner->( $self, $context );
+	    my $content = $resp->content();
+	    defined $content
+		and $content ne ''
+		or return;
+	    my $data = $accumulator->( $self, $content, $context );
+	    $context->{opt}{file}
+		and $data
+		and _accumulate_file_of_record( $self, $context, $data );
+	    return;
+	}
+    }
+
+}
+
+sub _accumulate_file_of_record {
+    my ( $self, $context, $data ) = @_;
+    if ( defined $context->{file} ) {
+	foreach my $datum ( @{ $data } ) {
+	    defined $datum->{FILE}
+		and $datum->{FILE} > $context->{file}
+		and $datum->{_file_of_record} = $context->{file};
+	}
+    } else {
+	$context->{file} = max( -1,
+	    map { $_->{FILE} }
+	    grep { defined $_->{FILE} }
+	    @{ $data }
+	);
+    }
+    return;
+}
+
+# The data accumulators. The conventions which must be followed are
+# that, given a format named 'fmt':
+#
+# 1) There MUST be an accumulator named _accumulate_fmt_data(). Its
+#    arguments are the invocant, the content of the return, and the
+#    context hash. It must accumulate data in $context->{data}, in any
+#    format it likes.
+# 2) If _accumulate_fmt_data() decodes the data, it SHOULD return a
+#    reference to the decoded array. Otherwise it MUST return nothing.
+# 3) There MAY be a returner named _accumulate_fmt_return(). If it
+#    exists its arguments are the invocant and the context hash. It MUST
+#    return a valid representation of the accumulated data in the
+#    desired format.
+# 4) If _accumulate_fmt_return() does not exist, the return will be the
+#    contents of $context->{data}, which MUST have been maintained by
+#    _accumulate_fmt_data() as a valid representation of the data in the
+#    desired format.
+# 5) Note that if _accumulate_fmt_return() exists,
+#    _accumulate_fmt_data need not maintain $context->{data} as a valid
+#    representation of the accumulated data.
+
+sub _accumulate_csv_data {
+    my ( $self, $content, $context ) = @_;
+    if ( defined $context->{data} ) {
+	$context->{data} =~ s{ (?<! \n ) \z }{\n}smx;
+	$content =~ s{ .* \n }{}smx;
+	$context->{data} .= $content;
+    } else {
+	$context->{data} = $content;
+    }
+    return;
+}
+
+sub _accumulate_html_data {
+    my ( $self, $content, $context ) = @_;
+    if ( defined $context->{data} ) {
+	$context->{data} =~ s{ \s* </tbody> \s* </table> \s* \z }{}smx;
+	$content =~ s{ .* <tbody> \s* }{}smx;
+	$context->{data} .= $content;
+    } else {
+	$context->{data} = $content;
+    }
+    return;
+}
+
+sub _accumulate_json_data {
+    my ( $self, $content, $context ) = @_;
+
+    my $json = $context->{json} ||= $self->_get_json_object(
+	pretty => $context->{opt}{pretty},
+    );
+
+    my $data = $json->decode( $content );
 
     'ARRAY' eq ref $data
 	or $data = [ $data ];
@@ -4239,27 +4445,46 @@ sub _accumulate_data_json {
 	or return;
 
     if ( $context->{data} ) {
-	foreach my $datum ( @{ $data } ) {
-	    defined $datum->{FILE}
-		and $datum->{FILE} > $context->{file}
-		and $datum->{_file_of_record} = $context->{file};
-	}
 	push @{ $context->{data} }, @{ $data };
     } else {
-	$context->{file} = max( -1, map { $_->{FILE} } grep { defined
-	    $_->{FILE} } @{ $data } );
 	$context->{data} = $data;
     }
 
+    return $data;
+}
+
+sub _accumulate_json_return {
+    my ( $self, $context ) = @_;
+    $context->{data} ||= [];	# In case we did not find anything.
+    return wantarray ? (
+	$context->{json}->encode( $context->{data} ),
+	$context->{data},
+    ) : $context->{json}->encode( $context->{data} );
+}
+
+sub _accumulate_unknown_data {
+    my ( $self, $content, $context ) = @_;
+    defined $context->{data}
+	and croak "Unable to accumulate $context->{format} data";
+    $context->{data} = $content;
     return;
 }
 
-sub _accumulate_data_tle {
-    my ( $self, $context, $resp ) = @_;
-    my $content = $resp->content();
-    defined $content
-	and $content ne ''
-	and $context->{data} .= $content;
+sub _accumulate_tle_data {
+    my ( $self, $content, $context ) = @_;
+    $context->{data} .= $content;
+    return;
+}
+
+sub _accumulate_xml_data {
+    my ( $self, $content, $context ) = @_;
+    if ( defined $context->{data} ) {
+	$context->{data} =~ s{ \s* </xml> \s* \z }{}smx;
+	$content =~ s{ .* <xml> \s* }{}smx;
+	$context->{data} .= $content;
+    } else {
+	$context->{data} = $content;
+    }
     return;
 }
 
@@ -4278,7 +4503,7 @@ sub _record_cookie_generic {
     my ( $cookie, $expires );
     $self->_get_agent()->cookie_jar->scan( sub {
 	    $self->{dump_headers} & DUMP_COOKIE
-		and _dump_cookie( "_record_cookie_generic:\n", @_ );
+		and $self->_dump_cookie( "_record_cookie_generic:\n", @_ );
 	    $_[4] eq $domain
 		or return;
 	    $_[3] eq SESSION_PATH
@@ -4415,52 +4640,48 @@ sub _check_cookie_generic {
 #	The response to the login, though, has an actual expiration
 #	time, which we take cognisance of.
 
-use Data::Dumper;
-
 {	# begin local symbol block
 
     my @names = qw{version key val path domain port path_spec secure
 	    expires discard hash};
 
     sub _dump_cookie {
-	my ($prefix, @args) = @_;
-	local $Data::Dumper::Terse = 1;
+	my ( $self, $prefix, @args ) = @_;
+	my $json = $self->_get_json_object( pretty => 1 );
 	$prefix and warn $prefix;	## no critic (RequireCarping)
 	for (my $inx = 0; $inx < @names; $inx++) {
-	    warn "    $names[$inx] => ", Dumper ($args[$inx]);	## no critic (RequireCarping)
+	    warn "    $names[$inx] => ", $json->encode( $args[$inx] ); ## no critic (RequireCarping)
 	}
 	return;
     }
 }	# end local symbol block
 
 
-#	_dump_headers dumps the headers of the passed-in response
-#	object.
+#	__dump_response dumps the headers of the passed-in response
+#	object. The hook is used for capturing responses to use when
+#	mocking LWP::UserAgent, and is UNSUPPORTED, and subject to
+#	change or retraction without notice.
 
-sub _dump_headers {
+sub __dump_response {
     my ( $self, $resp ) = @_;
 
-    my $dump_headers = $self->{dump_headers};
-
-    if ( $dump_headers & DUMP_HEADERS ) {
-	local $Data::Dumper::Terse = 1;
-	my $rqst = $resp->request;
-	$rqst = ref $rqst ? $rqst->as_string : "undef\n";
-	chomp $rqst;
-	warn "\nRequest:\n$rqst\nHeaders:\n",
-	    $resp->headers->as_string, "\nCookies:\n";
-	$self->_get_agent()->cookie_jar->scan (sub {
-	    _dump_cookie ("\n", @_);
-	    });
-	warn "\n";
+    if ( $self->{dump_headers} & DUMP_RESPONSE ) {
+	my @data = ( $resp->code(), $resp->message(), [],
+	    $resp->content() );
+	foreach my $name ( $resp->headers()->header_field_names() ) {
+	    my @val = $resp->header( $name );
+	    push @{ $data[2] }, $name, @val > 1 ? \@val : $val[0];
+	}
+	if ( my $rqst = $resp->request() ) {
+	    push @data, {
+		method	=> $rqst->method(),
+		uri	=> '' . $rqst->uri(),	# Force stringification
+	    };
+	}
+	my $encoded = $self->_get_json_object( pretty => 1 )->encode(
+	    \@data );
+	warn "Response object:\n$encoded";
     }
-
-    if ( $dump_headers & DUMP_CONTENT ) {
-	my $content = $resp->content();
-	$content =~ s/ (?<! \n ) \z /\n/smx;
-	warn "Content:\n$content";
-    }
-
     return;
 }
 
@@ -4490,7 +4711,7 @@ sub _dump_request {
 
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
-	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( \%args )
+	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( [ \%args ] )
     );
 
     warn $json->encode( \%args );
@@ -4781,7 +5002,7 @@ sub _get_from_net {
 	    ()
 	}
 	qw{ spacetrack_type spacetrack_source spacetrack_cache_hit } );
-    $self->_dump_headers( $resp );
+    $self->__dump_response( $resp );
     return $resp;
 }
 
@@ -4848,7 +5069,7 @@ sub _handle_observing_list {
 		'spacetrack-source' => 'spacetrack',
 	    );
 	}
-	$self->_dump_headers( $resp );
+	$self->__dump_response( $resp );
     }
     return wantarray ? ($resp, \@data) : $resp;
 }
@@ -4898,6 +5119,13 @@ sub _mung_login_status {
 # not modify the contents of @_. Modifying @_ itself is fine.
 sub _mutate_attrib {
     return ($_[0]{$_[1]} = $_[2]);
+}
+
+sub _mutate_dump_headers {
+    my ( $self, $name, $value ) = @_;
+    $value =~ m/ \A 0 (?: [0-7]+ | x [[:xdigit:]]+ ) \z /smx
+	and $value = oct $value;
+    return ( $self->{$name} = $value );
 }
 
 {
@@ -5051,8 +5279,9 @@ sub _mutate_verify_hostname {
 
     sub _parse_args {
 	my ( $lgl_opts, @args ) = @_;
+	my $opt;
 	if ( 'HASH' eq ref $args[0] ) {
-	    my $opt = { %{ shift @args } };	# Poor man's clone.
+	    $opt = { %{ shift @args } };	# Poor man's clone.
 	    # Validation is new, so I insert a hack to turn it off if need
 	    # be.
 	    unless ( $ENV{SPACETRACK_SKIP_OPTION_HASH_VALIDATION} ) {
@@ -5077,9 +5306,8 @@ fatal.
 EOD
 		    );
 	    }
-	    return ( $opt, @args );
 	} else {
-	    my $opt = {};
+	    $opt = {};
 	    my %lgl = @{ $lgl_opts };
 	    $go->getoptionsfromarray(
 		\@args,
@@ -5087,8 +5315,8 @@ EOD
 		keys %lgl,
 	    )
 		or _parse_args_failure( legal => \%lgl );
-	    return ( $opt, @args );
 	}
+	return ( $opt, @args );
     }
 }
 
@@ -5197,6 +5425,7 @@ sub _parse_launch_date {
 	'since_file=i'
 	    => '(Return only results added after the given file number)',
 	'json!'	=> '(Return TLEs in JSON format)',
+	'format=s' => 'Specify data format'
     );
 
     sub _parse_retrieve_args {
@@ -5213,7 +5442,49 @@ sub _parse_launch_date {
 
 	$opt->{sort} ||= _validate_sort( $opt->{sort} );
 
+	_retrieval_format( undef, $opt );
+
 	return ( $opt, @args );
+    }
+}
+
+{
+    my @usual_formats = map { $_ => 1 } qw{ xml json html csv };
+    my $legacy_formats = {
+	default	=> 'legacy',
+	valid	=> { @usual_formats, map { $_ => 1 } qw{ legacy } },
+    };
+    my $tle_formats	= {
+	default	=> 'legacy',
+	valid	=> { @usual_formats, map { $_ => 1 } qw{ tle 3le legacy } },
+    };
+    my %format = (
+	box_score	=> $legacy_formats,
+	country_names	=> $legacy_formats,
+	launch_sites	=> $legacy_formats,
+	satcat		=> $legacy_formats,
+	tle		=> $tle_formats,
+    );
+
+    sub _retrieval_format {
+	my ( $table, $opt ) = @_;
+	defined $table
+	    or $table = defined $opt->{tle} ? $opt->{tle} ? 'tle' :
+	'satcat' : 'tle';
+	$opt->{json}
+	    and defined $opt->{format}
+	    and $opt->{format} ne 'json'
+	    and croak 'Inconsistent retrieval format specification';
+	$format{$table}
+	    or confess "Programming error - $table not supported";
+	defined $opt->{format}
+	    or $opt->{format} = $opt->{json} ? 'json' :
+		$format{$table}{default};
+	exists $opt->{json}
+	    or $opt->{json} = 'json' eq $opt->{format};
+	$format{$table}{valid}{ $opt->{format} }
+	    or croak "Invalid $table retrieval format '$opt->{format}'";
+	return $opt->{format} eq 'legacy' ? 'json' : $opt->{format};
     }
 }
 
@@ -5350,6 +5621,9 @@ Error - Illegal exclusion '$_'. You must specify one or more of
 EOD
 
 	}
+
+	defined $opt->{tle}
+	    or $opt->{tle} = 1;
 
 	return @args;
     }
