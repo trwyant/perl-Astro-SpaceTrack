@@ -12,6 +12,8 @@ my $ua = LWP::UserAgent->new ();
 
 # Redistributed TLEs
 
+note 'Celestrak current data';
+
 my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');
 
 $rslt->is_success()
@@ -90,6 +92,8 @@ ok ( !%got, 'The above is all there is' ) or do {
 };
 
 # Supplemental TLEs
+
+note 'Celestrak supplemental data';
 
 $rslt = $ua->get ('http://celestrak.com/NORAD/elements/supplemental/');
 
