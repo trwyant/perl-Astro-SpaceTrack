@@ -423,6 +423,7 @@ my %mutator = (	# Mutators for the various attributes.
     max_range => \&_mutate_number,
     password => \&_mutate_authen,
     pretty => \&_mutate_attrib,
+    prompt	=> \&_mutate_attrib,
     scheme_space_track => \&_mutate_attrib,
     session_cookie => \&_mutate_spacetrack_interface,
     space_track_version => \&_mutate_space_track_version,
@@ -482,6 +483,7 @@ sub new {
 	max_range => 500,	# Sanity limit on range size.
 	password => undef,	# Login password.
 	pretty => 0,		# Pretty-format content
+	prompt => 'SpaceTrack> ',
 	scheme_space_track => 'https',
 	_space_track_interface	=> [
 	    undef,	# No such thing as version 0
@@ -3426,8 +3428,6 @@ sub shell {
 'help' gets you a list of valid commands.
 EOD
 
-    my $prompt = 'SpaceTrack> ';
-
     my $stdout = \*STDOUT;
     my $read;
 
@@ -3449,8 +3449,8 @@ EOD
 		    $rdln ||= Term::ReadLine->new (
 			'SpaceTrack orbital element access');
 		    $stdout = $rdln->OUT || \*STDOUT;
-		    sub { $rdln->readline ($prompt) };
-		} || sub { print { $stdout } $prompt; return <STDIN> } ) :
+		    sub { $rdln->readline ( $self->getv( 'prompt' ) ) };
+		} || sub { print { $stdout } $self->getv( 'prompt' ); return <STDIN> } ) :
 		sub { return<STDIN> };
 	    $buffer = $read->();
 	}
@@ -5930,6 +5930,11 @@ Pretty-formatting the C<JSON> is extra overhead, so unless you intend to
 read the C<JSON> yourself this should probably be false.
 
 The default is C<0> (i.e. false).
+
+=item prompt (string)
+
+This attribute specifies the prompt issued by the C<shell()> method. The
+default is C<< 'SpaceTrack> ' >>.
 
 =item scheme_space_track (string)
 

@@ -52,6 +52,7 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     max_range
     password
     pretty
+    prompt
     scheme_space_track
     session_cookie
     space_track_version

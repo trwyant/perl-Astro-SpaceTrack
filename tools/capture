@@ -5,7 +5,9 @@ use 5.010;
 use strict;
 use warnings;
 
-use Getopt::Long 2.33 qw{ :config auto_version };
+use Getopt::Long 2.33 qw{
+    :config auto_version pass_through require_order
+};
 use Pod::Usage;
 
 use blib;
@@ -35,7 +37,9 @@ $opt{list}
 
 {
     local $Astro::SpaceTrack::RETRIEVAL_SIZE = $opt{retrieval_size};
-    my $st = Astro::SpaceTrack::Dumper->new();
+    my $st = Astro::SpaceTrack::Dumper->new(
+	prompt => 'SpaceTrack capture> ',
+    );
     $opt{verbose}
 	and $st->set( dump_headers => Astro::SpaceTrack->DUMP_RESPONSE() );
     $st->shell( @ARGV );
@@ -79,6 +83,9 @@ capture - Capture HTTP::Response objects to feed to a mock LWP::UserAgent.
  capture -version
 
 =head1 OPTIONS
+
+The following options are supported directly by this script. Any
+unrecognized options will be passed through to C<Astro::SpaceTrack>.
 
 =head2 -directory
 
