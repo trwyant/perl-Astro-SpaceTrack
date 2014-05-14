@@ -41,7 +41,7 @@ $mmv >= 6.31 and $attr{LICENSE} = 'perl';
 if ( $mmv >= 6.4501 ) {
     $attr{META_ADD} = {
 	no_index => {
-	    directory => [ qw{ inc t xt } ],
+	    directory => [ qw{ inc t tools xt } ],
 	},
     };
     $attr{META_MERGE} = {

@@ -31,7 +31,7 @@ my %attr = (
 
 $mbv >= 0.28 and $attr{meta_merge} = {
     no_index => {
-	directory => [qw{ inc t xt }],
+	directory => [qw{ inc t tools xt }],
     },
     resources => {
 	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
