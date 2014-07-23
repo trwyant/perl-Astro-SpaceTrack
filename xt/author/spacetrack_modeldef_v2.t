@@ -152,6 +152,14 @@ if ( $rslt->is_success() ) {
          "Type" : "float"
       },
       {
+         "Default" : null,
+         "Extra" : "",
+         "Field" : "RCS_SIZE",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "varchar(6)"
+      },
+      {
          "Default" : "0",
          "Extra" : "",
          "Field" : "FILE",
