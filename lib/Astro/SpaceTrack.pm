@@ -3838,14 +3838,6 @@ The following catalogs are available:
     visible         Visible satellites
     special         Special satellites
 
-The C<full_fast> and C<geosynchronous_fast> queries became, as of
-version 0.069_02, the same as their un-fast versions. The queries are
-those implemented on the Space Track web site, and B<may> included
-recently-decayed satellites. These queries were deprecated as of version
-0.069_02, and removed as of 0.084. All reference to them
-(meaning, this paragraph) will be removed in the first release after
-July 1 2014.
-
 The following option is supported:
 
  -json
