@@ -1,3 +1,17 @@
+0.086_01	2014-07-24	T. R. Wyant
+  Remove all references to obsolete spacetrack() canned queries
+    full_fast and geosynchronous_fast in the documentation. The queries
+    themselves are long gone.
+  Prepare for removal of the RCSVALUE datum in Space Track's satcat
+    data, which is announced for August 18 2014.
+  Add 'prompt' attribute.
+  Add ISS data to celestrak_supplemental.
+  Support the various Space Track data formats. This involves providing
+    a -format option, with values corresponding to the Space Track
+    formats, plus 'legacy' (the default) to provide what is essentially
+    the Version 1 data format. The old -json option is equivalent to
+    -format json.
+
 0.086		2014-04-26	T. R. Wyant
   No changes since 0.085_01.
 
