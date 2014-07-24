@@ -78,6 +78,7 @@ redirections
 Redirections
 redistributer
 redistributers
+RCS
 RMS
 SATCAT
 sladen

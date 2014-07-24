@@ -45,13 +45,20 @@ You should consult the above link for the full text of the user
 agreement before using this software to retrieve content from the Space
 Track web site.
 
-=head1 DEPRECATION NOTICE: SPACE TRACK VERSION 1 API
+=head1 DEPRECATION NOTICE: QUANTITATIVE RCS DATA
 
-The Space Track version 1 API was taken out of service July 16 2013 at
-18:00 UT. Therefore, as of version 0.077, an attempt to set the
-C<space_track_version> attribute to C<1> will result in a fatal error.
-Subsequent releases of this package will remove the code related to the
-version 1 API.
+On July 21 2014 Space Track announced the plan to remove quantitative
+RCS data (the C<RCSVALUE> field), replacing it with a qualitative field
+(C<RCS_SIZE>, values C<'SMALL'> (< 0.1 square meter), C<'MEDIUM'>, (>=
+0.1 square meter but < 1 square meter), C<'LARGE'> (> 1 square meter),
+and of course, null.
+
+This removal is scheduled to take place August 18 2014. After that time,
+any RCS functionality specific to the Space Track web site C<RCSVALUE>
+datum (such as the C<-rcs> search option) will be removed, though I may
+consider trying to replace the data with Mike McCants' RCS data. On the
+other hand, the C<RCS_SIZE> datum will be supported in the same ways and
+places that the Space Track web site supports it.
 
 =head1 NOTICE: HASH REFERENCE ARGUMENTS NOW VALIDATED
 
@@ -2697,8 +2704,9 @@ sub _search_rest {
 	my $json = $self->_get_json_object();
 	my $info = $json->decode( $rslt->content() );
 	foreach my $obj ( @{ $info } ) {
-	    $obj->{RCSVALUE} =
-		$search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
+	    exists $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE}
+		and $obj->{RCSVALUE} =
+		    $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
 	}
 	$load_content->( $self, $rslt, $info );
 	wantarray
