@@ -45,6 +45,20 @@ You should consult the above link for the full text of the user
 agreement before using this software to retrieve content from the Space
 Track web site.
 
+=head1 NOTICE: DATA THROTTLING
+
+Space Track announced August 19 2013 that beginning September 22 they
+would limit users to less than 20 API queries per minute. Experience
+seems to say they jumped the gun - at least, server errors during
+testing were turned into success by throttling queries to one every
+three seconds.
+
+The throttling functionality will make use of L<Time::HiRes|Time::HiRes>
+if it is available; otherwise it will simply use the built-in C<sleep()>
+and C<time()>, with consequent loss of precision.
+
+Unfortunately this makes testing slower. Sorry.
+
 =head1 DEPRECATION NOTICE: QUANTITATIVE RCS DATA
 
 On July 21 2014 Space Track announced the plan to remove quantitative
@@ -4040,11 +4054,28 @@ C<'tle_latest'>,
 =cut
 
 {
+    use constant SPACETRACK_DELAY_SECONDS	=> 3;
+
+    my $spacetrack_delay_until;
 
     my %tle_class = map { $_ => 1 } qw{ tle tle_latest };
 
     sub spacetrack_query_v2 {
 	my ( $self, @args ) = @_;
+
+	# Space Track has announced that beginning September 22 2014
+	# they will begin limiting queries to 20 per minute. But they
+	# seem to have jumped the gun, since I get failures August 19
+	# 2014 if I don't throttle. None of this applies, though, if
+	# we're not actually executing the query.
+	unless ( $self->{dump_headers} & DUMP_NO_EXECUTE ) {
+	    if ( defined $spacetrack_delay_until ) {
+		my $now = _time();
+		$now < $spacetrack_delay_until
+		    and _sleep( $spacetrack_delay_until - $now );
+	    }
+	    $spacetrack_delay_until = _time() + 3;
+	}
 
 	delete $self->{_pragmata};
 
@@ -5812,6 +5843,20 @@ sub _stringify_oid_list {
     }
 
 }
+
+eval {
+    require Time::HiRes;
+    *_sleep = \&Time::HiRes::sleep;
+    *_time = \&Time::HiRes::time;
+    1;
+} or do {
+    *_sleep = sub {
+	return sleep $_[0];
+    };
+    *_time = sub {
+	return time;
+    };
+};
 
 #	_trim replaces undefined arguments with '', trims all arguments
 #	front and back, and returns the modified arguments.
