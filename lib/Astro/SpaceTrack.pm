@@ -534,7 +534,7 @@ sub new {
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
 	verbose => undef,	# Verbose error messages for catalogs.
-	verify_hostname => 1,	# Verify host names by default.
+	verify_hostname => 0,	# Don't verify host names by default.
 	webcmd => undef,	# Command to get web help.
 	with_name => undef,	# True to retrieve three-line element sets.
     };
@@ -6069,17 +6069,25 @@ If you set this false, you can not verify that hosts using C<https:> are
 who they say they are, but it also lets you work around invalid
 certificates. Currently only the Space Track web site uses C<https:>.
 
-B<Note> that the default has changed. In version 0.060_08 and earlier,
-the default was true, to mimic earlier behavior. In version 0.060_09
-this was changed to false, in the belief that the code should work out
-of the box (which it did not when verify_hostname was true, at least as
-of mid-July 2012). But on September 30 2012 Space Track announced that
-they had their SSL certificates set up, so in 0.064_01 the default
-became false again.
+B<Note> that the default has changed, as follows:
+
+* In version 0.060_08 and earlier, the default was true, to mimic
+earlier behavior.
+
+* In version 0.060_09 this was changed to false, in the belief that the
+code should work out of the box (which it did not when verify_hostname
+was true, at least as of mid-July 2012).
+
+* On September 30 2012 Space Track announced that they had their SSL
+certificates set up, so in 0.064_01 the default became false again.
+
+* On August 19 2014 Perl's SSL logic stopped accepting Mike McCants'
+GoDaddy certificate, so starting with version [%% next_version %%] the
+default is false once again.
 
 If environment variable C<SPACETRACK_VERIFY_HOSTNAME> is defined, its
 value will be used as the default of this attribute. Otherwise the
-default is true (i.e. 1).
+default is false (i.e. 0).
 
 =item webcmd (string)
 

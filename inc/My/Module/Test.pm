@@ -15,7 +15,7 @@ our $VERSION = '0.086_01';
 # starts using a certificate that can not be verified.
 use constant VERIFY_HOSTNAME => defined $ENV{SPACETRACK_VERIFY_HOSTNAME}
     ? $ENV{SPACETRACK_VERIFY_HOSTNAME}
-    : 1;
+    : 0;
 
 our @EXPORT = qw{
     is_error

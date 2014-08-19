@@ -46,6 +46,7 @@ globalstar
 Globalstar
 glonass
 GLONASS
+GoDaddy
 hoc
 HTTPS
 IDs
