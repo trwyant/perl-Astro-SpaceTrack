@@ -67,12 +67,17 @@ RCS data (the C<RCSVALUE> field), replacing it with a qualitative field
 0.1 square meter but < 1 square meter), C<'LARGE'> (> 1 square meter),
 and of course, null.
 
-This removal is scheduled to take place August 18 2014. After that time,
+This removal took place August 18 2014. Beginning with version [%% next_version %%],
 any RCS functionality specific to the Space Track web site C<RCSVALUE>
-datum (such as the C<-rcs> search option) will be removed, though I may
-consider trying to replace the data with Mike McCants' RCS data. On the
-other hand, the C<RCS_SIZE> datum will be supported in the same ways and
-places that the Space Track web site supports it.
+datum (such as the C<-rcs> search option) has been removed. The C<-rcs>
+option itself will be put through a deprecation cycle, with the first
+release on or after March 1 2015 generating a warning on the first use,
+the first release six months later generating a warning on every use,
+and the warning becoming fatal six months after that.
+
+On the other hand, the C<RCSVALUE> and C<RCS_SIZE> data will continue
+to be returned in such ways and places that the Space Track web site
+itself returns them.
 
 =head1 NOTICE: HASH REFERENCE ARGUMENTS NOW VALIDATED
 
@@ -2705,31 +2710,35 @@ sub _search_rest {
 	'ARRAY' eq ref $data
 	    or croak "Format $rest_args->{format} does not support TLE retrieval";
 	my $ropt = _remove_search_options( $opt );
-	my $load_content;
-	if ( $opt->{rcs} ) {
-	    delete $ropt->{json};
-	    $ropt->{format} = 'json';
-	    $load_content = $self->can( "_load_content_$opt->{format}" )
-		or croak "Format $opt->{format} does not support -rcs";
-	} else {
-	    $load_content = sub {};
-	}
+
+	# Quantitative RCS data removed August 18 2014.
+#	my $load_content;
+#	if ( $opt->{rcs} ) {
+#	    delete $ropt->{json};
+#	    $ropt->{format} = 'json';
+#	    $load_content = $self->can( "_load_content_$opt->{format}" )
+#		or croak "Format $opt->{format} does not support -rcs";
+#	} else {
+#	    $load_content = sub {};
+#	}
 	my $rslt = $self->retrieve( $ropt,
 	    map { $_->{OBJECT_NUMBER} } @{ $data } );
-	$opt->{rcs}
-	    or return $rslt;
-	my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @{ $data };
-	my $json = $self->_get_json_object();
-	my $info = $json->decode( $rslt->content() );
-	foreach my $obj ( @{ $info } ) {
-	    exists $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE}
-		and $obj->{RCSVALUE} =
-		    $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
-	}
-	$load_content->( $self, $rslt, $info );
-	wantarray
-	    and $data
-	    and return ( $rslt, $data );
+
+	# Quantitative RCS data removed August 18 2014.
+#	$opt->{rcs}
+#	    or return $rslt;
+#	my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @{ $data };
+#	my $json = $self->_get_json_object();
+#	my $info = $json->decode( $rslt->content() );
+#	foreach my $obj ( @{ $info } ) {
+#	    exists $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE}
+#		and $obj->{RCSVALUE} =
+#		    $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
+#	}
+#	$load_content->( $self, $rslt, $info );
+#	wantarray
+#	    and $data
+#	    and return ( $rslt, $data );
 	return $rslt;
     } else {
 
@@ -2779,8 +2788,10 @@ sub _load_content_3le {
     my $content;
     foreach my $obj ( @{ $data } ) {
 	$content .= $obj->{TLE_LINE0};
-	defined $obj->{RCSVALUE}
-	    and $content .= " --rcs $obj->{RCSVALUE}";
+
+	# Quantitative RCS data removed August 18 2014.
+#	defined $obj->{RCSVALUE}
+#	    and $content .= " --rcs $obj->{RCSVALUE}";
 	$content .= "\n";
 	$content .= join '', map { "$obj->{$_}\n" } qw{ TLE_LINE1
 	TLE_LINE2 };
@@ -2804,8 +2815,10 @@ sub _load_content_legacy {
 	my @line0;
 	$with_name
 	    and push @line0, $obj->{OBJECT_NAME};
-	defined $obj->{RCSVALUE}
-	    and push @line0, "--rcs $obj->{RCSVALUE}";
+
+	# Quantitative RCS data removed August 18 2014.
+#	defined $obj->{RCSVALUE}
+#	    and push @line0, "--rcs $obj->{RCSVALUE}";
 	@line0
 	    and $content .= "@line0\n";
 	$content .= join '', map { "$obj->{$_}\n" }
@@ -2819,8 +2832,10 @@ sub _load_content_tle {
     my ( $self, $resp, $data ) = @_;
     my $content;
     foreach my $obj ( @{ $data } ) {
-	defined $obj->{RCSVALUE}
-	    and $content .= "--rcs $obj->{RCSVALUE}\n";
+
+	# Quantitative RCS data removed August 18 2014.
+#	defined $obj->{RCSVALUE}
+#	    and $content .= "--rcs $obj->{RCSVALUE}\n";
 	$content .= join '', map { "$obj->{$_}\n" }
 	    qw{ TLE_LINE1 TLE_LINE2 };
     }
@@ -2900,13 +2915,11 @@ options may be specified:
    you may either specify the option more than once,
    or specify the values comma-separated.
  -rcs
-   specifies that the radar cross-section returned by
-   the search is to be appended to the name, in the form
-   --rcs radar_cross_section. If the with_name attribute
-   is false, the radar cross-section will be inserted as
-   the name. Historical rcs data appear NOT to be
-   available. This option is ignored if C<-notle> is
-   specified.
+   used to specify that the radar cross-section returned
+   by the search was to be appended to the name, in the form
+   --rcs radar_cross_section. Beginning with version [%% next_version %%]
+   it does nothing, since as of August 18 2014 Space Track
+   no longer provides quantitative RCS data.
  -status
    specifies the desired status of the returned body
    (or bodies). Must be 'onorbit', 'decayed', or 'all'.
@@ -3178,19 +3191,19 @@ IDs (also known as OIDs, hence the method name).
 
 B<Note> that in effect this is just a stupid, inefficient version of
 L<retrieve()|/retrieve>, which does not understand ranges. Unless you
-assert C<-notle> or C<-rcs>, or call it in list context to get the
-search data, you should simply call L<retrieve()|/retrieve> instead.
+assert C<-notle> or call it in list context to get the
+search data, you should simply call
+L<retrieve()|/retrieve> instead.
 
 In addition to the options available for L</retrieve>, the following
 option may be specified:
 
  rcs
-   specifies that the radar cross-section returned by
+   Used to specify that the radar cross-section returned by
    the search is to be appended to the name, in the form
-   --rcs radar_cross_section. If the with_name attribute
-   is false, the radar cross-section will be inserted as
-   the name. Historical rcs data appear NOT to be
-   available.
+   --rcs radar_cross_section. Starting with version [%% next_version %%]
+   it does nothing, since as of August 18 2014 Space Track
+   no longer provides quantitative RCS data.
  tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
@@ -5620,7 +5633,7 @@ EOD
 {
 
     my @legal_search_args = (
-	'rcs!' => '(append --rcs radar_cross_section to name)',
+	'rcs!' => '(ignored and deprecated)',
 	'tle!' => '(return TLE data from search (defaults true))',
 	'status=s' => q{('onorbit', 'decayed', or 'all')},
 	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},

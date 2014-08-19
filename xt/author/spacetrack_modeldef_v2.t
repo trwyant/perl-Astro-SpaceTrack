@@ -144,12 +144,12 @@ if ( $rslt->is_success() ) {
          "Type" : "tinyint(3) unsigned"
       },
       {
-         "Default" : null,
+         "Default" : "0",
          "Extra" : "",
          "Field" : "RCSVALUE",
          "Key" : "",
-         "Null" : "YES",
-         "Type" : "float"
+         "Null" : "NO",
+         "Type" : "int(1)"
       },
       {
          "Default" : null,
