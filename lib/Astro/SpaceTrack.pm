@@ -529,6 +529,10 @@ sub new {
 	$self->set (username => $user, password => $pass);
     };
 
+    defined $ENV{SPACETRACK_VERIFY_HOSTNAME}
+	and $self->set( verify_hostname =>
+	$ENV{SPACETRACK_VERIFY_HOSTNAME} );
+
     @args and $self->set (@args);
 
     return $self;
@@ -6015,7 +6019,9 @@ of mid-July 2012). But on September 30 2012 Space Track announced that
 they had their SSL certificates set up, so in 0.064_01 the default
 became false again.
 
-The default is true (i.e. 1).
+If environment variable C<SPACETRACK_VERIFY_HOSTNAME> is defined, its
+value will be used as the default of this attribute. Otherwise the
+default is true (i.e. 1).
 
 =item webcmd (string)
 
@@ -6063,6 +6069,13 @@ C<'yehudi:menuhin'> are accepted.
 An explicit username and/or password passed to the new () method
 overrides the environment variable, as does any subsequently-set
 username or password.
+
+=head2 SPACETRACK_VERIFY_HOSTNAME
+
+As of version [%% next_version %%], if environment variable
+C<SPACETRACK_VERIFY_HOSTNAME> is defined at the time an
+C<Astro::SpaceTrack> object is instantiated, its value will be used for
+the default value of the C<verify_hostname> attribute.
 
 =head2 SPACETRACK_SKIP_OPTION_HASH_VALIDATION
 
