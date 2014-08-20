@@ -16,6 +16,9 @@ sub is_resp (@);
 sub warning_like (@);
 sub year();
 
+defined $ENV{SPACETRACK_USER}
+    or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
+
 use constant DUMP_REQUEST => Astro::SpaceTrack->DUMP_REQUEST |
     Astro::SpaceTrack->DUMP_NO_EXECUTE;
 use constant DUMP_NONE => Astro::SpaceTrack->DUMP_NONE;
