@@ -67,7 +67,7 @@ RCS data (the C<RCSVALUE> field), replacing it with a qualitative field
 0.1 square meter but < 1 square meter), C<'LARGE'> (> 1 square meter),
 and of course, null.
 
-This removal took place August 18 2014. Beginning with version [%% next_version %%],
+This removal took place August 18 2014. Beginning with version 0.086_02,
 any RCS functionality specific to the Space Track web site C<RCSVALUE>
 datum (such as the C<-rcs> search option) has been removed. The C<-rcs>
 option itself will be put through a deprecation cycle, with the first
@@ -135,7 +135,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.086_01';
+our $VERSION = '0.086_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -2917,7 +2917,7 @@ options may be specified:
  -rcs
    used to specify that the radar cross-section returned
    by the search was to be appended to the name, in the form
-   --rcs radar_cross_section. Beginning with version [%% next_version %%]
+   --rcs radar_cross_section. Beginning with version 0.086_02
    it does nothing, since as of August 18 2014 Space Track
    no longer provides quantitative RCS data.
  -status
@@ -3201,7 +3201,7 @@ option may be specified:
  rcs
    Used to specify that the radar cross-section returned by
    the search is to be appended to the name, in the form
-   --rcs radar_cross_section. Starting with version [%% next_version %%]
+   --rcs radar_cross_section. Starting with version 0.086_02
    it does nothing, since as of August 18 2014 Space Track
    no longer provides quantitative RCS data.
  tle
@@ -6082,7 +6082,7 @@ was true, at least as of mid-July 2012).
 certificates set up, so in 0.064_01 the default became false again.
 
 * On August 19 2014 Perl's SSL logic stopped accepting Mike McCants'
-GoDaddy certificate, so starting with version [%% next_version %%] the
+GoDaddy certificate, so starting with version 0.086_02 the
 default is false once again.
 
 If environment variable C<SPACETRACK_VERIFY_HOSTNAME> is defined, its
@@ -6138,7 +6138,7 @@ username or password.
 
 =head2 SPACETRACK_VERIFY_HOSTNAME
 
-As of version [%% next_version %%], if environment variable
+As of version 0.086_02, if environment variable
 C<SPACETRACK_VERIFY_HOSTNAME> is defined at the time an
 C<Astro::SpaceTrack> object is instantiated, its value will be used for
 the default value of the C<verify_hostname> attribute.

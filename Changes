@@ -1,3 +1,18 @@
+0.086_02	2014-08-19	T. R. Wyant
+  Throttle Space Track queries to 1 every 3 seconds.  Space Track
+    announced August 19 2014 that they intend to throttle queries to
+    less than 20 per minute per user as of September 22 2014.  They seem
+    to have jumped the gun though, since throttling seems necessary now.
+  Remove all RCS-specific functionality.  This includes making -rcs do
+    nothing. On August 18 2014 Space Track started returning 0 for RCS,
+    instead going for "small," "medium," and "large" in a new JSON
+    field.  The -rcs option is now deprecated, and being put through the
+    usual deprecation cycle.
+  Set default value of verify_hostname attribute to false. This is
+    because Perl does not accept Mike McCants' GoDaddy certificate. The
+    default can be overridden using environment variable
+    SPACETRACK_VERIFY_HOSTNAME if it is defined.
+
 0.086_01	2014-07-24	T. R. Wyant
   Remove all references to obsolete spacetrack() canned queries
     full_fast and geosynchronous_fast in the documentation. The queries
