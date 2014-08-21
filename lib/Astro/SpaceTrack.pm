@@ -4067,10 +4067,28 @@ C<'tle_latest'>,
 =cut
 
 {
-    use constant SPACETRACK_DELAY_SECONDS	=> 3;
+    our $SPACETRACK_DELAY_SECONDS = $ENV{SPACETRACK_DELAY_SECONDS} || 3;
 
     my $spacetrack_delay_until;
 
+    sub _spacetrack_delay {
+	my ( $self ) = @_;
+	$SPACETRACK_DELAY_SECONDS
+	    or return;
+	$self->{dump_headers} & DUMP_NO_EXECUTE
+	    and return;
+	if ( defined $spacetrack_delay_until ) {
+	    my $now = _time();
+	    $now < $spacetrack_delay_until
+		and _sleep( $spacetrack_delay_until - $now );
+	}
+	$spacetrack_delay_until = _time() + $SPACETRACK_DELAY_SECONDS;
+
+	return;
+    }
+}
+
+{
     my %tle_class = map { $_ => 1 } qw{ tle tle_latest };
 
     sub spacetrack_query_v2 {
@@ -4081,14 +4099,7 @@ C<'tle_latest'>,
 	# seem to have jumped the gun, since I get failures August 19
 	# 2014 if I don't throttle. None of this applies, though, if
 	# we're not actually executing the query.
-	unless ( $self->{dump_headers} & DUMP_NO_EXECUTE ) {
-	    if ( defined $spacetrack_delay_until ) {
-		my $now = _time();
-		$now < $spacetrack_delay_until
-		    and _sleep( $spacetrack_delay_until - $now );
-	    }
-	    $spacetrack_delay_until = _time() + 3;
-	}
+	$self->_spacetrack_delay();
 
 	delete $self->{_pragmata};
 
@@ -6109,9 +6120,31 @@ The default is false (i.e. 0).
 
 =back
 
+=head1 GLOBALS
+
+=head2 $SPACETRACK_DELAY_SECONDS
+
+This global holds the delay in seconds between queries. It defaults to 3
+(or the value of environment variable C<SPACETRACK_DELAY_SECONDS> if
+that is true), and should probably not be messed with. But if Space
+Track is being persnickety about timing you can set it to a larger
+number. This variable must be set to a number. If
+L<Time::HiRes|Time::HiRes> is not available this number must be an
+integer.
+
+This global is not exported. You must refer to it as
+C<$Astro::SpaceTrack::SPACETRACK_DELAY_SECONDS>.
+
 =head1 ENVIRONMENT
 
 The following environment variables are recognized by Astro::SpaceTrack.
+
+=head2 SPACETRACK_DELAY_SECONDS
+
+This environment variable should be set to a positive number to change
+the default delay between Space Track queries. This is C<not> something
+you should normally need to do. If L<Time::HiRes|Time::HiRes> is not
+available this number must be an integer.
 
 =head2 SPACETRACK_OPT
 

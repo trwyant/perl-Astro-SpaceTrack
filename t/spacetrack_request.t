@@ -16,9 +16,6 @@ sub is_resp (@);
 sub warning_like (@);
 sub year();
 
-defined $ENV{SPACETRACK_USER}
-    or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
-
 use constant DUMP_REQUEST => Astro::SpaceTrack->DUMP_REQUEST |
     Astro::SpaceTrack->DUMP_NO_EXECUTE;
 use constant DUMP_NONE => Astro::SpaceTrack->DUMP_NONE;
@@ -33,6 +30,8 @@ note 'Space Track v2 interface';
 my $st = Astro::SpaceTrack->new(
     space_track_version	=> 2,
     dump_headers => DUMP_REQUEST,
+    username	=> 'Yehudi',
+    password	=> 'Menuhin',
 );
 
 my $base_url = $st->_make_space_track_base_url();
