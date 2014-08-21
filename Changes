@@ -1,3 +1,12 @@
+0.086_04	2014-08-21	T. R. Wyant
+  Use global variable $SPACETRACK_DELAY_SECONDS to control the delay
+    between Space Track queries. This is initialized from environment
+    variable SPACETRACK_DELAY_SECONDS if it is true; otherwise it is
+    initialized to 3.
+  Ditch the t/spacetrack_request.t change in 0.086_03, and instead
+    provide a dummy user name and password, since this test never
+    actually accesses Space Track anyway.
+
 0.086_03	2014-08-20	T. R. Wyant
   Skip t/spacetrack_request.t unless environment variable
     SPACETRACK_USER is defined.

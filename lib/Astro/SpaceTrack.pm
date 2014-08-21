@@ -135,7 +135,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.086_03';
+our $VERSION = '0.086_04';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -6145,6 +6145,10 @@ This environment variable should be set to a positive number to change
 the default delay between Space Track queries. This is C<not> something
 you should normally need to do. If L<Time::HiRes|Time::HiRes> is not
 available this number must be an integer.
+
+This environment variable is only used to initialize
+C<$SPACETRACK_DELAY_SECONDS>. If you wish to change the delay you must
+assign to the global.
 
 =head2 SPACETRACK_OPT
 
