@@ -1,3 +1,6 @@
+0.087		2014-08-29	T. R. Wyant
+  No changes since 0.086_04.
+
 0.086_04	2014-08-21	T. R. Wyant
   Use global variable $SPACETRACK_DELAY_SECONDS to control the delay
     between Space Track queries. This is initialized from environment
