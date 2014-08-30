@@ -5655,13 +5655,10 @@ EOD
 
     sub _parse_search_args {
 	my @args = @_;
-	unless (ref ($args[0]) eq 'HASH') {
-	    my @extra;
-	    ref $args[0] eq 'ARRAY'
-		and @extra = @{shift @args};
-	    @args = _parse_retrieve_args(
-		[ @legal_search_args, @extra ], @args );
-	}
+
+	my $extra = 'ARRAY' eq ref $args[0] ? shift @args : [];
+	@args = _parse_retrieve_args(
+	    [ @legal_search_args, @{ $extra } ], @args );
 
 	my $opt = $args[0];
 

@@ -1158,6 +1158,27 @@ is_resp qw{ search_oid -format 3le 25544 }, <<'EOD';
 2 25544 Second line of data
 EOD
 
+{
+    my $with_name = $st->getv( 'with_name' );
+
+    $st->set( with_name => 1 );
+
+    is_resp search_oid => {}, 25544, <<'EOD';
+ISS (ZARYA)
+1 25544U First line of data
+2 25544 Second line of data
+EOD
+
+    $st->set( with_name => 0 );
+
+    is_resp search_oid => {}, 25544, <<'EOD';
+1 25544U First line of data
+2 25544 Second line of data
+EOD
+
+    $st->set( with_name => $with_name );
+}
+
 $st->set( dump_headers => DUMP_REQUEST );
 
 is_resp qw{spacetrack iridium}, [
