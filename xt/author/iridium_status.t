@@ -24,7 +24,9 @@ my %known_inconsistent = (
     24906 => { kelso => 1 },	# Kelso: spare; others: operational
 				# 16-Nov-2012: Sladen declares spare
 				# 08-Apr-2014: Sladen declares operational
-    24944 => { kelso => 1 },	# 01-Apr-2014: Kelso declares spare
+    24944 => { kelso => 1,	# 01-Apr-2014: Kelso declares spare
+	       sladen => 1 },	# 09-Sep-2014: Sladen declares failed
+    25039 => { sladen => 1 },	# 09-Sep-2014: Sladen declares spare
     25104 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares spare;
 				#             others: operational
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
@@ -36,6 +38,7 @@ my %known_inconsistent = (
 				#             others: spare
     27376 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares operational;
 				#             others: spare
+    27451 => { sladen => 1 },	# 09-Sep-2014:: Sladen declares in-service.
 );
 
 =begin comment
@@ -305,7 +308,7 @@ EOD
  24907   Iridium 22     [+]      Plane 2
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
- 24944   Iridium 29     [+]      Plane 3
+ 24944   Iridium 29     [-]      Plane 3 - Failed on station?
  24945   Iridium 32     [+]      Plane 3
  24946   Iridium 33     [-]      Plane 3
  24948   Iridium 28     [-]      Plane 3 - Failed on station?
@@ -316,7 +319,7 @@ EOD
  24967   Iridium 36     [-]      Plane 4
  24968   Iridium 37     [+]      Plane 4
  24969   Iridium 34     [+]      Plane 4
- 25039   Iridium 43     [+]      Plane 6
+ 25039   Iridium 43     [S]      Plane 6
  25040   Iridium 41     [+]      Plane 6
  25041   Iridium 40     [+]      Plane 6
  25042   Iridium 39     [+]      Plane 6
@@ -373,7 +376,7 @@ EOD
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [+]      Plane 4
  27450   Iridium 97     [+]      Plane 4
- 27451   Iridium 98     [S]      Plane 6
+ 27451   Iridium 98     [+]      Plane 6
 EOD
 	) {
     my ( $what, $file, $data ) = @$_;
