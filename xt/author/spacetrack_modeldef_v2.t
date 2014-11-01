@@ -101,7 +101,7 @@ if ( $rslt->is_success() ) {
          "Field" : "PERIOD",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "float"
+         "Type" : "decimal(12,2)"
       },
       {
          "Default" : null,
@@ -109,7 +109,7 @@ if ( $rslt->is_success() ) {
          "Field" : "INCLINATION",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "float"
+         "Type" : "decimal(12,2)"
       },
       {
          "Default" : null,
@@ -117,7 +117,7 @@ if ( $rslt->is_success() ) {
          "Field" : "APOGEE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "int(10) unsigned"
+         "Type" : "bigint(12)"
       },
       {
          "Default" : null,
@@ -125,7 +125,7 @@ if ( $rslt->is_success() ) {
          "Field" : "PERIGEE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "int(10) unsigned"
+         "Type" : "bigint(12)"
       },
       {
          "Default" : null,
