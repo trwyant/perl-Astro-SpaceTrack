@@ -1,3 +1,7 @@
+0.088_01	2014-12-11	T. R. Wyant
+  Change verify_hostname default back to true, since it appears that
+    Perl is accepting Mike McCants' Cert again.
+
 0.088		2014-08-31	T. R. Wyant
   No change since 0.087_01.
 

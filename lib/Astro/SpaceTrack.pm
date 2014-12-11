@@ -135,7 +135,7 @@ use warnings;
 
 use base qw{Exporter};
 
-our $VERSION = '0.088';
+our $VERSION = '0.088_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (
@@ -6094,7 +6094,7 @@ GoDaddy certificate, so starting with version 0.086_02 the default is
 false once again.
 
 * On December 11 2014 I noticed that Perl was accepting Mike McCants'
-certificate again, so starting with version [%% next_version %%] the default
+certificate again, so starting with version 0.088_01 the default
 is restored to true.
 
 If environment variable C<SPACETRACK_VERIFY_HOSTNAME> is defined, its
