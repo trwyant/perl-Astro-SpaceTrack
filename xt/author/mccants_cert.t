@@ -26,6 +26,7 @@ my $resp = $ua->get(
 ok got_expected_response( $resp ),
     q{Perl does not recognize Mike's certificate}
     or diag $resp->status_line(), <<'EOD';
+
 You might be able to change the default for validate_hostname
 back to true.
 EOD
