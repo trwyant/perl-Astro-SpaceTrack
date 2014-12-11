@@ -534,7 +534,7 @@ sub new {
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
 	verbose => undef,	# Verbose error messages for catalogs.
-	verify_hostname => 0,	# Don't verify host names by default.
+	verify_hostname => 1,	# Don't verify host names by default.
 	webcmd => undef,	# Command to get web help.
 	with_name => undef,	# True to retrieve three-line element sets.
     };
@@ -6090,8 +6090,12 @@ was true, at least as of mid-July 2012).
 certificates set up, so in 0.064_01 the default became false again.
 
 * On August 19 2014 Perl's SSL logic stopped accepting Mike McCants'
-GoDaddy certificate, so starting with version 0.086_02 the
-default is false once again.
+GoDaddy certificate, so starting with version 0.086_02 the default is
+false once again.
+
+* On December 11 2014 I noticed that Perl was accepting Mike McCants'
+certificate again, so starting with version [%% next_version %%] the default
+is restored to true.
 
 If environment variable C<SPACETRACK_VERIFY_HOSTNAME> is defined, its
 value will be used as the default of this attribute. Otherwise the
