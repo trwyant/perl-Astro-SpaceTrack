@@ -1,3 +1,8 @@
+0.088_02	2014-12-20	T. R. Wyant
+  Fix exception in names() when an unsupported argument is passed. The
+    desired functionality was to return a 404 error, which is now
+    implememted and documented.
+
 0.088_01	2014-12-11	T. R. Wyant
   Change verify_hostname default back to true, since it appears that
     Perl is accepting Mike McCants' Cert again.
