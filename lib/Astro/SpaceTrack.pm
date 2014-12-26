@@ -460,6 +460,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		    EPOCH	=> '>now-30',
 		},
 	    },
+	    well_tracked_objects	=> {
+		name	=> 'Well-Tracked Objects',
+		satcat	=> {
+		    COUNTRY	=> 'UNKN',
+		    SITE	=> 'UNKN',
+		},
+	    },
 	},
     ],
 );
@@ -3902,6 +3909,12 @@ The following catalogs are available:
     amateur         Amateur Radio satellites
     visible         Visible satellites
     special         Special satellites
+    bright_geosynchronous
+                    Bright Geosynchronous satellites
+    human_spaceflight
+                    Human Spaceflight
+    well_tracked_objects
+                    Well-Tracked Objects
 
 The following option is supported:
 
