@@ -4562,11 +4562,15 @@ sub _accumulate_json_data {
 
 sub _accumulate_json_return {
     my ( $self, $context ) = @_;
+
+    my $json = $context->{json} ||= $self->_get_json_object(
+	pretty => $context->{opt}{pretty},
+    );
+
     $context->{data} ||= [];	# In case we did not find anything.
-    return wantarray ? (
-	$context->{json}->encode( $context->{data} ),
-	$context->{data},
-    ) : $context->{json}->encode( $context->{data} );
+    return wantarray
+	? ( $json->encode( $context->{data} ), $context->{data} )
+	: $json->encode( $context->{data} );
 }
 
 sub _accumulate_unknown_data {
