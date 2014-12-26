@@ -4035,7 +4035,7 @@ sub spacetrack {
 
 	}
 
-	$rslt = $self->retrieve( \%retrieve_opt,
+	$rslt = $self->retrieve( $opt,
 	    sort { $a <=> $b } keys %oid );
 
 	$rslt->is_success()
