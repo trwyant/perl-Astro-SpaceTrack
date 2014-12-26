@@ -1,3 +1,12 @@
+0.088_03	2014-12-26	T. R. Wyant
+  Add new spacetrack() catalogs bright_geosynchronous, human_spaceflight
+    and well_tracked_objects. The first two correspond to Space Track
+    curated queries; the last does not, but is based on their Face Book
+    entry for December 3 2014, and represents objects that can not be
+    assigned to a country or launch site.
+  Fix option hash validation warning in spacetrack(). This affected
+    catalog 'payload'.
+
 0.088_02	2014-12-20	T. R. Wyant
   Fix exception in names() when an unsupported argument is passed. The
     desired functionality was to return a 404 error, which is now
