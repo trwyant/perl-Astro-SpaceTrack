@@ -1854,7 +1854,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 		->is_success() or return $resp;
 	}
 	$resp->content (join '', map {
-		sprintf "%6d   %-15s%-8s %s\n", @{$rslt{$_}}}
+		sprintf "%6d   %-15s%-8s %s\n", @{$rslt{$_}}[0 .. 3]}
 	    sort {$a <=> $b} keys %rslt);
 	$self->_add_pragmata($resp,
 	    'spacetrack-type' => 'iridium-status',
