@@ -364,11 +364,17 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    navigation => {
 		name => 'Navigation satellites',
 		favorite	=> 'Navigation',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 #		number => 5,
 	    },
 	    weather => {
 		name => 'Weather satellites',
 		favorite	=> 'Weather',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 #		number => 7,
 	    },
 	    iridium => {
@@ -419,17 +425,40 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    amateur => {
 		favorite	=> 'Amateur',
 		name => 'Amateur Radio satellites',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 #		number => 19,
 	    },
 	    visible => {
 		favorite	=> 'Visible',
 		name => 'Visible satellites',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 #		number => 21,
 	    },
 	    special => {
 		favorite	=> 'Special_interest',
 		name => 'Special interest satellites',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 #		number => 23,
+	    },
+	    bright_geosynchronous => {
+		favorite	=> 'brightgeo',
+		name => 'Bright Geosynchronous satellites',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
+	    },
+	    human_spaceflight => {
+		favorite	=> 'human_spaceflight',
+		name => 'Human Spaceflight',
+		tle => {
+		    EPOCH	=> '>now-30',
+		},
 	    },
 	},
     ],
