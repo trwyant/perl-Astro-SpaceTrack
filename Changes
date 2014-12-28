@@ -1,3 +1,11 @@
+0.088_04	2014-12-28	T. R. Wyant
+  Supply missing initializzation in JSON code. This was a problem inly
+    if no data were returned, and maybe then only under restricted and
+    poorly-understood corcumstances.
+  Fix warnings in McCants' Iridium status code under Perl 5.21.7 and up.
+    With this Perl, sprintf() started complaining about extraneous
+    arguments.
+
 0.088_03	2014-12-26	T. R. Wyant
   Add new spacetrack() catalogs bright_geosynchronous, human_spaceflight
     and well_tracked_objects. The first two correspond to Space Track
