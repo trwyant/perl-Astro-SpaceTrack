@@ -33,6 +33,16 @@ $ENV{SPACETRACK_USER}
     my $node = $tree->look_down( _tag => 'div', class => 'tab-pane', id =>
 	'recent' );
 
+    # We have to remove the links to the complete daily files, since
+    # these change from day to day. If we can't find it, we probably get
+    # an error anyway, so we can fix what went wrong.
+    if (
+	my $daily = $node->look_down(
+	    _tag => 'div', class => 'span3 offset2' )
+    ) {
+	$daily->detach();
+    }
+
     defined $node
 	or do {
 	fail 'Space Track catalog information could not be found';
@@ -68,10 +78,6 @@ $ENV{SPACETRACK_USER}
                     <li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/tle/favorites/Special_interest" target="_blank"> Two Line</a><li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/3le/favorites/Special_interest" target="_blank"> Three Line</a></ul> Bright Geosynchronous (admin curated) <ul>
                     <li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/tle/favorites/brightgeo" target="_blank"> Two Line</a><li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/3le/favorites/brightgeo" target="_blank"> Three Line</a></ul> Human Spaceflight (admin curated) <ul>
                     <li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/tle/favorites/human_spaceflight" target="_blank"> Two Line</a><li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_latest/ORDINAL/1/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID/format/3le/favorites/human_spaceflight" target="_blank"> Three Line</a></ul>
-            </div>
-            <div class="span3 offset2">
-                <ul>
-                    <li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_publish/PUBLISH_EPOCH/2014-12-24 00:00:00--2014-12-25 00:00:00/orderby/TLE_LINE1/format/tle" target="_blank">2014 358</a><li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_publish/PUBLISH_EPOCH/2014-12-25 00:00:00--2014-12-26 00:00:00/orderby/TLE_LINE1/format/tle" target="_blank">2014 359</a></ul>
             </div>
         </div> *(defined as having 0.99 &lt;= Mean Motion &lt;= 1.01 and Eccentricity &lt; 0.01) </div>
 </div>
