@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Astro::SpaceTrack;
-use HTML::Parser;
+use HTML::TreeBuilder;
 use LWP::UserAgent;
 use Test::More 0.96;
 
@@ -19,7 +19,7 @@ my $rslt = $ua->get ('http://celestrak.com/NORAD/elements/');
 $rslt->is_success()
     or plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
 
-my %got = parse_string( $rslt->content, source => 'celestrak' );
+my %got = parse_string( $rslt->content(), source => 'celestrak' );
 
 my $st = Astro::SpaceTrack->new (direct => 1);
 
@@ -139,32 +139,22 @@ ok ( !%got, 'The above is all there is' ) or do {
 done_testing;
 
 sub parse_string {
-    my ( $string, %extra ) = @_;
-    my $psr = HTML::Parser->new (api_version => 3);
-    $psr->case_sensitive (0);
+    my ( $string, @extra ) = @_;
+    my $tree = HTML::TreeBuilder->new_from_content( $string );
     my %data;
-    my $collect;
-    $psr->handler (start => sub {
-	    if ($_[1] eq 'a' && $_[2]{href} && $_[2]{href} =~ s/\.txt$//i) {
-		$data{$_[2]{href}} = $collect = {
-		    %extra,
-		    name => undef,
-		};
-	    }
-	}, 'self,tagname,attr');
-    $psr->handler (text => sub {
-	    if ($collect) {
-		if (defined $collect->{name}) {
-		    $collect->{name} .= ' ' . $_[1];
-		} else {
-		    $collect->{name} = $_[1];
-		}
-	    }
-	}, 'self,text');
-    $psr->handler (end => sub {
-	    $_[1] eq 'a' and $collect = undef;
-	}, 'self,tagname');
-    $psr->parse ($string);
+    foreach my $anchor ( $tree->look_down( _tag => 'a' ) ) {
+	my $href = $anchor->attr( 'href' )
+	    or next;
+	$href =~ s/ [.] txt \z //smx
+	    or next;
+	$href =~ m{ / }smx
+	    and next;
+	$data{$href} = {
+	    name	=> $anchor->as_trimmed_text(),
+	    @extra,
+	};
+
+    }
     return %data;
 }
 
