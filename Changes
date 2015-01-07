@@ -1,5 +1,8 @@
+0.089		2015-01-06	T. R. Wyant
+  No changes since 0.088_04.
+
 0.088_04	2014-12-28	T. R. Wyant
-  Supply missing initializzation in JSON code. This was a problem inly
+  Supply missing initialization in JSON code. This was a problem only
     if no data were returned, and maybe then only under restricted and
     poorly-understood corcumstances.
   Fix warnings in McCants' Iridium status code under Perl 5.21.7 and up.
