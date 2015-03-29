@@ -1241,6 +1241,23 @@ is_resp qw{spacetrack iridium}, [
 ],
 ;
 
+is_resp qw{retrieve -json -since_file 1848000 25544 25546}, [
+    {
+	args => [
+	    basicspacedata	=> 'query',
+	    class		=> 'tle',
+	    format		=> 'json',
+	    orderby		=> 'OBJECT_NUMBER asc',
+	    FILE		=> '>1848000',
+	    OBJECT_NUMBER	=> '25544,25546',
+	],
+	method	=> "GET",
+	url	=> "https://www.space-track.org/basicspacedata/query/class/tle/format/json/orderby/OBJECT_NUMBER%20asc/FILE/%3E1848000/OBJECT_NUMBER/25544,25546",
+	version	=> 2,
+    }
+],
+;
+
 =begin comment
 
 # TODO Not supported by Space Track v2 interface

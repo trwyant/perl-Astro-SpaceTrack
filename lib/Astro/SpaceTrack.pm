@@ -2413,7 +2413,8 @@ The legal options are:
    specifies the TLE be returned in JSON format.
  -last5
    specifies the last 5 element sets be retrieved.
-   Ignored if start_epoch or end_epoch specified.
+   Ignored if start_epoch, end_epoch or since_file is
+   specified.
  -start_epoch date
    specifies the start epoch for the desired data.
  -since_file number
@@ -2549,14 +2550,15 @@ sub retrieve {
     sub _convert_retrieve_options_to_rest {
 	my ( $self, $opt ) = @_;
 
-	my %rest = ( class	=> 'tle_latest' );
+	my %rest = (
+	    class	=> 'tle_latest',
+	    sublimit	=> ( $opt->{last5} ? 5 : 1 ),
+	);
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
 	    $rest{EPOCH} = join '--', map { _rest_date( $opt->{$_} ) }
 	    qw{ _start_epoch _end_epoch };
 	    $rest{class} = 'tle';
-	} else {
-	    $rest{sublimit} = $opt->{last5} ? 5 : 1;
 	}
 
 	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum'} ||
@@ -2595,6 +2597,8 @@ sub retrieve {
 		my $limit = delete $rest{sublimit};
 		$rest{ORDINAL} = $limit > 1 ? "1--$limit" : $limit;
 	    }
+	} else {
+	    delete $rest{sublimit};
 	}
 
 	return \%rest;
@@ -2963,14 +2967,14 @@ options may be specified:
    it does nothing, since as of August 18 2014 Space Track
    no longer provides quantitative RCS data.
  -status
-   specifies the desired status of the returned body
-   (or bodies). Must be 'onorbit', 'decayed', or 'all'.
-   The default is 'all' under version 1 of the Space
-   Track interface, and 'onorbit' under version 2. Note
-   that this option represents status at the time the
+   specifies the desired status of the returned body (or
+   bodies). Must be 'onorbit', 'decayed', or 'all'.  The
+   default is 'onorbit'. Specifying a value other than the
+   default will cause the -last5 option to be ignored.
+   Note that this option represents status at the time the
    search was done; you can not combine it with the
-   retrieve() date options to find bodies onorbit as of
-   a given date in the past.
+   retrieve() date options to find bodies onorbit as of a
+   given date in the past.
  -tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
