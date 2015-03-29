@@ -1,3 +1,12 @@
+0.090_01	2015-03-29	T. R. Wyant
+  Fix a problem with bad Space Track queries being generated under
+    certain circumstances if TLE data were being requested and class
+    'tle' (rather than 'tle_latest') was being used to satisfy them. The
+    problem seems to have been the leakage of extraneous data from the
+    -last5 option (even if defaulted) into the REST query.
+    Thanks to Vidar Tyldum for finding this rather abstruse problem and
+    running it to ground.
+
 0.090		2015-02-11	T. R. Wyant
   Add CPF data to celestrak_supplemental().
 
