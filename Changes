@@ -1,3 +1,8 @@
+0.090_02	2015-04-01	T. R. Wyant
+  Simplify the -last5 handling code. Rather than defaulting it and then
+    removing it if unneeded, just insert it only if the query class ends
+    up being 'tle_latest'.
+
 0.090_01	2015-03-29	T. R. Wyant
   Fix a problem with bad Space Track queries being generated under
     certain circumstances if TLE data were being requested and class
