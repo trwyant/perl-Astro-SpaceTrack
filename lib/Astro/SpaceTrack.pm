@@ -2552,7 +2552,6 @@ sub retrieve {
 
 	my %rest = (
 	    class	=> 'tle_latest',
-	    sublimit	=> ( $opt->{last5} ? 5 : 1 ),
 	);
 
 	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
@@ -2592,14 +2591,8 @@ sub retrieve {
 	    }
 	}
 
-	if ( $rest{class} eq 'tle_latest' ) {
-	    if ( defined $rest{sublimit} && $rest{sublimit} <= 5 ) {
-		my $limit = delete $rest{sublimit};
-		$rest{ORDINAL} = $limit > 1 ? "1--$limit" : $limit;
-	    }
-	} else {
-	    delete $rest{sublimit};
-	}
+	$rest{class} eq 'tle_latest'
+	    and $rest{ORDINAL} = $opt->{last5} ? '1--5' : 1;
 
 	return \%rest;
     }
