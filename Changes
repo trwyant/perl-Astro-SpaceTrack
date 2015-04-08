@@ -1,3 +1,7 @@
+0.090_03	2015-04-08	T. R. Wyant
+  Add dependency on Mozilla::CA in hope to quash some of the CPAN
+    testers CERT errors.
+
 0.090_02	2015-04-01	T. R. Wyant
   Simplify the -last5 handling code. Rather than defaulting it and then
     removing it if unneeded, just insert it only if the query class ends
