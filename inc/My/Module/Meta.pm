@@ -79,6 +79,12 @@ sub requires {
 	'List::Util'		=> 0,	# For Space Track v2 FILE tracking
 	'LWP::UserAgent'	=> 0,
 	'LWP::Protocol::https'	=> 0,	# Space track needs as of 11-Apr-2011
+	'Mozilla::CA'		=> 20141217,
+					# There is no direct dependency
+					# on this, but some CPAN testers
+					# consistently fail with CERT
+					# problems, and I know this
+					# works.
 	'POSIX'			=> 0,
 	'Scalar::Util'		=> 1.07,	# for openhandle.
 	'Text::ParseWords'	=> 0,
