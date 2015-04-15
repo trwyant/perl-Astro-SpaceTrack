@@ -2,14 +2,17 @@
 /Build
 /_build
 /cover_db
+/foo
 /Debian_CPANTS.txt
 /Makefile
 /MANIFEST.bak
+/meta
 /META.json
 /META.yml
 /MYMETA.json
 /MYMETA.yml
 /nytprof*
 /ref
+TODO
 /*.expect
 /*.got
