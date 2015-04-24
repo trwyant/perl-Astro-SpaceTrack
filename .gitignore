@@ -14,5 +14,6 @@
 /nytprof*
 /ref
 TODO
+.*.swp
 /*.expect
 /*.got
