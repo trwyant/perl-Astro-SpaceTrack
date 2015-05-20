@@ -1,3 +1,10 @@
+0.091_01	2015-05-20	T. R. Wyant
+  Add new Space Track catalog "files" (canned queries, really). These
+    are:
+        medium_earth_orbit
+        low_earth_orbit
+        highly_elliptical
+
 0.091		2015-04-15	T. R. Wyant
   No changes since 0.090_03
 
