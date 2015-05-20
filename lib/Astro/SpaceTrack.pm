@@ -337,7 +337,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		    OBJECT_TYPE	=> 'PAYLOAD',
 		},
 	    },
-	    geosynchronous => {
+	    geosynchronous => {		# GEO
 		name	=> 'Geosynchronous satellites',
 #		number	=> 3,
 		# We have to go through satcat to eliminate bodies that
@@ -359,6 +359,35 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		    ECCENTRICITY	=> '<0.01',
 		    EPOCH		=> '>now-30',
 		    MEAN_MOTION		=> '0.99--1.01',
+		    OBJECT_TYPE		=> 'payload',
+		},
+	    },
+	    medium_earth_orbit => {	# MEO
+		name	=> 'Medium Earth Orbit',
+		tle	=> {
+		    ECCENTRICITY	=> '<0.25',
+		    EPOCH		=> '>now-30',
+		    # The web page says '600 minutes <= Period <= 800
+		    # minutes', but the query is in terms of mean
+		    # motion.
+		    MEAN_MOTION		=> '1.8--2.30',
+		    OBJECT_TYPE		=> 'payload',
+		},
+	    },
+	    low_earth_orbit => {	# LEO
+		name	=> 'Low Earth Orbit',
+		tle	=> {
+		    ECCENTRICITY	=> '<0.25',
+		    EPOCH		=> '>now-30',
+		    MEAN_MOTION		=> '>11.25',
+		    OBJECT_TYPE		=> 'payload',
+		},
+	    },
+	    highly_elliptical_orbit => {	# HEO
+		name	=> 'Highly Elliptical Orbit',
+		tle	=> {
+		    ECCENTRICITY	=> '>0.25',
+		    EPOCH		=> '>now-30',
 		    OBJECT_TYPE		=> 'payload',
 		},
 	    },
