@@ -37,7 +37,8 @@ my %known_inconsistent = (
 				# 11-Dec-2014: Sladen: failed
     25262 => { kelso => 1 },	# Kelso: spare; others: operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
-    25286 => { sladen => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
+    25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
+				# 27-May-2015: Kelso: tumbling
     25777 => { sladen => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
     27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
 				# 18-Feb-2014 McCants: operational;
@@ -254,7 +255,7 @@ EOD
  25275   Iridium 59     [+]      
  25276   Iridium 60     [+]      
  25285   Iridium 62     [+]      
- 25286   Iridium 63     [+]      
+ 25286   Iridium 63     [-]      Tumbling
  25287   Iridium 64     [+]      
  25288   Iridium 65     [+]      
  25289   Iridium 66     [+]      
