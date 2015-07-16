@@ -200,6 +200,9 @@ use constant DUMP_REQUEST => 0x02;	# Request content
 use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
 use constant DUMP_COOKIE => 0x08;	# Dump cookies.
 use constant DUMP_RESPONSE => 0x10;	# Dump response.
+use constant DUMP_RESPONSE_TRUNCATED => 0x20;	# Dump w/ truncated content
+# The following is used to see if we want to dump the response at all.
+use constant _DUMP_RESPONSE => DUMP_RESPONSE | DUMP_RESPONSE_TRUNCATED;
 
 # These are the Space Track version 1 retrieve Getopt::Long option
 # specifications, and the descriptions of each option. These need to
@@ -4801,11 +4804,15 @@ sub _check_cookie_generic {
 #	change or retraction without notice.
 
 sub __dump_response {
-    my ( $self, $resp ) = @_;
+    my ( $self, $resp, $message ) = @_;
 
-    if ( $self->{dump_headers} & DUMP_RESPONSE ) {
-	my @data = ( $resp->code(), $resp->message(), [],
-	    $resp->content() );
+    if ( $self->{dump_headers} & _DUMP_RESPONSE ) {
+	my $content = $resp->content();
+	if ( $self->{dump_headers} & DUMP_RESPONSE_TRUNCATED
+	    && 61 < length $content ) {
+	    $content = substr( $content, 0, 61 ) . '...';
+	}
+	my @data = ( $resp->code(), $resp->message(), [], $content );
 	foreach my $name ( $resp->headers()->header_field_names() ) {
 	    my @val = $resp->header( $name );
 	    push @{ $data[2] }, $name, @val > 1 ? \@val : $val[0];
@@ -4818,7 +4825,10 @@ sub __dump_response {
 	}
 	my $encoded = $self->_get_json_object( pretty => 1 )->encode(
 	    \@data );
-	warn "Response object:\n$encoded";
+	defined $message
+	    or $message = 'Response object';
+	$message =~ s/ \s+ \z //smx;
+	warn "$message:\n$encoded";
     }
     return;
 }
@@ -4838,6 +4848,11 @@ sub _dump_request {
     $self->{dump_headers} & DUMP_REQUEST
 	or return;
 
+    my $message = delete $args{message};
+    defined $message
+	or $message = 'Request object';
+    $message =~ s/ \s* \z /:\n/smx;
+
     my $json = $self->_get_json_object( pretty => 1 )
 	or return;
 
@@ -4852,7 +4867,7 @@ sub _dump_request {
 	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( [ \%args ] )
     );
 
-    warn $json->encode( \%args );
+    warn $message, $json->encode( \%args );
 
     return;
 }
@@ -5081,6 +5096,7 @@ sub _get_from_net {
 	    }
 	    return \%sanitary;
 	},
+	message	=> '_get_from_net() request object',
 	method	=> 'GET',
 	url	=> $url,
 	hdrs	=> sub {
@@ -5094,6 +5110,8 @@ sub _get_from_net {
     )
 	and return $resp;
     $resp = $agent->request( $rqst );
+    $self->__dump_response(
+	$resp, '_get_from_net() initial response object' );
 
     if ( $resp->code() == HTTP_NOT_MODIFIED ) {
 	defined $arg{file}
@@ -5140,7 +5158,8 @@ sub _get_from_net {
 	    ()
 	}
 	qw{ spacetrack_type spacetrack_source spacetrack_cache_hit } );
-    $self->__dump_response( $resp );
+    $self->__dump_response( $resp,
+	'_get_from_net() final response object' );
     return $resp;
 }
 
