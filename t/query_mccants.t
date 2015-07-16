@@ -47,20 +47,56 @@ is $st->content_source(), 'mccants', "Content source is 'mccants'";
 
 ok ! $st->cache_hit(), 'Content did not come from cache';
 
-if ( $ENV{AUTHOR_TEST} || $ENV{SPACETRACK_TEST_CACHE} ) {
+if ( $ENV{AUTHOR_TEST} ||
+    defined $ENV{SPACETRACK_TEST_CACHE} && '' ne $ENV{SPACETRACK_TEST_CACHE} ) {
+
+    my $dump = $ENV{SPACETRACK_TEST_CACHE};
+    defined $dump
+	or $dump = 0;
+    if ( $dump =~ m/ \A 0 (?: x [[:xdigit:]]+ | [0-7]+ ) \z /smx ) {
+	$dump =~ oct $dump;
+    } elsif ( $dump =~ m/ [^0-7] /smx ) {
+	$dump = $st->DUMP_NONE();
+    }
 
     @opt
-	or BAIL_OUT 'Cache test requires uname to work';
+	or BAIL_OUT 'Cache test requires functional uname()';
 
     my $want = most_recent_http_response()->content();
+    $dump
+	and $st->set( dump_headers => $dump );
     is_success $st, qw{ mccants -file }, $temp->filename(), 'mcnames',
 	'Get molczan-style magnitudes from cache';
+    my $obj_pragmata = $st->{_pragmata};
+    $dump
+	and $st->set( dump_headers => $st->DUMP_NONE() );
 
-    ok $st->cache_hit(), 'This time content came from cache';
+    TODO: {
+	local $TODO = 'Flaky server suooprt';
+
+	ok $st->cache_hit(), 'This time content came from cache';
+	$st->cache_hit()
+	    and diag "Cache hit";
+	$st->cache_hit()
+	    or eval {
+	    diag <<'EOD';
+The above cache test seems to fail much more often than not, with the
+trace information (available by setting environment variable
+SPACETRACK_TEST_CACHE to 0x22) showing that the If-Modified-After header
+is in fact set but the server returns 200 anyway.
+EOD
+	    require YAML;
+	    diag 'Response pragmata: ', YAML::Dump( [
+		    most_recent_http_response()->header( 'pragma' ) ] );
+	    diag 'Object pragmata: ', YAML::Dump( $obj_pragmata );
+	    1;
+	} or diag 'Pragmata not dumped; can not load YAML';
+    }
+
     is most_recent_http_response()->content(), $want,
 	'We got the same result from the cache as from on line';
 } else {
-    note 'Cache test skipped. AUTHOR_TEST not set.';
+    note 'Cache test skipped. Neither AUTHOR_TEST nor SPACETRACK_TEST_CACHE set.';
 }
 
 is_success $st, qw{ mccants quicksat }, 'Get quicksat-style magnitudes';
