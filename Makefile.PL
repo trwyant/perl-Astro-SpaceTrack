@@ -38,19 +38,8 @@ my %attr = (
 
 $mmv >= 6.31 and $attr{LICENSE} = 'perl';
 
-if ( $mmv >= 6.4501 ) {
-    $attr{META_ADD} = {
-	no_index => {
-	    directory => [ qw{ inc t tools xt } ],
-	},
-    };
-    $attr{META_MERGE} = {
-	resources => {
-	    bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
-	    license => 'http://dev.perl.org/licenses/',
-	},
-    };
-}
+$mmv >= 6.4501
+    and $attr{META_MERGE} = $meta->meta_merge();
 
 $mmv >= 6.4701 and $attr{MIN_PERL_VERSION} = $meta->requires_perl();
 

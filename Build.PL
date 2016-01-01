@@ -20,7 +20,6 @@ my %attr = (
     dist_abstract => 'Download satellite orbital elements from Space Track',
     module_name => 'Astro::SpaceTrack',
     get_options => {y => {}, n => {}},
-    dynamic_config => 1,
     license => 'perl',
     requires => $meta->requires(
 	perl	=> $meta->requires_perl(),
@@ -29,14 +28,8 @@ my %attr = (
     configure_requires => {},	# Don't require Module::Build
 );
 
-$mbv >= 0.28 and $attr{meta_merge} = {
-    no_index => {
-	directory => [qw{ inc t tools xt }],
-    },
-    resources => {
-	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
-    },
-};
+$mbv >= 0.28
+    and $attr{meta_merge} = $meta->meta_merge();
 
 # Don't require Module::Build if we're making a distribution, since the
 # the user may simply prefer ExtUtils::MakeMaker.
