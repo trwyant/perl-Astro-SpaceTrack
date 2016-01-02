@@ -41,7 +41,10 @@ sub meta_merge {
 	    directory	=> [ qw{ inc t tools xt } ],
 	},
 	resources	=> {
-	    bugtracker	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
+	    bugtracker	=> {
+                web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack',
+                mailto  => 'wyant@cpan.org',
+            },
 	    license	=> 'http://dev.perl.org/licenses/',
 	    repository	=> {
 		type	=> 'git',
