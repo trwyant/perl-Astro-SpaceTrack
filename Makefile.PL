@@ -21,7 +21,7 @@ The only legal options are
 You may not assert both of these at once - it's too confusing.
 EOD
 
-my @exe_files = map {"bin/$_"} $meta->notice( \%opt, \&prompt );
+my @exe_files = map {"bin/$_"} $meta->notice( \%opt );
 
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
 

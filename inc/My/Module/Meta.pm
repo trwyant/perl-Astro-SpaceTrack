@@ -56,7 +56,7 @@ sub meta_merge {
 }
 
 sub notice {
-    my ( $self, $opt, $prompter ) = @_;
+    my ( undef, $opt ) = @_;		# Invocant unused
 
     my @possible_exes = ('SpaceTrack');
 
@@ -86,7 +86,7 @@ EOD
 }
 
 sub requires {
-    my ( $self, @extra ) = @_;
+    my ( undef, @extra ) = @_;		# Invocant unused
 
     return {
 	'Carp'			=> 0,
@@ -194,22 +194,12 @@ C<resources> data.
 
 =head2 notice
 
- my @exes = $meta->notice( \%opt, \&prompter );
+ my @exes = $meta->notice( \%opt );
 
 This method prints a notice before building. It returns a list of
 executables to build.
 
-The arguments are the options hash returned by the build system, and a
-reference to a prompt routine. This reference is given the prompt and
-the default answer, and the correct argument depends on your build
-system; for ExtUtils::MakeMaker it is C<\&prompt>; for Module::Build it
-needs to be C<< sub { return $bldr->prompt( @_ ) } >>, where C<$bldr> is
-the Module::Build object.
-
-The above are general remarks.
-
-In this incarnation, the method determines which executables are to be
-installed.
+The argument is the options hash returned by the build system.
 
 =head2 requires
 

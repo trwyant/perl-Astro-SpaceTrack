@@ -26,9 +26,9 @@ $LOG_FILE_NAME
     1;
 } or $LOG_FILE_NAME = undef;
 
-my %original = map { $_ => LWP::UserAgent->can( $_ ) } qw{
-    new cookie_jar env_proxy get head post put request
-};
+## my %original = map { $_ => LWP::UserAgent->can( $_ ) } qw{
+##     new cookie_jar env_proxy get head post put request
+## };
 
 sub import {
 

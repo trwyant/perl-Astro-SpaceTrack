@@ -53,7 +53,8 @@ sub list_captures {
 	local $/ = undef;
 	open my $fh, '<:encoding(utf-8)', $path
 	    or die "Failed to open $path: $!\n";
-	my ( $code, $message, $headers, $content, $request ) =
+##	my ( $code, $message, $headers, $content, $request ) =
+	my ( undef, undef, undef, $content, $request ) =
 	    @{ $json->decode( <$fh> ) };
 	close $fh;
 	say $path;

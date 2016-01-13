@@ -376,8 +376,7 @@ sub amsat_panel {
 }
 
 sub box_score_panel {
-    my ( $widget, $data ) = @_;
-
+##  my ( $widget, $data ) = @_;		# Arguments unused
     return;
 }
 

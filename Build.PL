@@ -46,7 +46,7 @@ my $bldr = My::Module::Build->new (%attr);
 my %opt = $bldr->args ();
 
 my @exe_files = map {"bin/$_"}
-    $meta->notice( \%opt, sub { return $bldr->prompt( @_ ) } );
+    $meta->notice( \%opt );
 
 #	Tell Module::Build what we want to do.
 

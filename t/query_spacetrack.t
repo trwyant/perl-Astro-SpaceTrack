@@ -31,8 +31,8 @@ my $start_epoch = '2012/04/01';
     $st->set( space_track_version => $desired_content_interface );
 }
 
-my $username = $st->getv( 'username' );
-my $password = $st->getv( 'password' );
+## my $username = $st->getv( 'username' );
+## my $password = $st->getv( 'password' );
 
 SKIP: {
 

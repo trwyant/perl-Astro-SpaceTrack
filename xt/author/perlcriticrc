@@ -44,7 +44,7 @@ terminal_funcs	= CORE::exit
 [Perl::Critic::Policy::Variables::ProhibitUnusedVarsStricter]
 
 add_themes	= core
-allow_unused_subroutine_arguments	= 1
+allow_unused_subroutine_arguments	= 0
 severity	= stern
 
 [Perl::Critic::Policy::TestingAndDebugging::ProhibitNoStrict]

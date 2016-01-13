@@ -1136,7 +1136,8 @@ sub celestrak_supplemental {
 }
 
 sub _celestrak_direct {
-    my ( $self, $opt, $name ) = @_;
+##  my ( $self, $opt, $name ) = @_;
+    my ( $self, undef, $name ) = @_;		# Options unused
     delete $self->{_pragmata};
 
     my $resp = $self->_get_agent()->get (
@@ -1932,7 +1933,7 @@ The BODY_STATUS constants are exportable using the :status tag.
     # satellites are good. This is used to prevent bleed-through from
     # Kelso to McCants, since the latter only reports by exception.
     sub _iridium_status_assume_good {
-	my ( $self, $rslt ) = @_;
+	my ( undef, $rslt ) = @_;	# Invocant unused
 
 	foreach my $val ( values %{ $rslt } ) {
 	    $val->[1] =~ m/ \A iridium \b /smxi
@@ -2336,7 +2337,7 @@ sub mccants {
 	%{ $opt },
 	catalog	=> $args[0],
 	post_process	=> sub {
-	    my ( $self, $resp, $info ) = @_;
+	    my ( undef, $resp, $info ) = @_;	# Invocant unused
 	    my ( $content, @zip_opt );
 	    defined $info->{member}
 		and push @zip_opt, Name => $info->{member};
@@ -2652,7 +2653,7 @@ sub retrieve {
     );
 
     sub _convert_search_options_to_rest {
-	my ( $self, $opt ) = @_;
+	my ( undef, $opt ) = @_;	# Invocant unused
 	my %rest;
 
 	if ( defined $opt->{status} ) {
@@ -2855,7 +2856,7 @@ sub _search_rest {
 }
 
 sub _load_content_3le {
-    my ( $self, $resp, $data ) = @_;
+    my ( undef, $resp, $data ) = @_;	# Invocant unused
     my $content;
     foreach my $obj ( @{ $data } ) {
 	$content .= $obj->{TLE_LINE0};
@@ -2900,7 +2901,7 @@ sub _load_content_legacy {
 }
 
 sub _load_content_tle {
-    my ( $self, $resp, $data ) = @_;
+    my ( undef, $resp, $data ) = @_;	# Invocant unused
     my $content;
     foreach my $obj ( @{ $data } ) {
 
@@ -3326,7 +3327,7 @@ containing the actual search results.
 =cut
 
 sub search_oid {	## no critic (RequireArgUnpacking)
-    my ( $self, @args ) = @_;
+##  my ( $self, @args ) = @_;
     splice @_, 1, 0, OBJECT_NUMBER => sub { return $_[0] };
     goto &_search_rest;
 }
@@ -3453,7 +3454,7 @@ my $rdln;
 my %known_meta = (
     olist	=> {
 	after	=> sub {
-	    my ( $self, $context, $rslt ) = @_;
+	    my ( $self, undef, $rslt ) = @_;	# Context unused
 
 	    'ARRAY' eq ref $rslt
 		and return;
@@ -3512,7 +3513,7 @@ my %known_meta = (
     },
     time	=> {
 	before	=> sub {
-	    my ( $self, $context ) = @_;
+	    my ( undef, $context ) = @_;	# Invocant unused
 	    eval {
 		require Time::HiRes;
 		$context->{start_time} = Time::HiRes::time();
@@ -3521,7 +3522,7 @@ my %known_meta = (
 	    return;
 	},
 	after	=> sub {
-	    my ( $self, $context, $rslt ) = @_;
+	    my ( undef, $context ) = @_;	# Invocant unused
 	    $context->{start_time}
 		and warn sprintf "Elapsed time: %.2f seconds\n",
 		    Time::HiRes::time() - $context->{start_time};
@@ -4320,7 +4321,7 @@ lost as the individual OIDs are updated.
 
     my %encode = (
 	'3le'	=> sub {
-	    my ( $json, $data ) = @_;
+	    my ( undef, $data ) = @_;	# JSON object unused
 	    return join '', map {
 		"$_->{OBJECT_NAME}\n$_->{TLE_LINE1}\n$_->{TLE_LINE2}\n"
 	    } @{ $data };
@@ -4330,7 +4331,7 @@ lost as the individual OIDs are updated.
 	    return $json->encode( $data );
 	},
 	tle	=> sub {
-	    my ( $json, $data ) = @_;
+	    my ( undef, $data ) = @_;	# JSON object unused
 	    return join '', map {
 		"$_->{TLE_LINE1}\n$_->{TLE_LINE2}\n"
 	    } @{ $data };
@@ -4504,7 +4505,7 @@ sub _add_pragmata {
 }
 
 sub _accumulate_file_of_record {
-    my ( $self, $context, $data ) = @_;
+    my ( undef, $context, $data ) = @_;		# Invocant unused
     if ( defined $context->{file} ) {
 	foreach my $datum ( @{ $data } ) {
 	    defined $datum->{FILE}
@@ -4543,7 +4544,7 @@ sub _accumulate_file_of_record {
 #    representation of the accumulated data.
 
 sub _accumulate_csv_data {
-    my ( $self, $content, $context ) = @_;
+    my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ (?<! \n ) \z }{\n}smx;
 	$content =~ s{ .* \n }{}smx;
@@ -4555,7 +4556,7 @@ sub _accumulate_csv_data {
 }
 
 sub _accumulate_html_data {
-    my ( $self, $content, $context ) = @_;
+    my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ \s* </tbody> \s* </table> \s* \z }{}smx;
 	$content =~ s{ .* <tbody> \s* }{}smx;
@@ -4604,7 +4605,7 @@ sub _accumulate_json_return {
 }
 
 sub _accumulate_unknown_data {
-    my ( $self, $content, $context ) = @_;
+    my ( undef, $content, $context ) = @_;	# Invocant unused
     defined $context->{data}
 	and croak "Unable to accumulate $context->{format} data";
     $context->{data} = $content;
@@ -4612,13 +4613,13 @@ sub _accumulate_unknown_data {
 }
 
 sub _accumulate_tle_data {
-    my ( $self, $content, $context ) = @_;
+    my ( undef, $content, $context ) = @_;	# Invocant unused
     $context->{data} .= $content;
     return;
 }
 
 sub _accumulate_xml_data {
-    my ( $self, $content, $context ) = @_;
+    my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ \s* </xml> \s* \z }{}smx;
 	$content =~ s{ .* <xml> \s* }{}smx;
@@ -4704,7 +4705,7 @@ sub _check_cookie_generic {
     my $lookfor = $^O eq 'MacOS' ? qr{ \012|\015+ }smx : qr{ \r \n }smx;
 
     sub _convert_content {
-	my ($self, @args) = @_;
+	my ( undef, @args ) = @_;	# Invocant unused
 	local $/ = undef;	# Slurp mode.
 	foreach my $resp (@args) {
 	    my $buffer = $resp->content;
@@ -4747,7 +4748,7 @@ sub _check_cookie_generic {
     );
 
     sub _deprecation_notice {
-	my ( $self, $method, $argument ) = @_;
+	my ( undef, $method, $argument ) = @_;	# Invocant unused
 	$deprecate{$method} or return;
 	$deprecate{$method}{$argument} or return;
 	$deprecate{$method}{$argument} >= 3
@@ -4943,7 +4944,7 @@ sub _expand_oid_list {
 # and part are all present.
 
 sub _format_international_id_rest {
-    my ( $intl_id, $class ) = @_;
+    my ( $intl_id ) = @_;
     my @parts = _parse_international_id( $intl_id );
     @parts >= 3
 	and return sprintf '%04d-%03d%s', @parts;
@@ -4957,7 +4958,7 @@ sub _format_international_id_rest {
 # 'contains' wildcard '~~' unless year, month, and day are all present.
 
 sub _format_launch_date_rest {
-    my ( $date, $class ) = @_;
+    my ( $date ) = @_;
     my @parts = _parse_launch_date( $date )
 	or return;
     @parts >= 3
@@ -5183,7 +5184,7 @@ sub _get_space_track_domain {
 # than module private.
 
 sub __get_loader {
-    my ( $invocant, %arg ) = @_;
+##  my ( $invocant, %arg ) = @_;	# Arguments unused
     my $json = JSON->new()->utf8( 1 );
     return sub {
 	return $json->decode( $_[0] );
@@ -5886,11 +5887,11 @@ sub _swap_upper_and_lower {
 #	as a list. It dies if anything goes wrong.
 
 sub _source {
-    my $self = shift;
+    my ( undef, $fn ) = @_;	# Invocant unused
     wantarray or die <<'EOD';
 Error - _source () called in scalar or no context. This is a bug.
 EOD
-    my $fn = shift or die <<'EOD';
+    defined $fn or die <<'EOD';
 Error - No source file name specified.
 EOD
     my $fh = IO::File->new ($fn, '<') or die <<"EOD";
