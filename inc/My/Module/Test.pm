@@ -174,7 +174,14 @@ sub not_defined ($$) {
 	return;
     }
 
-    sub site_check ($) {
+    sub site_check (@) {
+	my @sites = @_;
+	my @rslt = grep { defined $_ } map { _site_check( $_ ) } @sites
+	    or return;
+	return join '; ', @rslt;
+    }
+
+    sub _site_check {
 	my ( $site ) = @_;
 	exists $skip_site{$site} and return $skip_site{$site};
 	my $url = $info{$site}{url} or do {
@@ -389,9 +396,9 @@ and represents the skip message, if any.
 
 =head2 site_check
 
- site_check 'spaceflight.nasa.gov'
+ site_check 'spaceflight.nasa.gov', 'celestrak.com';
 
-This subroutine tests a preselected URL on the given site, and sets the
+This subroutine tests a preselected URL on the given sites, and sets the
 skip indicator appropriately. Allowed site names are:
 
  celestrak.com

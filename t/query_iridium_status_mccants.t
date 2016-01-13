@@ -12,9 +12,7 @@ use lib qw{ inc };
 use My::Module::Test;
 
 my $skip;
-$skip = site_check 'celestrak.com'
-    and plan skip_all => $skip;
-$skip = site_check 'mike.mccants'
+$skip = site_check 'celestrak.com', 'mike.mccants'
     and plan skip_all => $skip;
 
 my $st = Astro::SpaceTrack->new();
