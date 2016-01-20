@@ -1,6 +1,9 @@
+0.093		2016-01-20	T. R. Wyant
+  No changes since 0.092_02.
+
 0.092_02	2016-01-13	T. R. Wyant
   Prohibit _all_ unused variables. I used to allow them in subroutine
-    signatures.
+    arguments.
 
   Make t/query_iridium_status_*.t skip rather than fail if the server is
     unavailable.
