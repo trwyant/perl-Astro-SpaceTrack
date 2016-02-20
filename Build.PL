@@ -26,6 +26,7 @@ my %attr = (
     ),
     build_requires => $meta->build_requires(),
     configure_requires => {},	# Don't require Module::Build
+    add_to_cleanup	=> [ qw{ cover_db } ],
 );
 
 $mbv >= 0.28
