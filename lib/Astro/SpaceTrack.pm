@@ -2535,7 +2535,7 @@ sub retrieve {
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
 	$rest->{OBJECT_NUMBER} = _stringify_oid_list( {
 		separator	=> ',',
-		range_operator	=> _rest_range_operator(),
+		range_operator	=> '--',
 	    }, @batch );
 
 	my $resp = $self->spacetrack_query_v2(
@@ -2737,7 +2737,7 @@ sub _search_rest {
 	@args = (
 	    _stringify_oid_list( {
 		    separator	=> ',',
-		    range_operator	=> _rest_range_operator(),
+		    range_operator	=> '--',
 		},
 		@args
 	    )
@@ -2783,35 +2783,11 @@ sub _search_rest {
 	    or croak "Format $rest_args->{format} does not support TLE retrieval";
 	my $ropt = _remove_search_options( $opt );
 
-	# Quantitative RCS data removed August 18 2014.
-#	my $load_content;
-#	if ( $opt->{rcs} ) {
-#	    delete $ropt->{json};
-#	    $ropt->{format} = 'json';
-#	    $load_content = $self->can( "_load_content_$opt->{format}" )
-#		or croak "Format $opt->{format} does not support -rcs";
-#	} else {
-#	    $load_content = sub {};
-#	}
 	my $rslt = $self->retrieve( $ropt,
 	    map { $_->{OBJECT_NUMBER} } @{ $data } );
 
-	# Quantitative RCS data removed August 18 2014.
-#	$opt->{rcs}
-#	    or return $rslt;
-#	my %search_info = map { $_->{OBJECT_NUMBER} => $_ } @{ $data };
-#	my $json = $self->_get_json_object();
-#	my $info = $json->decode( $rslt->content() );
-#	foreach my $obj ( @{ $info } ) {
-#	    exists $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE}
-#		and $obj->{RCSVALUE} =
-#		    $search_info{$obj->{OBJECT_NUMBER}}{RCSVALUE};
-#	}
-#	$load_content->( $self, $rslt, $info );
-#	wantarray
-#	    and $data
-#	    and return ( $rslt, $data );
 	return $rslt;
+
     } else {
 
 	if ( 'legacy' eq $opt->{format} ) {
@@ -2853,66 +2829,6 @@ sub _search_rest {
     # Perigee: PERIGEE
     # RCS: RCSVALUE
 
-}
-
-sub _load_content_3le {
-    my ( undef, $resp, $data ) = @_;	# Invocant unused
-    my $content;
-    foreach my $obj ( @{ $data } ) {
-	$content .= $obj->{TLE_LINE0};
-
-	# Quantitative RCS data removed August 18 2014.
-#	defined $obj->{RCSVALUE}
-#	    and $content .= " --rcs $obj->{RCSVALUE}";
-	$content .= "\n";
-	$content .= join '', map { "$obj->{$_}\n" } qw{ TLE_LINE1
-	TLE_LINE2 };
-    }
-    $resp->content( $content );
-    return $resp;
-}
-
-sub _load_content_json {
-    my ( $self, $resp, $data ) = @_;
-    my $json = $self->_get_json_object();
-    $resp->content( $json->encode( $data ) );
-    return $resp;
-}
-
-sub _load_content_legacy {
-    my ( $self, $resp, $data ) = @_;
-    my $with_name = $self->getv( 'with_name' );
-    my $content;
-    foreach my $obj ( @{ $data } ) {
-	my @line0;
-	$with_name
-	    and push @line0, $obj->{OBJECT_NAME};
-
-	# Quantitative RCS data removed August 18 2014.
-#	defined $obj->{RCSVALUE}
-#	    and push @line0, "--rcs $obj->{RCSVALUE}";
-	@line0
-	    and $content .= "@line0\n";
-	$content .= join '', map { "$obj->{$_}\n" }
-	    qw{ TLE_LINE1 TLE_LINE2 };
-    }
-    $resp->content( $content );
-    return $resp;
-}
-
-sub _load_content_tle {
-    my ( undef, $resp, $data ) = @_;	# Invocant unused
-    my $content;
-    foreach my $obj ( @{ $data } ) {
-
-	# Quantitative RCS data removed August 18 2014.
-#	defined $obj->{RCSVALUE}
-#	    and $content .= "--rcs $obj->{RCSVALUE}\n";
-	$content .= join '', map { "$obj->{$_}\n" }
-	    qw{ TLE_LINE1 TLE_LINE2 };
-    }
-    $resp->content( $content );
-    return $resp;
 }
 
 sub __search_rest_raw {
@@ -4543,7 +4459,9 @@ sub _accumulate_file_of_record {
 #    _accumulate_fmt_data need not maintain $context->{data} as a valid
 #    representation of the accumulated data.
 
-sub _accumulate_csv_data {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
+# _accumulator_for(), above
+sub _accumulate_csv_data {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ (?<! \n ) \z }{\n}smx;
@@ -4555,7 +4473,9 @@ sub _accumulate_csv_data {
     return;
 }
 
-sub _accumulate_html_data {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
+# _accumulator_for(), above
+sub _accumulate_html_data {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ \s* </tbody> \s* </table> \s* \z }{}smx;
@@ -4567,7 +4487,9 @@ sub _accumulate_html_data {
     return;
 }
 
-sub _accumulate_json_data {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
+# _accumulator_for(), above
+sub _accumulate_json_data {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $self, $content, $context ) = @_;
 
     my $json = $context->{json} ||= $self->_get_json_object(
@@ -4591,7 +4513,9 @@ sub _accumulate_json_data {
     return $data;
 }
 
-sub _accumulate_json_return {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_return" ) in
+# _accumulator_for(), above
+sub _accumulate_json_return {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $self, $context ) = @_;
 
     my $json = $context->{json} ||= $self->_get_json_object(
@@ -4612,13 +4536,17 @@ sub _accumulate_unknown_data {
     return;
 }
 
-sub _accumulate_tle_data {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
+# _accumulator_for(), above
+sub _accumulate_tle_data {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( undef, $content, $context ) = @_;	# Invocant unused
     $context->{data} .= $content;
     return;
 }
 
-sub _accumulate_xml_data {
+# Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
+# _accumulator_for(), above
+sub _accumulate_xml_data {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( undef, $content, $context ) = @_;	# Invocant unused
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ \s* </xml> \s* \z }{}smx;
@@ -5841,33 +5769,9 @@ sub _spacetrack_v2_response_is_empty {
     return $resp->content() =~ m/ \A \s* (?: [[] \s* []] )? \s* \z /smx;
 }
 
-# TODO The following UNDOCUMENTED hack will disappear when the REST
-# interface's behavior when you have ranges in a list of OIDs
-# stabilizes.
-sub _rest_range_operator {
-#   return _get_env( SPACETRACK_REST_RANGE_OPERATOR => 1 ) ?
-#	'--' :
-#	undef;
-    return '--';
-}
-
-# TODO The following UNDOCUMENTED hack will disappear when the REST
-# interface's behavior with fractional days stabilizes.
-
 sub _rest_date {
     my ( $time ) = @_;
-#   my $fmt = _get_env( SPACETRACK_REST_FRACTIONAL_DATE => 1 ) ?
-#	'%04d-%02d-%02d %02d:%02d:%02d' :
-#	'%04d-%02d-%02d';
-#   return sprintf $fmt, @{ $time };
     return sprintf '%04d-%02d-%02d %02d:%02d:%02d', @{ $time };
-}
-
-sub _get_env {
-    my ( $name, $default ) = @_;
-    defined $ENV{$name}
-	and return $ENV{$name};
-    return $default;
 }
 
 #	$swapped = _swap_upper_and_lower( $original );

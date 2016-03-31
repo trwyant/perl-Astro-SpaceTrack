@@ -24,7 +24,8 @@ our $VERSION = '0.093';
     my $json;
     my $keep;
 
-    sub _censor_json {
+    # Accessed via address space scan in _list_censors()
+    sub _censor_json {	## no critic (ProhibitUnusedPrivateSubroutines)
 	my ( $data ) = @_;
 	$data =~ m/ \A \s* [[] \s* [{] .* [}] \s* []] \s* \z /smx
 	    or return;
@@ -75,7 +76,8 @@ our $VERSION = '0.093';
     }
 }
 
-sub _censor_tle {
+# Accessed via address space scan in _list_censors()
+sub _censor_tle {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $data ) = @_;
     $data =~ s/
 	(?: \A | (?<= [\r\n] ) )
