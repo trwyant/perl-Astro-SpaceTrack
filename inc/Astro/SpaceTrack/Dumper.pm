@@ -63,14 +63,14 @@ our $VERSION = '0.093';
 	    }
 	    $item->{TLE_LINE1} =~ s/
 		    (?: \A | (?<= [\r\n] ) )
-		    1 [\s0-9]{6}U \s \K
+		    ( 1 [\s0-9]{6}U \s )
 		    [^\r\n]*
-		/First line of data/smxg;
+		/${1}First line of data/smxg;
 	    $item->{TLE_LINE2} =~ s/
 		    (?: \A | (?<= [\r\n] ) )
-		    2 [\s0-9]{6} \s \K
+		    ( 2 [\s0-9]{6} \s )
 		    [^\r\n]*
-		/Second line of data/smxg;
+		/${1}Second line of data/smxg;
 	}
 	return $json->encode( $a );
     }
@@ -81,15 +81,15 @@ sub _censor_tle {	## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $data ) = @_;
     $data =~ s/
 	(?: \A | (?<= [\r\n] ) )
-	1 [\s0-9]{6}U \s \K
+	( 1 [\s0-9]{6}U \s )
 	[^\r\n]*
-    /First line of data/smxg
+    /${1}First line of data/smxg
 	or return;
     $data =~ s/
 	(?: \A | (?<= [\r\n] ) )
-	2 [\s0-9]{6} \s \K
+	( 2 [\s0-9]{6} \s )
 	[^\r\n]*
-    /Second line of data/smxg
+    /${1}Second line of data/smxg
 	or return;
     return $data;
 }
