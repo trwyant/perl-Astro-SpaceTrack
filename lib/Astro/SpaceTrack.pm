@@ -772,7 +772,7 @@ Space Track ($url/) you must register and
 get a username and password, and you may not make the data available to
 a third party without prior permission from Space Track.
 
-Copyright 2005-2014 by T. R. Wyant (wyant at cpan dot org).
+Copyright 2005-2016 by T. R. Wyant (wyant at cpan dot org).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
