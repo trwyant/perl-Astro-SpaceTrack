@@ -1755,9 +1755,17 @@ If the format is 'kelso', only Dr. Kelso's Celestrak web site
 (L<http://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
 the data. The possible status values are:
 
+    '[B]' - See below;
     '[S]' - Spare;
     '[-]' - Tumbling (or otherwise unservicable);
     '[+]' - In service and able to produce predictable flares.
+
+Status C<'[B]'> made its appearance July 16 2016, with OID 25042
+(Iridium 39) having that status. I have so far found no information
+about this status on L<http://celestrak.com>, so since McCants and
+Sladen both consider this Iridium 39 to be in service, I am
+provisionally interpreting this status the same as C<'[+]'>. This will
+change if I get contrary information.
 
 The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 
@@ -1833,7 +1841,6 @@ The BODY_STATUS constants are exportable using the :status tag.
 {	# Begin local symbol block.
 
     use constant BODY_STATUS_IS_OPERATIONAL => 0;
-
     use constant BODY_STATUS_IS_SPARE => 1;
     use constant BODY_STATUS_IS_TUMBLING => 2;
 
@@ -1847,6 +1854,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 		'[S]' => '?',	# spare
 		'[-]' => 'tum',	# tumbling
 		'[+]' => '',	# operational
+		'[B]' => '',	# TODO clarify
 		},
 	    },
 	);
@@ -1856,6 +1864,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    '[-]' => BODY_STATUS_IS_TUMBLING,
 	    '[S]' => BODY_STATUS_IS_SPARE,
 	    '[+]' => BODY_STATUS_IS_OPERATIONAL,
+	    '[B]' => BODY_STATUS_IS_OPERATIONAL, # TODO clarify
 	},
 	mccants => {
 	    '' => BODY_STATUS_IS_OPERATIONAL,
@@ -1869,8 +1878,8 @@ The BODY_STATUS constants are exportable using the :status tag.
 #	sladen => undef,	# Not needed; done programmatically.
     );
 
-    $status_portable{kelso_inverse} = { reverse %{
-	$status_portable{kelso} } };
+    $status_portable{kelso_inverse} = {
+	map { $status_portable{kelso}{$_} => $_ } qw{ [-] [S] [+] } };
     $status_portable{kelso}{''}	= BODY_STATUS_IS_OPERATIONAL;
 
     sub iridium_status {
@@ -1995,7 +2004,6 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my ( $self, undef, $rslt ) = @_;	# $fmt arg not used
 
 	$self->_iridium_status_assume_good( $rslt );
-
 	my $resp = $self->_get_agent()->get(
 	    $self->getv( 'url_iridium_status_sladen' )
 	);

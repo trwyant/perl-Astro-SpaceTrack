@@ -21,13 +21,14 @@ my %known_inconsistent = (
     24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
 				# McCants: failed 29-Oct-2012;
 				# Sladen: still operational.
-    24906 => { kelso => 1 },	# Kelso: spare; others: operational
+#   24906 => { kelso => 1 },	# Kelso: spare; others: operational
 				# 16-Nov-2012: Sladen declares spare
 				# 08-Apr-2014: Sladen declares operational
+				# 16-Jul-2016: Kelso declares operational
     24944 => { kelso => 1,	# 01-Apr-2014: Kelso declares spare
 	       sladen => 1 },	# 09-Sep-2014: Sladen declares failed
 #   25039 => { sladen => 1 },	# 09-Sep-2014: Sladen declares spare
-#				# 11-Dec-2014L Sladen declares in-service again
+#				# 11-Dec-2014: Sladen declares in-service again
 #   25104 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares spare;
 #				#             others: operational
 #				# 11-Dec-2014: Sladen declares operational again
@@ -40,13 +41,16 @@ my %known_inconsistent = (
     25273 => { kelso => 1 },	# 23-Jun-2016: Kelso: tumbling; others: operational
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
-    25777 => { sladen => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
+    25777 => { mccants => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
+				# 16-Jul-2016: Kelso: operational; McCants: spare
     27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
 				# 18-Feb-2014 McCants: operational;
 				#             others: spare
-    27376 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares operational;
+    27376 => { mccants => 1 },	# 08-Apr-2014 Sladen: declares operational;
 				#             others: spare
-    27451 => { sladen => 1 },	# 09-Sep-2014:: Sladen declares in-service.
+				# 16-Jul-2016: Kelso declares operational
+    27451 => { mccants => 1 },	# 09-Sep-2014: Sladen declares in-service.
+				# 16-Jul-2016: Kelso declares operational.
 );
 
 =begin comment
@@ -217,7 +221,7 @@ EOD
  24903   Iridium 26     [-]      Tumbling
  24904   Iridium 25     [+]      
  24905   Iridium 46     [+]      
- 24906   Iridium 23     [S]      Spare
+ 24906   Iridium 23     [+]      
  24907   Iridium 22     [+]      
  24925   Dummy mass 1   [-]      Tumbling
  24926   Dummy mass 2   [-]      Tumbling
@@ -235,7 +239,7 @@ EOD
  25039   Iridium 43     [+]      
  25040   Iridium 41     [+]      
  25041   Iridium 40     [+]      
- 25042   Iridium 39     [+]      
+ 25042   Iridium 39     [B]      
  25043   Iridium 38     [-]      Tumbling
  25077   Iridium 42     [-]      Tumbling
  25078   Iridium 44     [-]      Tumbling
@@ -281,15 +285,15 @@ EOD
  25531   Iridium 83     [+]      
  25577   Iridium 20     [+]      
  25578   Iridium 11     [+]      
- 25777   Iridium 14     [S]      Spare
+ 25777   Iridium 14     [+]      
  25778   Iridium 21     [+]      
  27372   Iridium 91     [+]      
  27373   Iridium 90     [S]      Spare
- 27374   Iridium 94     [S]      Spare
+ 27374   Iridium 94     [+]      
  27375   Iridium 95     [+]      
- 27376   Iridium 96     [S]      Spare
+ 27376   Iridium 96     [+]      
  27450   Iridium 97     [+]      
- 27451   Iridium 98     [S]      Spare
+ 27451   Iridium 98     [+]      
 EOD
 	["Rod Sladen's Iridium Constellation Status",
 	sladen => <<'EOD'],
@@ -420,6 +424,10 @@ foreach my $id ( @keys ) {
 	    $skip = _skip_reason( $id, $pr )
 		and skip $skip, 1;
 
+	    defined $status{$pr->[0]}{$id}
+		or diag "$id $pr->[0] undef";
+	    defined $status{$pr->[1]}{$id}
+		or diag "$id $pr->[1] undef";
 	    cmp_ok $status{$pr->[0]}{$id}, '==', $status{$pr->[1]}{$id},
 	    "$id status consistent between $pr->[0] and $pr->[1]"
 		or diag xlate( $pr->[0], $pr->[1], $id );
