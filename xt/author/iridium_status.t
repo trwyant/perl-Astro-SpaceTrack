@@ -34,6 +34,7 @@ my %known_inconsistent = (
 #				# 11-Dec-2014: Sladen declares operational again
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
+    25042 => { kelso => 1 },	# 16-Jul-2016: Kelso spare, others in-service
     25077 => { mccants => 1 },	# 16-Oct-2014: Kelso: failed; others: operational
 				# 11-Dec-2014: Sladen: failed
     25262 => { kelso => 1 },	# Kelso: spare; others: operational.

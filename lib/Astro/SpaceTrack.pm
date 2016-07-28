@@ -1753,19 +1753,18 @@ to the value of the L</iridium_status_format> attribute.
 
 If the format is 'kelso', only Dr. Kelso's Celestrak web site
 (L<http://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
-the data. The possible status values are:
+the data. The possible status values are documented at
+L<http://celestrak.com/satcat/status.asp>, and repeated here for
+convenience:
 
-    '[B]' - See below;
-    '[S]' - Spare;
-    '[-]' - Tumbling (or otherwise unservicable);
-    '[+]' - In service and able to produce predictable flares.
-
-Status C<'[B]'> made its appearance July 16 2016, with OID 25042
-(Iridium 39) having that status. I have so far found no information
-about this status on L<http://celestrak.com>, so since McCants and
-Sladen both consider this Iridium 39 to be in service, I am
-provisionally interpreting this status the same as C<'[+]'>. This will
-change if I get contrary information.
+    '[+]' - Operational
+    '[-]' - Nonoperational
+    '[P]' - Partially Operational
+    '[B]' - Backup/Standby
+    '[S]' - Spare
+    '[X]' - Extended Mission
+    '[D]' - Decayed
+    '[?]' - Unknown
 
 The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 
@@ -1824,15 +1823,28 @@ element will be a reference to a list of anonymous lists, each
 containing [$id, $name, $status, $comment, $portable_status] for
 an Iridium satellite. The portable statuses are:
 
-  0 = BODY_STATUS_IS_OPERATIONAL means object is operational
-  1 = BODY_STATUS_IS_SPARE means object is a spare
+  0 = BODY_STATUS_IS_OPERATIONAL means object is operational,
+      and capable of producing predictable flares;
+  1 = BODY_STATUS_IS_SPARE means object is a spare or
+      otherwise not in regular service, but is controlled
+      and may be capable of producing predictable flares;
   2 = BODY_STATUS_IS_TUMBLING means object is tumbling
-      or otherwise unservicable.
+      or otherwise unservicable, and incapable of producing
+      predictable flares
 
-The correspondence between the Kelso statuses and the portable statuses
-is pretty much one-to-one. In the McCants statuses, '?' identifies a
-spare, '+' identifies an in-service satellite, and anything else is
-considered to be tumbling.
+In terms of the Kelso statuses, the mapping is:
+
+    '[+]' - BODY_STATUS_IS_OPERATIONAL
+    '[-]' - BODY_STATUS_IS_TUMBLING
+    '[P]' - BODY_STATUS_IS_SPARE
+    '[B]' - BODY_STATUS_IS_SPARE
+    '[S]' - BODY_STATUS_IS_SPARE
+    '[X]' - BODY_STATUS_IS_SPARE
+    '[D]' - BODY_STATUS_IS_TUMBLING
+    '[?]' - BODY_STATUS_IS_TUMBLING
+
+In the McCants statuses, '?' identifies a spare, '+' identifies an
+in-service satellite, and anything else is considered to be tumbling.
 
 The BODY_STATUS constants are exportable using the :status tag.
 
@@ -1852,19 +1864,27 @@ The BODY_STATUS constants are exportable using the :status tag.
 	kelso => {
 	    mccants => {
 		'[S]' => '?',	# spare
-		'[-]' => 'tum',	# tumbling
+		'[-]' => 'tum',	# Nonoperational
 		'[+]' => '',	# operational
-		'[B]' => '',	# TODO clarify
+		'[P]' => '?',	# Partially Operational
+		'[B]' => 'man',	# Backup/Standby
+		'[X]' => '?',	# Extended Mission
+		'[D]' => 'tum',	# Decayed
+		'[?]' => 'tum',	# Unknown
 		},
 	    },
 	);
     my %status_portable = (	# Map statuses to portable.
 	kelso => {
-#	    ''	=> BODY_STATUS_IS_OPERATIONAL,
-	    '[-]' => BODY_STATUS_IS_TUMBLING,
-	    '[S]' => BODY_STATUS_IS_SPARE,
-	    '[+]' => BODY_STATUS_IS_OPERATIONAL,
-	    '[B]' => BODY_STATUS_IS_OPERATIONAL, # TODO clarify
+	    ''	=> BODY_STATUS_IS_OPERATIONAL,
+	    '[+]' => BODY_STATUS_IS_OPERATIONAL,	# Operational
+	    '[-]' => BODY_STATUS_IS_TUMBLING,		# Nonoperational
+	    '[P]' => BODY_STATUS_IS_SPARE,		# Partially Operational
+	    '[B]' => BODY_STATUS_IS_SPARE,		# Backup/Standby
+	    '[S]' => BODY_STATUS_IS_SPARE,		# Spare
+	    '[X]' => BODY_STATUS_IS_SPARE,		# Extended Mission
+	    '[D]' => BODY_STATUS_IS_TUMBLING,		# Decayed
+	    '[?]' => BODY_STATUS_IS_TUMBLING,		# Unknown
 	},
 	mccants => {
 	    '' => BODY_STATUS_IS_OPERATIONAL,
@@ -1873,14 +1893,13 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    'man' => BODY_STATUS_IS_TUMBLING,
 	    'tum' => BODY_STATUS_IS_TUMBLING,
 	    'tum?' => BODY_STATUS_IS_TUMBLING,
-	    'unc'	=> BODY_STATUS_IS_TUMBLING,
+	    'unc'  => BODY_STATUS_IS_TUMBLING,
 	},
 #	sladen => undef,	# Not needed; done programmatically.
     );
 
     $status_portable{kelso_inverse} = {
 	map { $status_portable{kelso}{$_} => $_ } qw{ [-] [S] [+] } };
-    $status_portable{kelso}{''}	= BODY_STATUS_IS_OPERATIONAL;
 
     sub iridium_status {
 	my $self = shift;
