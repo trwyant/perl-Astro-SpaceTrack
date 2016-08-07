@@ -1,13 +1,8 @@
-0.093_02	2016-07-28	T. R. Wyant
-  Re-implement Kelso Iridium status '[B]' as spare, and implement all
+0.094		2016-08-07	T. R. Wyant
+  Implement Kelso Iridium status '[B]' as spare, and implement all
     other status codes documented on the Celestrak web site.
 
-0.093_01	2016-07-27	T. R. Wyant
   Update copyright date returned by banner().
-
-  Add Kelso status [B]. This is interpreted as 'operational' for
-    consistency with other sources, but this will change if I find out
-    it is not appropriate.
 
 0.093		2016-01-20	T. R. Wyant
   Make t/query_iridium_status_*.t skip rather than fail if the server is
