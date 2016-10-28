@@ -48,6 +48,7 @@ is_deeply scalar Astro::SpaceTrack->attribute_names(), [ qw{
     dump_headers
     fallback
     filter
+    identity
     iridium_status_format
     max_range
     password

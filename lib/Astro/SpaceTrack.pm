@@ -12,7 +12,7 @@ Astro::SpaceTrack - Retrieve orbital data from www.space-track.org.
 
 or
 
- perl -MAstro::SpaceTrack=shell -e shell
+ $ SpaceTrack
  
  (some banner text gets printed here)
  
@@ -23,6 +23,12 @@ or
  SpaceTrack> spacetrack special >special.txt
  SpaceTrack> celestrak visual >visual.txt
  SpaceTrack> exit
+
+In either of the above, username and password entry can be omitted if
+you have installed L<Config::Identity|Config::Identity> and have created
+an L<IDENTITY FILE|/IDENTITY FILE> (see below) containing these values.
+You probably want to encrypt this file, if you have C<gpg2> and
+C<gpg-agent>.
 
 In practice, it is probably not useful to retrieve data from any source
 more often than once every four hours, and in fact daily usually
@@ -514,6 +520,7 @@ my %mutator = (	# Mutators for the various attributes.
     dump_headers => \&_mutate_dump_headers,	# Dump all HTTP headers. Undocumented and unsupported.
     fallback => \&_mutate_attrib,
     filter => \&_mutate_attrib,
+    identity	=> \&_mutate_identity,
     iridium_status_format => \&_mutate_iridium_status_format,
     max_range => \&_mutate_number,
     password => \&_mutate_authen,
@@ -555,8 +562,39 @@ foreach my $key ( keys %mutator ) {
 =for html <a name="new"></a>
 
 This method instantiates a new Space-Track accessor object. If any
-arguments are passed, the set () method is called on the new object,
+arguments are passed, the C<set()> method is called on the new object,
 and passed the arguments given.
+
+For both historical and operational reasons, this method can get the
+C<username> and C<password> values from multiple locations. It uses the
+first defined value it finds in the following list:
+
+=over
+
+=item a value explicitly specified as an argument to C<new()>;
+
+=item a value from the L<IDENTITY FILE|/IDENTITY FILE>, if the
+C<identity> attribute is explicitly specified as true;
+
+=item a value from environment variable C<SPACETRACK_USER> if that has a
+non-empty value;
+
+=item a value from the L<IDENTITY FILE|/IDENTITY FILE>, if the
+C<identity> attribute defaulted to true;
+
+=item a value from environment variable C<SPACETRACK_OPT>.
+
+=back
+
+The reason for preferring C<SPACETRACK_USER> over an identity file value
+taken by default is that I have found that under Mac OS X an SSH session
+does not have access to the system keyring, and
+L<Config::Identity|Config::Identity> provides no other way to specify
+the passphrase used to decrypt the private key. I concluded that if the
+user explicitly requested an identity that it should be preferred to
+anything from the environment, but that, for SSH access to be usable, I
+needed to provide a source of username and password that would be taken
+before the L<IDENTITY FILE|/IDENTITY FILE> was tried by default.
 
 Proxies are taken from the environment if defined. See the ENVIRONMENT
 section of the Perl LWP documentation for more information on how to
@@ -565,7 +603,7 @@ set these up.
 =cut
 
 sub new {
-    my ($class, @args) = @_;
+    my ( $class, %arg ) = @_;
     $class = ref $class if ref $class;
 
     my $self = {
@@ -609,19 +647,29 @@ sub new {
     };
     bless $self, $class;
 
+    $self->set( identity	=> delete $arg{identity} );
+
     $ENV{SPACETRACK_OPT} and
 	$self->set (grep {defined $_} split '\s+', $ENV{SPACETRACK_OPT});
 
-    $ENV{SPACETRACK_USER} and do {
+    if ( defined( my $id = delete $arg{identity} ) ) {
+	$self->set( identity => $id );
+    } elsif ( $ENV{SPACETRACK_USER} ) {
 	my ($user, $pass) = split qr{ [:/] }smx, $ENV{SPACETRACK_USER}, 2;
+	'' ne $user
+	    and '' ne $pass
+	    or $user = $pass = undef;
 	$self->set (username => $user, password => $pass);
-    };
+    } else {
+	$self->set( identity => undef );
+    }
 
     defined $ENV{SPACETRACK_VERIFY_HOSTNAME}
 	and $self->set( verify_hostname =>
 	$ENV{SPACETRACK_VERIFY_HOSTNAME} );
 
-    @args and $self->set (@args);
+    keys %arg
+	and $self->set( %arg );
 
     return $self;
 }
@@ -2048,7 +2096,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	# Parenthesized numbers are assumed to represent tumbling
 	# satellites in the in-service or spare grids.
 	my %exception;
-	{	## no critic (ProhibitUnusedCapture)
+	{
 	    s< [(] (\d+) [)] >
 		< $exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
 	}
@@ -2504,7 +2552,7 @@ non-numeric string. It is an error to specify an end_epoch before the
 start_epoch.
 
 If you are passing the options as a hash reference, you must specify
-a value for the boolean options 'descending' and 'last5'. This value is
+a value for the Boolean options 'descending' and 'last5'. This value is
 interpreted in the Perl sense - that is, undef, 0, and '' are false,
 and anything else is true.
 
@@ -5242,6 +5290,93 @@ sub _mutate_dump_headers {
 }
 
 {
+    my %id_file_name = (
+	MSWin32	=> sub {
+	    my $home = $ENV{HOME} || $ENV{USERPROFILE} || join '',
+		$ENV{HOMEDRIVE}, $ENV{HOMEPATH};
+	    return "$home\\spacetrack.id";
+	},
+	VMS	=> sub {
+	    my $home = $ENV{HOME} || 'sys$login';
+	    return "$home:spacetrack.id";
+	},
+    );
+
+    sub __identity_file_name {
+	return ( $id_file_name{$^O} || sub {
+		return join '/', $ENV{HOME}, '.spacetrack-identity' }
+	)->();
+    }
+
+}
+
+# This basically duplicates the logic in Config::Identity
+sub __identity_file_is_encrypted {
+    my $fn = __identity_file_name();
+    -B $fn
+	and return 1;
+    open my $fh, '<:encoding(utf-8)', $fn
+	or return;
+    local $/ = undef;
+    my $content = <$fh>;
+    close $fh;
+    return $content =~ m/ \Q----BEGIN PGP MESSAGE----\E /smx;
+}
+
+sub _mutate_identity {
+    my ( $self, $name, $value ) = @_;
+    defined $value
+	or $value = $ENV{SPACETRACK_IDENTITY};
+    if ( $value and my $identity = __spacetrack_identity() ) {
+	$self->set( %{ $identity } );
+    }
+    return ( $self->{$name} = $value );
+}
+
+=for html <a name="flush_identity_cache"></a>
+
+=item Astro::SpaceTrack->flush_identity_cache();
+
+The identity file is normally read only once, and the data cached. This
+static method flushes the cache to force the identity data to be reread.
+
+=cut
+
+{
+    my $identity;
+    my $loaded;
+
+    sub flush_identity_cache {
+	$identity = $loaded = undef;
+	return;
+    }
+
+    sub __spacetrack_identity {
+	$loaded
+	    and return $identity;
+	$loaded = 1;
+	my $fn = __identity_file_name();
+	-f $fn
+	    or return $identity;
+	{
+	    local $@ = undef;
+	    eval {
+		require Config::Identity;
+		$identity = { Config::Identity->load( $fn ) };
+		1;
+	    } or return;
+	}
+	foreach my $key ( qw{ username password } ) {
+	    exists $identity->{$key}
+		or croak "Identity file omits $key";
+	}
+	scalar keys %{ $identity } > 2
+	    and croak 'Identity file defines keys besides username and password';
+	return $identity;
+    }
+}
+
+{
     my %need_logout = map { $_ => 1 } qw{ domain_space_track };
 
     sub _mutate_spacetrack_interface {
@@ -5944,7 +6079,7 @@ method.
 
 The default is an empty string.
 
-=item banner (boolean)
+=item banner (Boolean)
 
 This attribute specifies whether or not the shell() method should emit
 the banner text on invocation.
@@ -5963,7 +6098,7 @@ This attribute specifies the name of the session cookie. You should not
 need to change this in normal circumstances, but if Space Track changes
 the name of the session cookie you can use this to get you going again.
 
-=item direct (boolean)
+=item direct (Boolean)
 
 This attribute specifies that orbital elements should be fetched
 directly from the redistributer if possible. At the moment the only
@@ -5981,7 +6116,7 @@ queries going again.
 The default is C<'www.space-track.org'>. This will change if necessary
 to remain appropriate to the Space Track web site.
 
-=item fallback (boolean)
+=item fallback (Boolean)
 
 This attribute specifies that orbital elements should be fetched from
 the redistributer if the original source is offline. At the moment the
@@ -5989,13 +6124,36 @@ only method affected by this is celestrak().
 
 The default is false (i.e. 0).
 
-=item filter (boolean)
+=item filter (Boolean)
 
 If true, this attribute specifies that the shell is being run in filter
 mode, and prevents any output to STDOUT except orbital elements -- that
 is, if I found all the places that needed modification.
 
 The default is false (i.e. 0).
+
+=item identity (Boolean)
+
+If this attribute is set to a true value, the C<Astro::SpaceTrack>
+object will attempt to load attributes from an identity file. This will
+only do anything if the identity file exists and
+L<Config::Identity|Config::Identity> is installed. In addition, if the
+identity file is encrypted C<gpg2> must be installed and properly
+configured. See L<IDENTITY FILE|/IDENTITY FILE> below for details.
+
+If this attribute is unspecified (to C<new()> or specified as C<undef>
+(to C<new()> or C<set()>), the value of environment variable
+C<SPACETRACK_IDENTITY> will be used as the new value.
+
+When a new object is instantiated, the identity is processed first; in
+this way attribute values that come from the environment or are
+specified explicitly override those that come from the identity file. If
+you explicitly set this on an already-instantiated object, the attribute
+values from the identity file will replace those in the object.
+
+When you instantiate an object, the identity from environment variable
+C<SPACETRACK_USER> will be preferred over the value from the identity
+file, if any, even if the C<identity> attribute is explicitly set true.
 
 =item iridium_status_format (string)
 
@@ -6020,7 +6178,7 @@ This attribute specifies the Space-Track password.
 
 The default is an empty string.
 
-=item pretty (boolean)
+=item pretty (Boolean)
 
 This attribute specifies whether the content of the returned
 L<HTTP::Response|HTTP::Response> is to be pretty-formatted. Currently
@@ -6093,13 +6251,13 @@ This attribute specifies the Space-Track username.
 
 The default is an empty string.
 
-=item verbose (boolean)
+=item verbose (Boolean)
 
 This attribute specifies verbose error messages.
 
 The default is false (i.e. 0).
 
-=item verify_hostname (boolean)
+=item verify_hostname (Boolean)
 
 This attribute specifies whether C<https:> certificates are verified.
 If you set this false, you can not verify that hosts using C<https:> are
@@ -6139,7 +6297,7 @@ version of Astro::SpaceTrack, and spawn that command to the operating
 system. You can use 'open' under Mac OS X, and 'start' under Windows.
 Anyone else will probably need to name an actual browser.
 
-=item with_name (boolean)
+=item with_name (Boolean)
 
 This attribute specifies whether the returned element sets should
 include the common name of the body (three-line format) or not
@@ -6150,7 +6308,35 @@ The default is false (i.e. 0).
 
 =back
 
+=head1 IDENTITY FILE
+
+This is a L<Config::Identity|Config::Identity> file which specifies the
+username and password values for the user. This file is stored in the
+user's home directory, and is F<spacetrack.id> under C<MSWin32> or
+C<VMS>, or F<.spacetrack-identity> under any other operating system.
+
+If desired, the file can be encrypted using GPG; in this case, to be
+useful, C<gpg2> and C<gpg-agent> must be installed and properly
+configured. Because of implementation details in
+L<Config::Identity|Config::Identity>, the C<gpg> program must B<not> be
+present in your PATH.
+
+Note that this file is normally read only once during the life of the
+Perl process, and the result cached. The username and password that are
+set when C<identity> becomes true come from the cache. If you want a
+running script to see new identity file information you must call static
+method L<flush_identity_cache()|/flush_identity_cache>.
+
 =head1 GLOBALS
+
+The following globals modify the behaviour of this class. If you modify
+their values, your modifications should be properly localized. For
+example:
+
+ {
+     local $SPACETRACK_DELAY_SECONDS = 42;
+     $rslt = $st->search_name( 'iss' );
+ }
 
 =head2 $SPACETRACK_DELAY_SECONDS
 
@@ -6179,6 +6365,11 @@ available this number must be an integer.
 This environment variable is only used to initialize
 C<$SPACETRACK_DELAY_SECONDS>. If you wish to change the delay you must
 assign to the global.
+
+=head2 SPACETRACK_IDENTITY
+
+This environment variable specifies the default value for the identity
+attribute any time an undefined value for that attribute is specified.
 
 =head2 SPACETRACK_OPT
 

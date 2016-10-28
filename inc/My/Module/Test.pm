@@ -25,11 +25,18 @@ our @EXPORT = qw{
     most_recent_http_response
     not_defined
     site_check
-    spacetrack_account
+    spacetrack_user
     skip_site
     throws_exception
     VERIFY_HOSTNAME
 };
+
+use constant NO_SPACE_TRACK_ACCOUNT => 'No Space-Track account provided';
+
+# Deliberately not localized, to prevent unwanted settings from sneaking
+# in from the user's identity file.
+$Astro::SpaceTrack::SPACETRACK_IDENTITY_KEY = {
+    map { $_ => 1 } qw{ username password } };
 
 my $rslt;
 
@@ -152,7 +159,7 @@ sub not_defined ($$) {
 	    },
 	    'www.space-track.org'	=> {
 		url	=> 'https://www.space-track.org/',
-		check	=> \&spacetrack_skip,
+		check	=> \&__spacetrack_skip,
 	    }
 	);
 
@@ -213,19 +220,53 @@ sub not_defined ($$) {
     }
 }
 
+sub __spacetrack_identity {
+    # The following needs to be armor-plated so that a compilation
+    # failure does not shut down the testing system (though maybe it
+    # should!)
+    local $@ = undef;
+    return eval {
+	local @INC = @INC;
+	require blib;
+	blib->import();
+	require Astro::SpaceTrack;
+	-f Astro::SpaceTrack->__identity_file_name()
+	    or return;
+	# Ad-hocery. Under Mac OS X the GPG machinery seems not to work in
+	# an SSH session; a dialog pops up which the originator of the
+	# session has no way to respond to. If the dialog is actually
+	# executed, the primary user's information gets clobbered. If
+	# the identity file is not binary, we assume we don't need GPG,
+	# because that is what Config::Identity assumes.
+	Astro::SpaceTrack->__identity_file_is_encrypted()
+	    and $ENV{SSH_CONNECTION}
+	    and return;
+	my $id = Astro::SpaceTrack->__spacetrack_identity();
+	defined $id->{username} && defined $id->{password} &&
+	    "$id->{username}/$id->{password}";
+    };
+}
+
 {
     my $spacetrack_auth;
 
-    sub spacetrack_account {
-	return $spacetrack_auth;
-    }
-
-    sub spacetrack_skip {
+    sub __spacetrack_skip {
+	my ( $envir ) = @_;
 	defined $spacetrack_auth
+	    or $spacetrack_auth = $ENV{SPACETRACK_USER};
+	defined $spacetrack_auth
+	    and $spacetrack_auth =~ m< \A [:/] \z >smx
+	    and return NO_SPACE_TRACK_ACCOUNT;
+	$spacetrack_auth
 	    and return;
-	$spacetrack_auth = $ENV{SPACETRACK_USER} and return;
 	$ENV{AUTOMATED_TESTING}
 	    and return 'Automated testing and SPACETRACK_USER not set.';
+	$spacetrack_auth = __spacetrack_identity()
+	    and do {
+	    $envir
+		and $ENV{SPACETRACK_USER} = $spacetrack_auth;
+	    return;
+	};
 	$^O eq 'VMS' and do {
 	    warn <<'EOD';
 
@@ -234,7 +275,7 @@ name SPACETRACK_USER. This should be set to your Space Track username
 and password, separated by a slash ("/") character.
 
 EOD
-	    return;
+	    return 'No Space-Track account provided.';
 	};
 	warn <<'EOD';
 
@@ -256,10 +297,18 @@ EOD
 
 	my $user = prompt( 'Space-Track username' )
 	    and my $pass = prompt( { password => 1 }, 'Space-Track password' )
-	    or return 'No Space-Track account provided.';
-	$spacetrack_auth = "$user/$pass";
+	    or do {
+	    $ENV{SPACETRACK_USER} = '/';
+	    return NO_SPACE_TRACK_ACCOUNT;
+	};
+	$ENV{SPACETRACK_USER} = $spacetrack_auth = "$user/$pass";
 	return;
     }
+}
+
+sub spacetrack_user {
+    __spacetrack_skip( 1 );
+    return;
 }
 
 sub throws_exception (@) {	## no critic (RequireArgUnpacking)
@@ -408,14 +457,11 @@ skip indicator appropriately. Allowed site names are:
  www.amsat.org
  www.space-track.org
 
-=head2 spacetrack_account
+=head2 spacetrack_user
 
- $ENV{SPACETRACK_USER} = spacetrack_account
-
-This subroutine returns the Space Track user name and password in a
-format appropriate for the SPACETRACK_USER environment variable. The
-return is not valid unless C<site_check 'www.space-track.org'> has been
-called.
+If C<$ENV{SPACETRACK_USER}> is not set, this subroutine sets it to
+whatever value is obtained from the identity file if available, or by
+prompting the user. The environment variable is B<not> localized.
 
 =head2 throws_exception
 

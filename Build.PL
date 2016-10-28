@@ -7,6 +7,7 @@ use lib qw{ inc };
 
 use My::Module::Build;
 use My::Module::Meta;
+use My::Module::Recommend;
 use Config;
 use FileHandle;
 use Module::Build;
@@ -26,7 +27,7 @@ my %attr = (
     ),
     build_requires => $meta->build_requires(),
     configure_requires => {},	# Don't require Module::Build
-    add_to_cleanup	=> [ qw{ cover_db } ],
+    add_to_cleanup	=> [ qw{ cover_db xt/author/optionals } ],
 );
 
 $mbv >= 0.28
@@ -37,6 +38,8 @@ $mbv >= 0.28
 
 $mbv >= 0.34
     and $attr{auto_configure_requires} = !$meta->distribution();
+
+My::Module::Recommend->recommend();
 
 #	Generate a builder object.
 

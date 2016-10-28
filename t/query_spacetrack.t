@@ -24,9 +24,10 @@ my $start_epoch = '2012/04/01';
     $skip = site_check $space_track_domain	# To make sure we have account
 	and plan skip_all	=> $skip;
 
-    local $ENV{SPACETRACK_USER} = spacetrack_account();
-
-    $st = Astro::SpaceTrack->new( verify_hostname => VERIFY_HOSTNAME );
+    $st = Astro::SpaceTrack->new(
+	identity	=> ! $ENV{SPACETRACK_USER},
+	verify_hostname	=> VERIFY_HOSTNAME,
+    );
 
     $st->set( space_track_version => $desired_content_interface );
 }

@@ -34,6 +34,7 @@ co
 com
 cpan
 dataset
+decrypt
 Designator
 ephemeris
 executables
@@ -47,6 +48,7 @@ Globalstar
 glonass
 GLONASS
 GoDaddy
+GPG
 hoc
 HTTPS
 IDs
@@ -59,6 +61,7 @@ JSON
 kelso
 Kelso
 Kelso's
+keyring
 login
 mccants
 McCants
@@ -104,6 +107,7 @@ URI
 usa
 username
 Vesselsats
+VMS
 webcmd
 Westford
 www

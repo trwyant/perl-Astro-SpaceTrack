@@ -28,4 +28,4 @@ CVS/
 \.svn/
 \.swp$
 ^TODO$
-
+^xt/author/optionals/

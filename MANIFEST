@@ -11,6 +11,8 @@ inc/Astro/SpaceTrack/Dumper.pm
 inc/Mock/LWP/UserAgent.pm
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
+inc/My/Module/Recommend.pm
+inc/My/Module/Recommend/Any.pm
 inc/My/Module/Test.pm
 lib/Astro/SpaceTrack.pm
 lib/Astro/SpaceTrack/BulkData.pod

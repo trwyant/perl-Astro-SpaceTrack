@@ -10,6 +10,7 @@ use Test::More 0.88;	# Because of done_testing();
 use HTML::TreeBuilder;
 
 $ENV{SPACETRACK_USER}
+    and $ENV{SPACETRACK_USER} !~ m< \A [:/] \z >smx
     or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
 
 {

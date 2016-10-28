@@ -6,6 +6,9 @@ use warnings;
 use base qw{ Module::Build };
 
 use Carp;
+# use lib 'inc';	# Already done because this module is running.
+use My::Module::Recommend;
+use My::Module::Test ();
 
 
 sub ACTION_authortest {
@@ -13,9 +16,19 @@ sub ACTION_authortest {
     my ( $self ) = @_;		# Arguments not used
 
     local $ENV{AUTHOR_TESTING} = 1;
+    local $ENV{SPACETRACK_IDENTITY} = undef;
+    local $ENV{SPACETRACK_OPT} = undef;
 
-    $self->depends_on( 'build' );
-    $self->test_files( qw{ t xt/author } );
+    local $ENV{SPACETRACK_USER} = $ENV{SPACETRACK_USER};
+    My::Module::Test::spacetrack_user();
+
+    my @depends_on = ( qw{ build } );
+    -e 'META.json' or push @depends_on, 'distmeta';
+    $self->depends_on( @depends_on );
+
+    $self->test_files( qw{ t xt/author },
+	My::Module::Recommend->make_optional_modules_tests() );
+
     $self->depends_on( 'test' );
 
     return;
@@ -27,7 +40,7 @@ sub harness_switches {
     foreach ( @res ) {
 	'-MDevel::Cover' eq $_
 	    or next;
-	$_ .= '=-db,cover_db,-ignore,inc/';
+	$_ .= '=-db,cover_db,-ignore,inc/,-ignore,eg/';
     }
     return @res;
 }
