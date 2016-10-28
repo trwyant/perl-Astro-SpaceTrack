@@ -14,6 +14,10 @@ spaceflight
     give command option -all, it retrieves all data, past and
     future. The option -help gets you brief help.
 
+spacetrack-identity
+    This script prints the username and password in a format appropriate
+    to create environment variable SPACETRACK_USER via a shell eval.
+
 sh_script
     This shell script illustrates the retrieval of data for the
     International Space Station directly from the Space Track web site
@@ -29,3 +33,5 @@ sh_data
 SpaceTrackTk
     This Perl script is a Perl/Tk client for the Space Track
     functionality.
+
+# ex: set filetype=text textwidth=72 autoindent :

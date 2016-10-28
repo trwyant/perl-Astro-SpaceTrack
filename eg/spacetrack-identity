@@ -47,6 +47,10 @@ spacetrack-identity - Report the user's Space Track identity
  spacetrack-identity -help
  spacetrack-identity -version
 
+or, if you have any of a number of Unix shells,
+
+ export eval `spacetrack-identity`
+
 =head1 OPTIONS
 
 =head2 -basic
