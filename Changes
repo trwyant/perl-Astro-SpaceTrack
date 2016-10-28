@@ -1,3 +1,11 @@
+0.094_01	2016-10-27	T. R. Wyant
+  Support Config::Identity file. Both the file and Config::Identity are
+    optional. The file name is spacetrack.id (MSWin32 and VMS) or
+    .spacetrack-identity (anything else) in the user's home directory.
+    The file itself can be GnuPG encrypted.
+
+  Rod Sladen Iridium status update.
+
 0.094		2016-08-07	T. R. Wyant
   Implement Kelso Iridium status '[B]' as spare, and implement all
     other status codes documented on the Celestrak web site.
