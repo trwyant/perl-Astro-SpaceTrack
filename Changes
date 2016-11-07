@@ -1,4 +1,4 @@
-0.094_01	2016-10-27	T. R. Wyant
+0.095		2016-11-07	T. R. Wyant
   Support Config::Identity file. Both the file and Config::Identity are
     optional. The file name is spacetrack.id (MSWin32 and VMS) or
     .spacetrack-identity (anything else) in the user's home directory.
