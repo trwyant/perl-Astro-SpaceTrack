@@ -6139,7 +6139,14 @@ object will attempt to load attributes from an identity file. This will
 only do anything if the identity file exists and
 L<Config::Identity|Config::Identity> is installed. In addition, if the
 identity file is encrypted C<gpg2> must be installed and properly
-configured. See L<IDENTITY FILE|/IDENTITY FILE> below for details.
+configured. See L<IDENTITY FILE|/IDENTITY FILE> below for details of the
+identity file.
+
+ I have found that C<gpg> does not seem to work nicely, even though
+L<Config::Identity|Config::Identity> prefers it to C<gpg2> if both are
+present. The L<Config::Identity|Config::Identity> documentation says
+that uou can override this by setting environment variable C<CI_GPG>
+to the executable you want used.
 
 If this attribute is unspecified (to C<new()> or specified as C<undef>
 (to C<new()> or C<set()>), the value of environment variable
