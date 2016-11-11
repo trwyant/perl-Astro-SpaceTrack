@@ -26,6 +26,7 @@ our @EXPORT = qw{
     not_defined
     site_check
     spacetrack_user
+    spacetrack_skip_no_prompt
     skip_site
     throws_exception
     VERIFY_HOSTNAME
@@ -251,7 +252,7 @@ sub __spacetrack_identity {
     my $spacetrack_auth;
 
     sub __spacetrack_skip {
-	my ( $envir ) = @_;
+	my ( %arg ) = @_;
 	defined $spacetrack_auth
 	    or $spacetrack_auth = $ENV{SPACETRACK_USER};
 	defined $spacetrack_auth
@@ -263,10 +264,12 @@ sub __spacetrack_identity {
 	    and return 'Automated testing and SPACETRACK_USER not set.';
 	$spacetrack_auth = __spacetrack_identity()
 	    and do {
-	    $envir
+	    $arg{envir}
 		and $ENV{SPACETRACK_USER} = $spacetrack_auth;
 	    return;
 	};
+	$arg{no_prompt}
+	    and return $arg{no_prompt};
 	$^O eq 'VMS' and do {
 	    warn <<'EOD';
 
@@ -306,8 +309,18 @@ EOD
     }
 }
 
+sub spacetrack_skip_no_prompt {
+    my $skip;
+    defined( $skip = __spacetrack_skip(
+	    envir	=> 1,
+	    no_prompt	=> NO_SPACE_TRACK_ACCOUNT,
+	)
+    ) and plan skip_all => $skip;
+    return;
+}
+
 sub spacetrack_user {
-    __spacetrack_skip( 1 );
+    __spacetrack_skip( envir => 1 );
     return;
 }
 

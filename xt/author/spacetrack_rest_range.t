@@ -8,16 +8,17 @@ use warnings;
 use Astro::SpaceTrack;
 use Test::More 0.88;	# Because of done_testing();
 
+use lib qw{ inc };
+use My::Module::Test qw{ spacetrack_skip_no_prompt };
+
+spacetrack_skip_no_prompt();
+
 my $st = Astro::SpaceTrack->new(
     pretty	=> 1,
     space_track_version	=> 2,
 );
 
 my $base_url = $st->_make_space_track_base_url();
-
-defined $st->getv( 'username' )
-    and defined $st->getv( 'password' )
-    or plan skip_all => 'Environment variable SPACETRACK_USER not set';
 
 note <<'EOD';
 The purpose of this test is to demonstrate that ranges work in the Space

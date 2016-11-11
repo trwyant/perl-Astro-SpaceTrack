@@ -9,9 +9,10 @@ use Astro::SpaceTrack;
 use Test::More 0.88;	# Because of done_testing();
 use HTML::TreeBuilder;
 
-$ENV{SPACETRACK_USER}
-    and $ENV{SPACETRACK_USER} !~ m< \A [:/] \z >smx
-    or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
+use lib qw{ inc };
+use My::Module::Test qw{ spacetrack_skip_no_prompt };
+
+spacetrack_skip_no_prompt();
 
 {
     my $st = Astro::SpaceTrack->new();

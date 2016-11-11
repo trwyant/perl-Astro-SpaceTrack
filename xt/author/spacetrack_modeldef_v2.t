@@ -9,8 +9,10 @@ use Astro::SpaceTrack;
 use JSON;
 use Test::More 0.88;	# Because of done_testing();
 
-$ENV{SPACETRACK_USER}
-    or plan skip_all => 'Environment variable SPACETRACK_USER not defined';
+use lib qw{ inc };
+use My::Module::Test qw{ spacetrack_skip_no_prompt };
+
+spacetrack_skip_no_prompt();
 
 my $st = Astro::SpaceTrack->new();
 my $rslt = $st->spacetrack_query_v2();
