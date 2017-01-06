@@ -141,7 +141,7 @@ use warnings;
 
 use Exporter qw{ import };
 
-our $VERSION = '0.095';
+our $VERSION = '0.095_01';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING};
 our %EXPORT_TAGS = (

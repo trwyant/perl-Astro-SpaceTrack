@@ -1,3 +1,15 @@
+0.095_01	2017-01-05	T. R. Wyant
+  Ditch 'use base'.
+    Astro::SpaceTrack is no longer a subclass of Exporter. Instead
+    import() was imported into its name space.
+    In the case of the inc/ files, 'use base' was replaced by a 'use' of
+    the appropriate module, followed by assignment to @ISA.
+
+  Have relevant author tests use identity file.
+
+  Document the use of environment variable CI_GPG to get gpg2 even
+    though gpg is also installed.
+
 0.095		2016-11-07	T. R. Wyant
   Support Config::Identity file. Both the file and Config::Identity are
     optional. The file name is spacetrack.id (MSWin32 and VMS) or
