@@ -8,7 +8,8 @@ use warnings;
 use Carp;
 use JSON;
 
-use base qw{ Astro::SpaceTrack };
+use Astro::SpaceTrack;
+my @ISA = qw{ Astro::SpaceTrack };
 
 eval {
     local @INC = @INC;

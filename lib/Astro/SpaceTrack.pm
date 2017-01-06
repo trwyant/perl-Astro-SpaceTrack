@@ -139,7 +139,7 @@ use 5.006002;
 use strict;
 use warnings;
 
-use base qw{Exporter};
+use Exporter qw{ import };
 
 our $VERSION = '0.095';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
