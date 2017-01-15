@@ -1,4 +1,4 @@
-0.095_01	2017-01-05	T. R. Wyant
+0.096		2017-01-15	T. R. Wyant
   Ditch 'use base'.
     Astro::SpaceTrack is no longer a subclass of Exporter. Instead
     import() was imported into its name space.
