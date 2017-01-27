@@ -1,3 +1,6 @@
+0.096_01	2017-01-27	T. R. Wyant
+  Add Celestrak catalog 'iridium-NEXT'.
+
 0.096		2017-01-15	T. R. Wyant
   Ditch 'use base'.
     Astro::SpaceTrack is no longer a subclass of Exporter. Instead
