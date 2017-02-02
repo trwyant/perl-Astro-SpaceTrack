@@ -244,6 +244,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	molniya => {name => 'Molniya'},
 	iridium => {name => 'Iridium'},
 	'iridium-NEXT' => { name => 'Iridium NEXT' },
+	ses	=> { name => 'SES communication satellites' },
 	orbcomm => {name => 'Orbcomm'},
 	globalstar => {name => 'Globalstar'},
 	amateur => {name => 'Amateur Radio'},
