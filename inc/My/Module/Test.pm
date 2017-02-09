@@ -17,7 +17,8 @@ use constant VERIFY_HOSTNAME => defined $ENV{SPACETRACK_VERIFY_HOSTNAME}
     ? $ENV{SPACETRACK_VERIFY_HOSTNAME}
     : 0;
 
-our @EXPORT = qw{
+our @EXPORT =		## no critic (ProhibitAutomaticExportation)
+qw{
     is_error
     is_not_success
     is_success
@@ -41,7 +42,7 @@ $Astro::SpaceTrack::SPACETRACK_IDENTITY_KEY = {
 
 my $rslt;
 
-sub is_error (@) {		## no critic (RequireArgUnpacking)
+sub is_error (@) {		## no critic (RequireArgUnpacking,ProhibitSubroutinePrototypes)
     my ( $obj, $method, @args ) = @_;
     my ( $code, $name ) = splice @args, -2, 2;
     $rslt = eval { $obj->$method( @args ) };
@@ -53,7 +54,7 @@ sub is_error (@) {		## no critic (RequireArgUnpacking)
     goto &ok;
 }
 
-sub is_not_success (@) {	## no critic (RequireArgUnpacking)
+sub is_not_success (@) {	## no critic (RequireArgUnpacking,ProhibitSubroutinePrototypes)
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
     $rslt = eval { $obj->$method( @args ) };
@@ -65,7 +66,7 @@ sub is_not_success (@) {	## no critic (RequireArgUnpacking)
     goto &ok;
 }
 
-sub is_success (@) {	## no critic (RequireArgUnpacking)
+sub is_success (@) {	## no critic (RequireArgUnpacking,ProhibitSubroutinePrototypes)
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
     $rslt = eval { $obj->$method( @args ) }
@@ -92,7 +93,7 @@ sub most_recent_http_response {
     return $rslt;
 }
 
-sub not_defined ($$) {
+sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
     @_ = ( ! defined $_[0], @_[1 .. $#_] );
     goto &ok;
 }
@@ -110,10 +111,13 @@ sub not_defined ($$) {
 	    1;
 	} or $set_read_mode = sub {};
 
-	STDERR->autoflush( 1 );
+	local $@ = undef;
+	eval {		## no critic (RequireCheckingReturnValueOfEval)
+	    STDERR->autoflush( 1 );
+	};
     }
 
-    sub prompt (@) {
+    sub prompt (@) {	## no critic (ProhibitSubroutinePrototypes)
 	my @args = @_;
 	my $opt = 'HASH' eq ref $args[0] ? shift @args : {};
 	$readkey_loaded
@@ -174,7 +178,7 @@ sub not_defined ($$) {
     }
     my $ua;
 
-    sub set_skip ($;$) {
+    sub set_skip ($;$) {	## no critic (ProhibitSubroutinePrototypes)
 	my ( $site, $skip ) = @_;
 	exists $info{$site}{url}
 	    or die "Programming error. '$site' unknown";
@@ -182,7 +186,7 @@ sub not_defined ($$) {
 	return;
     }
 
-    sub site_check (@) {
+    sub site_check (@) {	## no critic (ProhibitSubroutinePrototypes)
 	my @sites = @_;
 	my @rslt = grep { defined $_ } map { _site_check( $_ ) } @sites
 	    or return;
@@ -226,7 +230,7 @@ sub __spacetrack_identity {
     # failure does not shut down the testing system (though maybe it
     # should!)
     local $@ = undef;
-    return eval {
+    return eval {	## no critic (RequireCheckingReturnValueOfEval)
 	local @INC = @INC;
 	require blib;
 	blib->import();
@@ -265,7 +269,7 @@ sub __spacetrack_identity {
 	$spacetrack_auth = __spacetrack_identity()
 	    and do {
 	    $arg{envir}
-		and $ENV{SPACETRACK_USER} = $spacetrack_auth;
+		and $ENV{SPACETRACK_USER} = $spacetrack_auth; ## no critic (RequireLocalizedPunctuationVars)
 	    return;
 	};
 	$arg{no_prompt}
@@ -301,10 +305,10 @@ EOD
 	my $user = prompt( 'Space-Track username' )
 	    and my $pass = prompt( { password => 1 }, 'Space-Track password' )
 	    or do {
-	    $ENV{SPACETRACK_USER} = '/';
+	    $ENV{SPACETRACK_USER} = '/'; ## no critic (RequireLocalizedPunctuationVars)
 	    return NO_SPACE_TRACK_ACCOUNT;
 	};
-	$ENV{SPACETRACK_USER} = $spacetrack_auth = "$user/$pass";
+	$ENV{SPACETRACK_USER} = $spacetrack_auth = "$user/$pass"; ## no critic (RequireLocalizedPunctuationVars)
 	return;
     }
 }
@@ -324,7 +328,7 @@ sub spacetrack_user {
     return;
 }
 
-sub throws_exception (@) {	## no critic (RequireArgUnpacking)
+sub throws_exception (@) {	## no critic (RequireArgUnpacking,ProhibitSubroutinePrototypes)
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
     my $exception = pop @args;
