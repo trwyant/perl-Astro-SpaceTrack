@@ -5,7 +5,10 @@ use 5.006002;
 use strict;
 use warnings;
 
-use Exporter qw{ import };
+use Exporter;
+
+our @ISA = qw{ Exporter };
+
 use HTTP::Date;
 use Test::More 0.96;	# For subtest
 
@@ -113,6 +116,7 @@ sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
 
 	local $@ = undef;
 	eval {		## no critic (RequireCheckingReturnValueOfEval)
+	    require IO::Handle;
 	    STDERR->autoflush( 1 );
 	};
     }

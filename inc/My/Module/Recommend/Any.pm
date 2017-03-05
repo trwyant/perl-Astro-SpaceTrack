@@ -4,7 +4,9 @@ use strict;
 use warnings;
 
 use Carp;
-use Exporter qw{ import };
+use Exporter;
+
+our @ISA = qw{ Exporter };
 
 our $VERSION = '0.097';
 
