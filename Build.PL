@@ -49,7 +49,7 @@ my $bldr = My::Module::Build->new (%attr);
 
 my %opt = $bldr->args ();
 
-my @exe_files = map {"bin/$_"}
+my @exe_files = map {"script/$_"}
     $meta->notice( \%opt );
 
 #	Tell Module::Build what we want to do.

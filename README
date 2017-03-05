@@ -56,9 +56,9 @@ Note that once you have done the "make" step you can play with either of
 the two specimen applications provided (SpaceTrack for a command-line
 version, or SpaceTrackTk for the Perl/Tk windowed version). If you want
 to do this before installing, you need to invoke them as (e.g.)
-    $ perl -Mblib bin/SpaceTrack
+    $ perl -Mblib script/SpaceTrack
 Under VMS, you'll need to quote the -M thus:
-    $ perl "-Mblib" bin/SpaceTrack
+    $ perl "-Mblib" script/SpaceTrack
 
 By default, Makefile.PL will ask you whether you want the SpaceTrack
 and/or SpaceTrackTk applications installed. It supports two
