@@ -34,6 +34,7 @@ my %known_inconsistent = (
 #				# 11-Dec-2014: Sladen declares operational again
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
+    25041 => { kelso => 1 },	# 19-Apr-2017: Kelso: tumbling; others: in service
     25042 => { mccants => 1,	# 16-Jul-2016: Kelso backup, others in-service
 	       sladen  => 1 },	# 19-Aug-2016: Sladen - Failed on station?
     25077 => { mccants => 1 },	# 16-Oct-2014: Kelso: failed; others: operational
@@ -241,7 +242,7 @@ EOD
  24969   Iridium 34     [+]      
  25039   Iridium 43     [+]      
  25040   Iridium 41     [+]      
- 25041   Iridium 40     [+]      
+ 25041   Iridium 40     [-]      Tumbling
  25042   Iridium 39     [B]      
  25043   Iridium 38     [-]      Tumbling
  25077   Iridium 42     [-]      Tumbling
