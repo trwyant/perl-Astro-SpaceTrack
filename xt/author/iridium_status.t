@@ -34,7 +34,8 @@ my %known_inconsistent = (
 #				# 11-Dec-2014: Sladen declares operational again
 ###    25578 => { kelso => 1 },	# Kelso: operational; others: spare
 ###    24903 => { kelso => 1 },	# Kelso: in service; others: failed.
-    25041 => { kelso => 1 },	# 19-Apr-2017: Kelso: tumbling; others: in service
+    25041 => { mccants => 1 },	# 19-Apr-2017: Kelso: tumbling; others: in service
+    				# 24-Apr-2017: Sladen: tumbling.
     25042 => { mccants => 1,	# 16-Jul-2016: Kelso backup, others in-service
 	       sladen  => 1 },	# 19-Aug-2016: Sladen - Failed on station?
     25077 => { mccants => 1 },	# 16-Oct-2014: Kelso: failed; others: operational
@@ -110,7 +111,7 @@ my @keys;
 }
 
 foreach (["Mike McCants' Iridium status",
-	mccants => <<'EOD'],
+	mccants => <<'MCCANTS'],
  24792   Iridium 8               Celestrak
  24793   Iridium 7               Celestrak
  24794   Iridium 6               Celestrak
@@ -203,9 +204,9 @@ foreach (["Mike McCants' Iridium status",
  27376   Iridium 96     ?        Inclination 87.2 - migrating between planes
  27450   Iridium 97              Replaced Iridium 36 on Jan. 10, 2007
  27451   Iridium 98     ?        Spare (new plane May 2007)
-EOD
+MCCANTS
 	["T. S. Kelso's Iridium list",
-	kelso => <<'EOD'],
+	kelso => <<'KELSO'],
  24792   Iridium 8      [+]      
  24793   Iridium 7      [+]      
  24794   Iridium 6      [+]      
@@ -298,9 +299,9 @@ EOD
  27376   Iridium 96     [+]      
  27450   Iridium 97     [+]      
  27451   Iridium 98     [+]      
-EOD
+KELSO
 	["Rod Sladen's Iridium Constellation Status",
-	sladen => <<'EOD'],
+	sladen => <<'SLADEN'],
  24792   Iridium 8      [+]      Plane 4
  24793   Iridium 7      [+]      Plane 4
  24794   Iridium 6      [+]      Plane 4
@@ -315,7 +316,6 @@ EOD
  24869   Iridium 15     [+]      Plane 6
  24870   Iridium 17     [-]      Plane 6
  24871   Iridium 920    [-]      Plane 6
- 24872   Iridium 18     [+]      Plane 6
  24873   Iridium 921    [-]      Plane 6
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [+]      Plane 2
@@ -335,9 +335,8 @@ EOD
  24967   Iridium 36     [-]      Plane 4
  24968   Iridium 37     [+]      Plane 4
  24969   Iridium 34     [+]      Plane 4
- 25039   Iridium 43     [+]      Plane 6
  25040   Iridium 41     [+]      Plane 6
- 25041   Iridium 40     [+]      Plane 6
+ 25041   Iridium 40     [-]      Plane 6 - Failed on station?
  25042   Iridium 39     [-]      Plane 6 - Failed on station?
  25043   Iridium 38     [-]      Plane 6
  25077   Iridium 42     [-]      Plane 6
@@ -377,7 +376,6 @@ EOD
  25467   Iridium 82     [+]      Plane 6
  25468   Iridium 81     [+]      Plane 6
  25469   Iridium 80     [+]      Plane 6
- 25471   Iridium 77     [+]      Plane 6
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
  25530   Iridium 84     [+]      Plane 5
@@ -393,7 +391,7 @@ EOD
  27376   Iridium 96     [+]      Plane 4
  27450   Iridium 97     [+]      Plane 4
  27451   Iridium 98     [+]      Plane 6
-EOD
+SLADEN
 	) {
     my ( $what, $file, $data ) = @$_;
     $data ||= '';
