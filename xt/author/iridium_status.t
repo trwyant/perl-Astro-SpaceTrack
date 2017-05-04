@@ -313,7 +313,6 @@ KELSO
  24840   Iridium 13     [+]      Plane 5
  24841   Iridium 16     [-]      Plane 5
  24842   Iridium 911    [-]      Plane 5
- 24869   Iridium 15     [+]      Plane 6
  24870   Iridium 17     [-]      Plane 6
  24871   Iridium 920    [-]      Plane 6
  24873   Iridium 921    [-]      Plane 6
@@ -375,7 +374,6 @@ KELSO
  25432   Iridium 76     [+]      Plane 2
  25467   Iridium 82     [+]      Plane 6
  25468   Iridium 81     [+]      Plane 6
- 25469   Iridium 80     [+]      Plane 6
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
  25530   Iridium 84     [+]      Plane 5
@@ -390,7 +388,6 @@ KELSO
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [+]      Plane 4
  27450   Iridium 97     [+]      Plane 4
- 27451   Iridium 98     [+]      Plane 6
 SLADEN
 	) {
     my ( $what, $file, $data ) = @$_;
