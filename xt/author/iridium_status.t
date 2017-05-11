@@ -46,6 +46,7 @@ my %known_inconsistent = (
 				# 26-Jan-2017: Sladen: tumbling.
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
+    25467 => { sladen => 1 },	# 08-May-2017: Sladen: tumbling
     25777 => { mccants => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
 				# 16-Jul-2016: Kelso: operational; McCants: spare
     27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
@@ -372,8 +373,8 @@ KELSO
  25346   Iridium 75     [+]      Plane 1
  25431   Iridium 3      [+]      Plane 2
  25432   Iridium 76     [+]      Plane 2
- 25467   Iridium 82     [+]      Plane 6
- 25468   Iridium 81     [+]      Plane 6
+ 25467   Iridium 82     [-]      Plane 6 - Failed on station?
+ 25469   Iridium 80     [+]      Plane 6
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
  25530   Iridium 84     [+]      Plane 5
@@ -388,6 +389,7 @@ KELSO
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [+]      Plane 4
  27450   Iridium 97     [+]      Plane 4
+ 27451   Iridium 98     [+]      Plane 6
 SLADEN
 	) {
     my ( $what, $file, $data ) = @$_;
