@@ -21,6 +21,7 @@ my %known_inconsistent = (
     24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
 				# McCants: failed 29-Oct-2012;
 				# Sladen: still operational.
+    24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
 #   24906 => { kelso => 1 },	# Kelso: spare; others: operational
 				# 16-Nov-2012: Sladen declares spare
 				# 08-Apr-2014: Sladen declares operational
@@ -29,6 +30,7 @@ my %known_inconsistent = (
 	       sladen => 1 },	# 09-Sep-2014: Sladen declares failed
 #   25039 => { sladen => 1 },	# 09-Sep-2014: Sladen declares spare
 #				# 11-Dec-2014: Sladen declares in-service again
+    25039 => { sladen => 1 },	# Sladen: failed 14-May-2017
 #   25104 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares spare;
 #				#             others: operational
 #				# 11-Dec-2014: Sladen declares operational again
@@ -47,6 +49,8 @@ my %known_inconsistent = (
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
     25467 => { sladen => 1 },	# 08-May-2017: Sladen: tumbling
+    25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
+    25471 => { sladen => 1 },	# Sladen: failed 14-May-2017
     25777 => { mccants => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
 				# 16-Jul-2016: Kelso: operational; McCants: spare
     27374 => { kelso => 1 },	# 16-Nov-2012 Sladen: operational;
@@ -314,6 +318,7 @@ KELSO
  24840   Iridium 13     [+]      Plane 5
  24841   Iridium 16     [-]      Plane 5
  24842   Iridium 911    [-]      Plane 5
+ 24869   Iridium 15     [-]      Plane 6
  24870   Iridium 17     [-]      Plane 6
  24871   Iridium 920    [-]      Plane 6
  24873   Iridium 921    [-]      Plane 6
@@ -335,6 +340,7 @@ KELSO
  24967   Iridium 36     [-]      Plane 4
  24968   Iridium 37     [+]      Plane 4
  24969   Iridium 34     [+]      Plane 4
+ 25039   Iridium 43     [-]      Plane 6 - Failed on station?
  25040   Iridium 41     [+]      Plane 6
  25041   Iridium 40     [-]      Plane 6 - Failed on station?
  25042   Iridium 39     [-]      Plane 6 - Failed on station?
@@ -374,7 +380,9 @@ KELSO
  25431   Iridium 3      [+]      Plane 2
  25432   Iridium 76     [+]      Plane 2
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
+ 25468   Iridium 81     [-]      Plane 6
  25469   Iridium 80     [+]      Plane 6
+ 25471   Iridium 77     [-]      Plane 6
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
  25530   Iridium 84     [+]      Plane 5
