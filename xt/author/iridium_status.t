@@ -30,7 +30,8 @@ my %known_inconsistent = (
 	       sladen => 1 },	# 09-Sep-2014: Sladen declares failed
 #   25039 => { sladen => 1 },	# 09-Sep-2014: Sladen declares spare
 #				# 11-Dec-2014: Sladen declares in-service again
-    25039 => { sladen => 1 },	# Sladen: failed 14-May-2017
+    25039 => { mccants => 1 },	# Sladen: failed 14-May-2017
+				# Kelso: failed 16-May-2017
 #   25104 => { sladen => 1 },	# 08-Apr-2014 Sladen: declares spare;
 #				#             others: operational
 #				# 11-Dec-2014: Sladen declares operational again
@@ -48,7 +49,8 @@ my %known_inconsistent = (
 				# 26-Jan-2017: Sladen: tumbling.
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
-    25467 => { sladen => 1 },	# 08-May-2017: Sladen: tumbling
+    25467 => { mccants => 1 },	# 08-May-2017: Sladen: tumbling
+				# 16-May-2017: Kelso: tumbling
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
     25471 => { sladen => 1 },	# Sladen: failed 14-May-2017
     25777 => { mccants => 1 },	# 11-Dec-2014: Sladen: operational; others: tumbling
@@ -246,7 +248,7 @@ MCCANTS
  24967   Iridium 36     [-]      Tumbling
  24968   Iridium 37     [+]      
  24969   Iridium 34     [+]      
- 25039   Iridium 43     [+]      
+ 25039   Iridium 43     [-]      Tumbling
  25040   Iridium 41     [+]      
  25041   Iridium 40     [-]      Tumbling
  25042   Iridium 39     [B]      
@@ -285,7 +287,7 @@ MCCANTS
  25346   Iridium 75     [+]      
  25431   Iridium 3      [+]      
  25432   Iridium 76     [+]      
- 25467   Iridium 82     [+]      
+ 25467   Iridium 82     [-]      Tumbling
  25468   Iridium 81     [+]      
  25469   Iridium 80     [+]      
  25471   Iridium 77     [+]      
