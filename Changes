@@ -1,3 +1,6 @@
+0.098_01	2017-05-17	T. R. Wyant
+    Deprecate McCants' Iridium status.
+
 0.098		2017-03-15	T. R. Wyant
     Move SpaceTrack script from bin/ to script/
 
