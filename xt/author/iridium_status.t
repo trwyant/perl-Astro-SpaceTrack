@@ -50,6 +50,7 @@ my %known_inconsistent = (
 				# 26-Jan-2017: Sladen: tumbling.
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
+    25345 => { kelso => 1 },	# Kelso: failed 14-Jun-2017.
     25467 => { mccants => 1 },	# 08-May-2017: Sladen: tumbling
 				# 16-May-2017: Kelso: tumbling
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
@@ -284,7 +285,7 @@ MCCANTS
  25342   Iridium 70     [+]      
  25343   Iridium 72     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25345   Iridium 74     [S]      Spare
+ 25345   Iridium 74     [-]      Tumbling
  25346   Iridium 75     [+]      
  25431   Iridium 3      [+]      
  25432   Iridium 76     [+]      
