@@ -285,7 +285,6 @@ MCCANTS
  25342   Iridium 70     [+]      
  25343   Iridium 72     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25345   Iridium 74     [-]      Tumbling
  25346   Iridium 75     [+]      
  25431   Iridium 3      [+]      
  25432   Iridium 76     [+]      
@@ -380,7 +379,6 @@ KELSO
  25342   Iridium 70     [+]      Plane 1
  25343   Iridium 72     [+]      Plane 1
  25344   Iridium 73     [-]      Plane 1
- 25345   Iridium 74     [S]      Plane 1
  25346   Iridium 75     [+]      Plane 1
  25431   Iridium 3      [+]      Plane 2
  25432   Iridium 76     [+]      Plane 2
