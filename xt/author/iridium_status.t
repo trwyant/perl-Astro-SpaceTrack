@@ -30,6 +30,7 @@ my %known_inconsistent = (
     24944 => { kelso => 1,	# 01-Apr-2014: Kelso declares spare
 	       sladen => 1 },	# 09-Sep-2014: Sladen declares failed
     24949 => { sladen => 1 },	# 04-Aug-2017: Sladen declares failed
+    24950 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed
 #   25039 => { sladen => 1 },	# 09-Sep-2014: Sladen declares spare
 #				# 11-Dec-2014: Sladen declares in-service again
     25039 => { mccants => 1 },	# Sladen: failed 14-May-2017
@@ -50,6 +51,7 @@ my %known_inconsistent = (
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
     25273 => { mccants => 1 },	# 23-Jun-2016: Kelso: tumbling; others: operational
 				# 26-Jan-2017: Sladen: tumbling.
+    25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
     25345 => { kelso => 1 },	# Kelso: failed 14-Jun-2017.
@@ -340,7 +342,7 @@ KELSO
  24946   Iridium 33     [-]      Plane 3
  24948   Iridium 28     [-]      Plane 3 - Failed on station?
  24949   Iridium 30     [-]      Plane 3 - Failed on station?
- 24950   Iridium 31     [+]      Plane 3
+ 24950   Iridium 31     [-]      Plane 3
  24965   Iridium 19     [+]      Plane 4
  24966   Iridium 35     [+]      Plane 4
  24967   Iridium 36     [-]      Plane 4
@@ -366,7 +368,7 @@ KELSO
  25263   Iridium 61     [S]      Plane 4
  25272   Iridium 55     [-]      Plane 3
  25273   Iridium 57     [-]      Plane 3 - Failed on station?
- 25274   Iridium 58     [+]      Plane 3
+ 25274   Iridium 58     [-]      Plane 3
  25275   Iridium 59     [+]      Plane 3
  25276   Iridium 60     [+]      Plane 3
  25285   Iridium 62     [+]      Plane 1
@@ -387,7 +389,7 @@ KELSO
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25468   Iridium 81     [-]      Plane 6
  25469   Iridium 80     [+]      Plane 6
- 25471   Iridium 77     [-]      Plane 6
+ 25471   Iridium 77     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
  25530   Iridium 84     [+]      Plane 5
