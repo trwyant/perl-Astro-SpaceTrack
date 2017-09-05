@@ -185,6 +185,7 @@ use constant SESSION_PATH => '/';
 use constant DEFAULT_SPACE_TRACK_REST_SEARCH_CLASS => 'satcat';
 use constant DEFAULT_SPACE_TRACK_VERSION => 2;
 
+# dump_headers constants.
 use constant DUMP_NONE => 0;		# No dump
 use constant DUMP_TRACE => 0x01;	# Logic trace
 use constant DUMP_REQUEST => 0x02;	# Request content
@@ -6133,10 +6134,10 @@ identity file is encrypted C<gpg2> must be installed and properly
 configured. See L<IDENTITY FILE|/IDENTITY FILE> below for details of the
 identity file.
 
- I have found that C<gpg> does not seem to work nicely, even though
+I have found that C<gpg> does not seem to work nicely, even though
 L<Config::Identity|Config::Identity> prefers it to C<gpg2> if both are
 present. The L<Config::Identity|Config::Identity> documentation says
-that uou can override this by setting environment variable C<CI_GPG>
+that you can override this by setting environment variable C<CI_GPG>
 to the executable you want used.
 
 If this attribute is unspecified (to C<new()> or specified as C<undef>
