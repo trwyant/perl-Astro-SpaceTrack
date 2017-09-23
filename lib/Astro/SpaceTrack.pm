@@ -25,10 +25,10 @@ or
  SpaceTrack> exit
 
 In either of the above, username and password entry can be omitted if
-you have installed L<Config::Identity|Config::Identity> and have created
-an L<IDENTITY FILE|/IDENTITY FILE> (see below) containing these values.
-You probably want to encrypt this file, if you have C<gpg2> and
-C<gpg-agent>.
+you have installed L<Config::Identity|Config::Identity>, created an
+L<IDENTITY FILE|/IDENTITY FILE> (see below) containing these values, and
+set the L<identity|/identity> attribute to a true value.  You probably
+want to encrypt the identity file, if you have C<gpg2> and C<gpg-agent>.
 
 In practice, it is probably not useful to retrieve data from any source
 more often than once every four hours, and in fact daily usually
@@ -562,13 +562,15 @@ first defined value it finds in the following list:
 =item a value explicitly specified as an argument to C<new()>;
 
 =item a value from the L<IDENTITY FILE|/IDENTITY FILE>, if the
-C<identity> attribute is explicitly specified as true;
+C<identity> attribute is explicitly specified as true and
+L<Config::Identity|Config::Identity> is installed;
 
 =item a value from environment variable C<SPACETRACK_USER> if that has a
 non-empty value;
 
 =item a value from the L<IDENTITY FILE|/IDENTITY FILE>, if the
-C<identity> attribute defaulted to true;
+C<identity> attribute defaulted to true and
+L<Config::Identity|Config::Identity> s installed;
 
 =item a value from environment variable C<SPACETRACK_OPT>.
 
@@ -6317,8 +6319,9 @@ C<VMS>, or F<.spacetrack-identity> under any other operating system.
 If desired, the file can be encrypted using GPG; in this case, to be
 useful, C<gpg2> and C<gpg-agent> must be installed and properly
 configured. Because of implementation details in
-L<Config::Identity|Config::Identity>, the C<gpg> program must B<not> be
-present in your PATH.
+L<Config::Identity|Config::Identity>, you may need to either ensure that
+C<gpg> is not in your C<PATH>, or set the C<CI_GPG> environment variable
+to the path to C<gpg2>.
 
 Note that this file is normally read only once during the life of the
 Perl process, and the result cached. The username and password that are
