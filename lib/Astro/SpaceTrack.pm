@@ -1781,11 +1781,12 @@ If no format is specified, the format specified in the
 L<iridium_status_format|/iridium_status_format> attribute is used.
 
 There is one option, C<'raw'>, which can be specified either
-command-line style (i.e. C<-raw>) or as a leading hash. Asserting this
-option causes status information from sources other than Celestrak not
-to be supplemented by Celestrak data, or by canned data that includes
-all original-design Iridium satellites, including those that have
-decayed. By default this option is not asserted.
+command-line style (i.e. C<-raw>) or as a leading hash.  Asserting this
+option causes status information from sources other than Celestrak and
+Rod Sladen not to be supplemented by Celestrak data. In addition, it
+prevents all sources from being supplimented by canned data that
+includes all original-design Iridium satellites, including those that
+have decayed. By default this option is not asserted.
 
 Format C<'mccants'> is B<deprecated>, and will be removed in a future
 release. This entire method will be deprecated and removed once the last
@@ -2072,6 +2073,8 @@ The BODY_STATUS constants are exportable using the :status tag.
 	[ 27451, 'Iridium 98', '[?]', 'SpaceTrack', 2 ],
     );
 
+    my %ignore_raw = map { $_ => 1 } qw{ kelso sladen };
+
     sub iridium_status {
 	my ( $self, @args ) = @_;
 	my ( $opt, $fmt ) = _parse_args( [
@@ -2083,7 +2086,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my %rslt;
 	my $resp;
 
-	unless ( $opt->{raw} && 'kelso' ne $fmt ) {
+	if ( ! $opt->{raw} || $ignore_raw{$fmt} ) {
 	    $resp = $self->_iridium_status_kelso( $fmt, \%rslt );
 	    $resp->is_success()
 		or return $resp;
