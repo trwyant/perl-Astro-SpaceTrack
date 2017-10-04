@@ -55,7 +55,8 @@ my %known_inconsistent = (
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
     25286 => { mccants => 1 },	# 11-Dec-2014: Sladen: tumbling; others: operational
 				# 27-May-2015: Kelso: tumbling
-    25345 => { kelso => 1 },	# Kelso: failed 14-Jun-2017.
+    25345 => { mccants => 1 },	# Kelso: failed 14-Jun-2017.
+				# Actually, decayed 11-Jun-2017.
     25467 => { mccants => 1 },	# 08-May-2017: Sladen: tumbling
 				# 16-May-2017: Kelso: tumbling
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
@@ -134,6 +135,7 @@ foreach (["Mike McCants' Iridium status",
  24796   Iridium 4      unc      Failed? No longer station keeping after July 20, 2012
  24836   Iridium 914    tum      Failed; was called Iridium 14
  24837   Iridium 12              Celestrak
+ 24838   Iridium 09     [D]      Decayed
  24839   Iridium 10              Celestrak
  24840   Iridium 13              Celestrak
  24841   Iridium 16     tum      Removed from operation about April 7, 2005
@@ -153,6 +155,7 @@ foreach (["Mike McCants' Iridium status",
  24944   Iridium 29              Celestrak
  24945   Iridium 32              Celestrak
  24946   Iridium 33     tum      Destroyed by a collision on Feb. 10, 2009
+ 24947   Iridium 27     [D]      Decayed
  24948   Iridium 28     unc      Assumed failed about July 19, 2008
  24949   Iridium 30              Celestrak
  24950   Iridium 31              Celestrak
@@ -171,6 +174,7 @@ foreach (["Mike McCants' Iridium status",
  25104   Iridium 45              Celestrak
  25105   Iridium 24     tum      Failed
  25106   Iridium 47              Celestrak
+ 25107   Iridium 48     [D]      Decayed
  25108   Iridium 49              Celestrak
  25169   Iridium 52              Celestrak
  25170   Iridium 56              Celestrak
@@ -203,9 +207,11 @@ foreach (["Mike McCants' Iridium status",
  25467   Iridium 82              Celestrak
  25468   Iridium 81              Celestrak
  25469   Iridium 80              Celestrak
- 25471   Iridium 77              Celestrak
+ 25470   Iridium 79     [D]      Decayed
+ 25471   Iridium 77     [D]      Decayed
  25527   Iridium 2      tum      Failed
  25528   Iridium 86              Celestrak
+ 25529   Iridium 85     [D]      Decayed
  25530   Iridium 84              Celestrak
  25531   Iridium 83              Celestrak
  25577   Iridium 20              was called Iridium 11
@@ -229,6 +235,7 @@ MCCANTS
  24796   Iridium 4      [-]      Tumbling
  24836   Iridium 914    [-]      Tumbling
  24837   Iridium 12     [+]      
+ 24838   Iridium 09     [D]      Decayed
  24839   Iridium 10     [+]      
  24840   Iridium 13     [+]      
  24841   Iridium 16     [-]      Tumbling
@@ -248,6 +255,7 @@ MCCANTS
  24944   Iridium 29     [-]      Tumbling
  24945   Iridium 32     [+]      
  24946   Iridium 33     [-]      Tumbling
+ 24947   Iridium 27     [D]      Decayed
  24948   Iridium 28     [-]      Tumbling
  24949   Iridium 30     [-]      Tumbling
  24950   Iridium 31     [+]      
@@ -266,6 +274,7 @@ MCCANTS
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
  25106   Iridium 47     [+]      
+ 25107   Iridium 48     [D]      Decayed
  25108   Iridium 49     [+]      
  25169   Iridium 52     [+]      
  25170   Iridium 56     [+]      
@@ -291,15 +300,18 @@ MCCANTS
  25342   Iridium 70     [+]      
  25343   Iridium 72     [+]      
  25344   Iridium 73     [-]      Tumbling
+ 25345   Iridium 74     [D]      Decayed
  25346   Iridium 75     [+]      
  25431   Iridium 3      [+]      
  25432   Iridium 76     [+]      
  25467   Iridium 82     [-]      Tumbling
  25468   Iridium 81     [+]      
  25469   Iridium 80     [+]      
- 25471   Iridium 77     [-]      Tumbling
+ 25470   Iridium 79     [D]      Decayed
+ 25471   Iridium 77     [D]      Decayed
  25527   Iridium 2      [-]      Tumbling
  25528   Iridium 86     [+]      
+ 25529   Iridium 85     [D]      Decayed
  25530   Iridium 84     [+]      
  25531   Iridium 83     [+]      
  25577   Iridium 20     [+]      
@@ -323,6 +335,7 @@ KELSO
  24796   Iridium 4      [-]      Plane 4 - Failed on station?
  24836   Iridium 914    [-]      Plane 5
  24837   Iridium 12     [+]      Plane 5
+ 24838   Iridium 09     [D]      Decayed
  24839   Iridium 10     [+]      Plane 5
  24840   Iridium 13     [+]      Plane 5
  24841   Iridium 16     [-]      Plane 5
@@ -342,6 +355,7 @@ KELSO
  24944   Iridium 29     [-]      Plane 3 - Failed on station?
  24945   Iridium 32     [+]      Plane 3
  24946   Iridium 33     [-]      Plane 3
+ 24947   Iridium 27     [D]      Decayed
  24948   Iridium 28     [-]      Plane 3 - Failed on station?
  24949   Iridium 30     [-]      Plane 3 - Failed on station?
  24950   Iridium 31     [-]      Plane 3
@@ -360,6 +374,7 @@ KELSO
  25104   Iridium 45     [+]      Plane 3
  25105   Iridium 24     [-]      Plane 2
  25106   Iridium 47     [+]      Plane 2
+ 25107   Iridium 48     [D]      Decayed
  25108   Iridium 49     [+]      Plane 2
  25169   Iridium 52     [+]      Plane 5
  25170   Iridium 56     [+]      Plane 5
@@ -385,15 +400,18 @@ KELSO
  25342   Iridium 70     [+]      Plane 1
  25343   Iridium 72     [+]      Plane 1
  25344   Iridium 73     [-]      Plane 1
+ 25345   Iridium 74     [D]      Decayed
  25346   Iridium 75     [+]      Plane 1
  25431   Iridium 3      [+]      Plane 2
  25432   Iridium 76     [+]      Plane 2
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25468   Iridium 81     [-]      Plane 6
  25469   Iridium 80     [+]      Plane 6
- 25471   Iridium 77     [-]      Plane 6 - Failed on station?
+ 25470   Iridium 79     [D]      Decayed
+ 25471   Iridium 77     [D]      Decayed
  25527   Iridium 2      [-]      Plane 5
  25528   Iridium 86     [+]      Plane 5
+ 25529   Iridium 85     [D]      Decayed
  25530   Iridium 84     [+]      Plane 5
  25531   Iridium 83     [+]      Plane 5
  25577   Iridium 20     [+]      Plane 2
