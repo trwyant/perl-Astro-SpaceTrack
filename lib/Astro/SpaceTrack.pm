@@ -1781,12 +1781,12 @@ If no format is specified, the format specified in the
 L<iridium_status_format|/iridium_status_format> attribute is used.
 
 There is one option, C<'raw'>, which can be specified either
-command-line style (i.e. C<-raw>) or as a leading hash.  Asserting this
-option causes status information from sources other than Celestrak and
-Rod Sladen not to be supplemented by Celestrak data. In addition, it
-prevents all sources from being supplemented by canned data that
-includes all original-design Iridium satellites, including those that
-have decayed. By default this option is not asserted.
+command-line style (i.e. C<-raw>) or as a leading hash reference.
+Asserting this option causes status information from sources other than
+Celestrak and Rod Sladen not to be supplemented by Celestrak data. In
+addition, it prevents all sources from being supplemented by canned data
+that includes all original-design Iridium satellites, including those
+that have decayed. By default this option is not asserted.
 
 Format C<'mccants'> is B<deprecated>, and will be removed in a future
 release. This entire method will be deprecated and removed once the last
@@ -1830,7 +1830,8 @@ The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 If the format is 'mccants', the primary source of information will be
 Mike McCants' "Status of Iridium Payloads" web page,
 L<http://www.io.com/~mmccants/tles/iridium.html> (which gives status on
-non-functional Iridium satellites). The Celestrak list will be used to
+non-functional Iridium satellites). B<This format is deprecated,> since
+Mike no longer maintains this page. The Celestrak list will be used to
 fill in the functioning satellites so that a complete list is generated.
 The comment will be whatever text is provided by Mike McCants' web page,
 or 'Celestrak' if the satellite data came from that source.
@@ -1877,7 +1878,9 @@ on station?' will be appended to the comment. The dummy masses will be
 included from the Kelso data, with status '[-]' but comment 'Dummy'.
 
 If the format is 'spacetrack', the data come from both Celestrak and
-Space Track, with Celestrak taking precedence. The idea here is to get a
+Space Track. For any given OID, we take the Space Track data if it shows
+the OID as being decayed, or if the OID does not appear in the Celestrak
+data; otherwise we take the Celestrak data.  The idea here is to get a
 list of statuses that include decayed satellites dropped from the
 Celestrak list. You will need a Space Track username and password for
 this. The format of the returned data is the same as for Celestrak data.
@@ -2101,7 +2104,10 @@ The BODY_STATUS constants are exportable using the :status tag.
 
 	unless ( $opt->{raw} ) {
 	    foreach my $body ( @all_iridium_classic ) {
-		$rslt{$body->[0]} ||= [ @{ $body } ];
+		$rslt{$body->[0]}
+##		    and $body->[4] != BODY_STATUS_IS_DECAYED
+		    and next;
+		$rslt{$body->[0]} = [ @{ $body } ];	# shallow clone
 	    }
 	}
 
@@ -2310,7 +2316,10 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    $body->{LAUNCH_YEAR} < 2017
 		or next;
 	    my $oid = $body->{OBJECT_NUMBER};
-	    $rslt->{$oid} ||= [
+	    $rslt->{$oid}
+		and not $body->{DECAY}
+		and next;
+	    $rslt->{$oid} = [
 		$oid,
 		ucfirst lc $body->{OBJECT_NAME},
 		defined $body->{DECAY} ?
