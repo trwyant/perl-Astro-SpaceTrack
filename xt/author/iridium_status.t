@@ -288,7 +288,7 @@ SLADEN
  24796   Iridium 4      [?]      SpaceTrack
  24836   Iridium 914    [?]      SpaceTrack
  24837   Iridium 12     [?]      SpaceTrack
- 24838   Iridium 09     [D]      Decayed
+ 24838   Iridium 09     [D]      Decayed 2003-03-11
  24839   Iridium 10     [?]      SpaceTrack
  24840   Iridium 13     [?]      SpaceTrack
  24841   Iridium 16     [?]      SpaceTrack
@@ -306,9 +306,9 @@ SLADEN
  24944   Iridium 29     [?]      SpaceTrack
  24945   Iridium 32     [?]      SpaceTrack
  24946   Iridium 33     [?]      SpaceTrack
- 24947   Iridium 27     [D]      Decayed
+ 24947   Iridium 27     [D]      Decayed 2002-02-01
  24948   Iridium 28     [?]      SpaceTrack
- 24949   Iridium 30     [D]      Decayed
+ 24949   Iridium 30     [D]      Decayed 2017-09-28
  24950   Iridium 31     [?]      SpaceTrack
  24965   Iridium 19     [?]      SpaceTrack
  24966   Iridium 35     [?]      SpaceTrack
@@ -325,7 +325,7 @@ SLADEN
  25104   Iridium 45     [?]      SpaceTrack
  25105   Iridium 24     [?]      SpaceTrack
  25106   Iridium 47     [?]      SpaceTrack
- 25107   Iridium 48     [D]      Decayed
+ 25107   Iridium 48     [D]      Decayed 2001-05-05
  25108   Iridium 49     [?]      SpaceTrack
  25169   Iridium 52     [?]      SpaceTrack
  25170   Iridium 56     [?]      SpaceTrack
@@ -351,18 +351,18 @@ SLADEN
  25342   Iridium 70     [?]      SpaceTrack
  25343   Iridium 72     [?]      SpaceTrack
  25344   Iridium 73     [?]      SpaceTrack
- 25345   Iridium 74     [D]      Decayed
+ 25345   Iridium 74     [D]      Decayed 2017-06-11
  25346   Iridium 75     [?]      SpaceTrack
  25431   Iridium 03     [?]      SpaceTrack
  25432   Iridium 76     [?]      SpaceTrack
  25467   Iridium 82     [?]      SpaceTrack
  25468   Iridium 81     [?]      SpaceTrack
  25469   Iridium 80     [?]      SpaceTrack
- 25470   Iridium 79     [D]      Decayed
- 25471   Iridium 77     [D]      Decayed
+ 25470   Iridium 79     [D]      Decayed 2000-11-29
+ 25471   Iridium 77     [D]      Decayed 2017-09-22
  25527   Iridium 2      [?]      SpaceTrack
  25528   Iridium 86     [?]      SpaceTrack
- 25529   Iridium 85     [D]      Decayed
+ 25529   Iridium 85     [D]      Decayed 2000-12-30
  25530   Iridium 84     [?]      SpaceTrack
  25531   Iridium 83     [?]      SpaceTrack
  25577   Iridium 20     [?]      SpaceTrack
