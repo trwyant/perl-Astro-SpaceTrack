@@ -1,4 +1,4 @@
-0.099_01	2017-10-04	T. R. Wyant
+0.100		2017-10-12	T. R. Wyant
     Added Iridium status decayed ('[D]', portable status is 3 --
     BODY_STATUS_IS_DECAYED).
 
