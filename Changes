@@ -1,3 +1,9 @@
+0.100_01	2017-11-15	T. R. Wyant
+    Correct generation of Sladen Iridum status. The code for this
+    scrapes the relevant web page, and a dropped right parenthesis
+    ending a parenthetical comment caused the code not to see Plane 3 at
+    all.
+
 0.100		2017-10-12	T. R. Wyant
     Added Iridium status decayed ('[D]', portable status is 3 --
     BODY_STATUS_IS_DECAYED).
