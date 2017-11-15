@@ -2239,7 +2239,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	%{ $rslt } = %dummy;
 
 	my $fail;
-	my $re = qr{ (\d+) }smx;
+	my $re = qr{ ( [\d/]+) }smx;
 	local $_ = $resp->content;
 ####	s{ <em> .*? </em> }{}smxgi;	# Strip emphasis notes
 	s/ < .*? > //smxg;	# Strip markup
@@ -2250,8 +2250,8 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    s< [(] (\d+) [)] >
 		< $exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
 	}
-	s/ [(] .*? [)] //smxg;	# Strip parenthetical comments
-	foreach (split '\n', $_) {
+	s/ [(] .*? [)\n] //smxg;	# Strip parenthetical comments
+	foreach ( split qr{ \n }smx ) {
 	    if (m/ &lt; -+ \s+ failed \s+ -+ &gt; /smxi) {
 		$fail++;
 		$re = qr{ (\d+) (\w?) }smx;
@@ -2262,31 +2262,39 @@ The BODY_STATUS constants are exportable using the :status tag.
 		s/ \s+ \z //smx;		# Strip trailing whitespace
 		my $inx = 0;	# First 11 functional are in service
 		while (m/ $re /smxg) {
-		    my $num = +$1;
+		    my $num_list = $1;
 		    my $detail = $2;
-		    my $id = $oid{$num} or do {
-#			This is normal for decayed satellites.
+		    foreach my $num ( split qr{ / }smx, $num_list ) {
+			$num = $num + 0;	# Numify.
+			my $id = $oid{$num} or do {
+#			This is normal for decayed satellites or Iridium
+#			NEXT.
 #			warn "No oid for Iridium $num\n";
-			next;
-		    };
-		    my $name = "Iridium $num";
-		    if ($fail) {
-			my $interp = $sladen_interpret_detail{$detail}
-			    || $sladen_interpret_detail{''};
-			$interp->( $rslt, $id, $name, $plane );
-		    } else {
-			my $status = $inx++ > 10 ?
-			    BODY_STATUS_IS_SPARE :
-			    BODY_STATUS_IS_OPERATIONAL;
-			exists $exception{$num}
-			    and $status = $exception{$num};
-			$rslt->{$id} = [ $id, $name,
-			    $status_portable{kelso_inverse}{$status},
-			    $plane, $status ];
+			    next;
+			};
+			my $name = "Iridium $num";
+			if ($fail) {
+			    my $interp = $sladen_interpret_detail{$detail}
+				|| $sladen_interpret_detail{''};
+			    $interp->( $rslt, $id, $name, $plane );
+			} else {
+			    my $status = $inx > 10 ?
+				BODY_STATUS_IS_SPARE :
+				BODY_STATUS_IS_OPERATIONAL;
+			    exists $exception{$num}
+				and $status = $exception{$num};
+			    $rslt->{$id} = [ $id, $name,
+				$status_portable{kelso_inverse}{$status},
+				$plane, $status ];
+			}
 		    }
+		} continue {
+		    $inx++;
 		}
 	    } elsif ( m/ Notes: /smx ) {
 		last;
+	    } else {	# TODO this is just for debugging.
+		0;
 	    }
 	}
 
