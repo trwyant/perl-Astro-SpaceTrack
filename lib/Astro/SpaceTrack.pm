@@ -55,10 +55,12 @@ Track web site.
 
 Mike McCants appears to get his Iridium status from Rod Sladen, and not
 to have updated it since late 2013. Therefore support of C<'mccants'> as
-a source of Iridium status is deprecated effective immediately. In 6
-months the first use of C<'mccants'> as a source of Iridium status will
-produce a warning. This will become a warning with every use in another
-6 months, and fatal 6 months after that.
+a source of Iridium status is deprecated effective immediately.
+
+As previously documented, as of [%% next_version %%] the default status
+is C<'kelso'>, and the first use of status C<'mccants'> will result in a
+warning.  This will become a warning with every use in another 6 months,
+and fatal 6 months after that.
 
 Also, in 6 months' time the default status source will become C<'kelso'>.
 
@@ -603,7 +605,7 @@ sub new {
 	dump_headers => DUMP_NONE,	# No dumping.
 	fallback => 0,	# Do not fall back if primary source offline
 	filter => 0,	# Filter mode.
-	iridium_status_format => 'mccants',	# For historical reasons.
+	iridium_status_format => 'kelso',
 	max_range => 500,	# Sanity limit on range size.
 	password => undef,	# Login password.
 	pretty => 0,		# Pretty-format content
@@ -1830,11 +1832,18 @@ The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 If the format is 'mccants', the primary source of information will be
 Mike McCants' "Status of Iridium Payloads" web page,
 L<http://www.io.com/~mmccants/tles/iridium.html> (which gives status on
-non-functional Iridium satellites). B<This format is deprecated,> since
-Mike no longer maintains this page. The Celestrak list will be used to
-fill in the functioning satellites so that a complete list is generated.
-The comment will be whatever text is provided by Mike McCants' web page,
-or 'Celestrak' if the satellite data came from that source.
+non-functional Iridium satellites).
+
+B<This format is deprecated,> since Mike no longer maintains this page.
+As of version [%% next_version %%] the first use of this format will
+generate a warning. See
+L<DEPRECATION NOTICE: IRIDIUM STATUS|/ DEPRECATION NOTICE: IRIDIUM STATUS>
+for the deprecation schedule.
+
+The Celestrak list will be used to fill in the functioning satellites so
+that a complete list is generated.  The comment will be whatever text is
+provided by Mike McCants' web page, or 'Celestrak' if the satellite data
+came from that source.
 
 As of 03-Dec-2010 Mike's web page documented the possible statuses as
 follows:
@@ -2085,6 +2094,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	    ], @args );
 	defined $fmt
 	    or $fmt = $self->{iridium_status_format};
+	$self->_deprecation_notice( iridium_status => $fmt );
 	delete $self->{_pragmata};
 	my %rslt;
 	my $resp;
@@ -4948,6 +4958,12 @@ sub _check_cookie_generic {
 #	spaceflight => {
 #	    shuttle	=> 3,
 #	},
+	iridium_status	=> {
+	    mccants	=> 1,
+	},
+	iridium_status_format	=> {
+	    mccants	=> 1,
+	},
     );
 
     sub _deprecation_notice {
@@ -5621,6 +5637,7 @@ sub _mutate_authen {
 sub _mutate_iridium_status_format {
     croak "Error - Illegal status format '$_[2]'"
 	unless $catalogs{iridium_status}{$_[2]};
+    $_[0]->_deprecation_notice( iridium_status_format => $_[2] );
     goto &_mutate_attrib;
 }
 
@@ -6369,8 +6386,12 @@ L<iridium_status()|/iridium_status> method. Valid values are 'kelso',
 'mccants', 'sladen' or 'spacetrack'.  See that method for more
 information.
 
-The default is 'mccants' for historical reasons, but 'kelso' is probably
-preferred, and will become the default in the future.
+As of version [%% next_version %%], the default is C<'kelso'>. It used
+to be C<'mccants'>, but Mike McCants no longer maintains his Iridium
+status web page, format C<'mccants'> is deprecated, and will generate a
+warning the first time it is set. See
+L<DEPRECATION NOTICE: IRIDIUM STATUS|/ DEPRECATION NOTICE: IRIDIUM STATUS>
+for the deprecation schedule.
 
 =item max_range (number)
 
