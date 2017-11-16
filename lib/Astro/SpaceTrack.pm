@@ -57,7 +57,7 @@ Mike McCants appears to get his Iridium status from Rod Sladen, and not
 to have updated it since late 2013. Therefore support of C<'mccants'> as
 a source of Iridium status is deprecated effective immediately.
 
-As previously documented, as of [%% next_version %%] the default status
+As previously documented, as of 0.100_02 the default status
 is C<'kelso'>, and the first use of status C<'mccants'> will result in a
 warning.  This will become a warning with every use in another 6 months,
 and fatal 6 months after that.
@@ -128,7 +128,7 @@ use Exporter;
 
 our @ISA = qw{ Exporter };
 
-our $VERSION = '0.100_01';
+our $VERSION = '0.100_02';
 our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
     BODY_STATUS_IS_TUMBLING BODY_STATUS_IS_DECAYED };
 our %EXPORT_TAGS = (
@@ -1835,7 +1835,7 @@ L<http://www.io.com/~mmccants/tles/iridium.html> (which gives status on
 non-functional Iridium satellites).
 
 B<This format is deprecated,> since Mike no longer maintains this page.
-As of version [%% next_version %%] the first use of this format will
+As of version 0.100_02 the first use of this format will
 generate a warning. See
 L<DEPRECATION NOTICE: IRIDIUM STATUS|/ DEPRECATION NOTICE: IRIDIUM STATUS>
 for the deprecation schedule.
@@ -6386,7 +6386,7 @@ L<iridium_status()|/iridium_status> method. Valid values are 'kelso',
 'mccants', 'sladen' or 'spacetrack'.  See that method for more
 information.
 
-As of version [%% next_version %%], the default is C<'kelso'>. It used
+As of version 0.100_02, the default is C<'kelso'>. It used
 to be C<'mccants'>, but Mike McCants no longer maintains his Iridium
 status web page, format C<'mccants'> is deprecated, and will generate a
 warning the first time it is set. See

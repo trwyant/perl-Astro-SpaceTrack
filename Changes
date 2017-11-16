@@ -1,3 +1,10 @@
+0.100_02	2017-11-16	T. R. Wyant
+    Further deprecate Iridium status from McCants.  Mike McCants has
+    announced that he is no longer maintaining his Iridium status. The
+    first use of his Iridium status will now generate a warning.  In a
+    further 6 months there will be a warning on every use, and 6 months
+    after that it will become fatal.
+
 0.100_01	2017-11-15	T. R. Wyant
     Correct generation of Sladen Iridum status. The code for this
     scrapes the relevant web page, and a dropped right parenthesis
