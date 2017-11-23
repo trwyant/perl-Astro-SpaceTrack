@@ -2257,7 +2257,8 @@ The BODY_STATUS constants are exportable using the :status tag.
 	# satellites in the in-service or spare grids.
 	my %exception;
 	{
-	    s< [(] (\d+) [)] >
+	    # 23-Nov-2017 update double-parenthesized 6.
+	    s< [(]+ (\d+) [)]+ >
 		< $exception{$1} = BODY_STATUS_IS_TUMBLING; $1>smxge;
 	}
 	s/ [(] .*? [)\n] //smxg;	# Strip parenthetical comments
