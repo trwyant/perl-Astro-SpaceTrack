@@ -21,8 +21,10 @@ my $space_track_skip = My::Module::Test::__spacetrack_skip(
 # only two source names need be given.
 
 my %known_inconsistent = (
-#   24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
+    24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
 				# Kelso: Failed 16-Nov-2017
+				# Decayed: 24-Nov-2017
+				# Sladen removed 24-Nov-2017
     24793 => { sladen => 1 },	# Sladen: failed 02-nov-2017
     24794 => { sladen => 1 },	# Sladen: Spare 23-Nov-2017
 #   24795 => { sladen => 1 },	# Kelso: Failed 16-Nov-2017
@@ -197,7 +199,6 @@ foreach (
 KELSO
 	["Rod Sladen's Iridium Constellation Status",
 	sladen => <<'SLADEN'],
- 24792   Iridium 8      [-]      Plane 4 - Failed on station?
  24793   Iridium 7      [-]      Plane 4 - Failed on station?
  24794   Iridium 6      [-]      Plane 4
  24795   Iridium 5      [-]      Plane 4 - Failed on station?
@@ -290,7 +291,7 @@ SLADEN
         $space_track_skip ? () :
 	[ "Space Track Iridium status",
 	spacetrack => <<'SPACETRACK'],
- 24792   Iridium 8      [?]      SpaceTrack
+ 24792   Iridium 8      [D]      Decayed 2017-11-24
  24793   Iridium 7      [?]      SpaceTrack
  24794   Iridium 6      [?]      SpaceTrack
  24795   Iridium 5      [?]      SpaceTrack
