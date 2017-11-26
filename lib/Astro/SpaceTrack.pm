@@ -2115,7 +2115,7 @@ my @all_iridium_classic = (
 	unless ( $opt->{raw} ) {
 	    foreach my $body ( @all_iridium_classic ) {
 		$rslt{$body->[0]}
-##		    and $body->[4] != BODY_STATUS_IS_DECAYED
+		    and $body->[4] != BODY_STATUS_IS_DECAYED
 		    and next;
 		$rslt{$body->[0]} = [ @{ $body } ];	# shallow clone
 	    }
