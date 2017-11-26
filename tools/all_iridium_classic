@@ -15,7 +15,8 @@ our $VERSION = '0.100_04';
 my %opt;
 
 GetOptions( \%opt,
-    qw{ identity! password=s tle! username=s },
+    qw{ identity! kelso_url|kelso-url|celestrak_url|celestrak-url=s
+    password=s tle! username=s },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) or pod2usage( { -verbose => 0 } );
 
@@ -23,6 +24,15 @@ my $st = Astro::SpaceTrack->new(
     map { defined $opt{$_} ? ( $_ => $opt{$_} ) : () }
     qw{ identity username password }
 );
+
+if ( defined $opt{kelso_url} ) {
+    my $url = $opt{kelso_url};
+    if ( -f $url ) {
+	require URI::file;
+	$url = URI::file->new_abs( $url )->as_string();
+    }
+    $st->set( url_iridium_status_kelso => $url );
+}
 
 if ( $opt{tle} ) {
 
@@ -106,6 +116,10 @@ all_iridium_classic - Dump raw Space Track status for original-design Iridium sa
 
 =head1 OPTIONS
 
+=head2 -celestrak-url
+
+This option is a synonym for L<-kelso-url|/-kelso-url>.
+
 =head2 -help
 
 This option displays the documentation for this script. The script then
@@ -119,6 +133,18 @@ which in turn causes the user's Space Track username and password to be
 read from a (hopefully encrypted) identity file.
 
 The default is C<-noidentity>.
+
+=head2 -kelso-url
+
+ -kelso-url ~/kelso.txt
+
+This option specifies an alternate URL for T. S. Kelso's Iridium status
+data. If an existing file is specified, it is turned into a C<file:>
+URL. Otherwise the value must be one that
+L<LWP::UserAgent|LWP::UserAgent> understands.
+
+The default is the L<Astro::SpaceTrack|Astro::SpaceTrack> default
+(q.v.).
 
 =head2 -password
 
