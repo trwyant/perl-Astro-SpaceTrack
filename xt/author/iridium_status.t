@@ -107,7 +107,6 @@ my @keys;
 foreach (
 	["T. S. Kelso's Iridium list",
 	kelso => <<'KELSO'],
- 24792   Iridium 8      [-]      Tumbling
  24793   Iridium 7      [+]      
  24794   Iridium 6      [+]      
  24795   Iridium 5      [-]      Tumbling
