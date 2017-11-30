@@ -1,3 +1,12 @@
+0.100_05	2017-11-30	T. R. Wyant
+    Make 'decayed' internal status override anything from external
+    sources. The idea is that the canned table is from Space Track, and
+    therefore authoritative as to whether a satellite is actually
+    on-orbit.
+
+    Add options -celestrak-url and -symbolic to
+    tools/all_iridium_classic.
+
 0.100_04	2017-11-25	T. R. Wyant
     Iridium 8 decayed. Sladen notes; Kelso not yet.
 
