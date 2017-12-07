@@ -1,35 +1,18 @@
-0.100_05	2017-11-30	T. R. Wyant
+0.101		2017-12-07	T. R. Wyant
     Make 'decayed' internal status override anything from external
     sources. The idea is that the canned table is from Space Track, and
     therefore authoritative as to whether a satellite is actually
     on-orbit.
 
-    Add options -celestrak-url and -symbolic to
-    tools/all_iridium_classic.
+    Iridium 8 decayed.
 
-0.100_04	2017-11-25	T. R. Wyant
-    Iridium 8 decayed. Sladen notes; Kelso not yet.
-
-0.100_03	2017-11-23	T. R. Wyant
     Sladen tweaks web page; scraper change needed.
 
-    Kelso says Iridiums 5, 8, and 51 are tumbling.
-    
-    Iridium 30 (previously tumbling, decayed 2017-09-28) has been removed
-    from Kelso's list.
-
-0.100_02	2017-11-16	T. R. Wyant
     Further deprecate Iridium status from McCants.  Mike McCants has
     announced that he is no longer maintaining his Iridium status. The
     first use of his Iridium status will now generate a warning.  In a
     further 6 months there will be a warning on every use, and 6 months
     after that it will become fatal.
-
-0.100_01	2017-11-15	T. R. Wyant
-    Correct generation of Sladen Iridum status. The code for this
-    scrapes the relevant web page, and a dropped right parenthesis
-    ending a parenthetical comment caused the code not to see Plane 3 at
-    all.
 
 0.100		2017-10-12	T. R. Wyant
     Added Iridium status decayed ('[D]', portable status is 3 --
