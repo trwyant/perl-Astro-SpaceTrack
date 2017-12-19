@@ -26,18 +26,21 @@ my %known_inconsistent = (
 				# Decayed: 24-Nov-2017
 				# Sladen removed 24-Nov-2017
     24793 => { sladen => 1 },	# Sladen: failed 02-nov-2017
-    24794 => { sladen => 1 },	# Sladen: failed 23-Nov-2017
+#   24794 => { sladen => 1 },	# Sladen: failed 23-Nov-2017
+				# Kelso: failed 19-Dec-2017
 #   24795 => { sladen => 1 },	# Kelso: Failed 16-Nov-2017
 				# Sladen Failed 17-Nov-2017
     24796 => { sladen => 1 },	# Kelso: failed 20-Oct-2012;
 				# Sladen: still operational.
     24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
     24872 => { sladen => 1 },	# Sladen: failed 19-May-2017
+    24907 => { sladen => 1 },	# Kelso: failed 19-Dec-2017
 #   24949 => { sladen => 1 },	# Sladen: failed 23-Oct-2017
 				# Kelso: gone 16-Nov-2017
 				# decayed 28-Sep-2017
     24950 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed
-    24965 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
+#   24965 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
+				# Kelso: failed 19-Dec-2017
     24968 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
     24969 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
     25042 => { sladen => 1 },	# 19-Aug-2016: Sladen - Failed on station?
@@ -112,7 +115,7 @@ foreach (
 	["T. S. Kelso's Iridium list",
 	kelso => <<'KELSO'],
  24793   Iridium 7      [+]      
- 24794   Iridium 6      [+]      
+ 24794   Iridium 6      [-]      Tumbling
  24795   Iridium 5      [-]      Tumbling
  24796   Iridium 4      [-]      Tumbling
  24836   Iridium 914    [-]      Tumbling
@@ -130,7 +133,7 @@ foreach (
  24904   Iridium 25     [+]      
  24905   Iridium 46     [+]      
  24906   Iridium 23     [+]      
- 24907   Iridium 22     [+]      
+ 24907   Iridium 22     [-]      Tumbling
  24925   Dummy mass 1   [-]      Tumbling
  24926   Dummy mass 2   [-]      Tumbling
  24944   Iridium 29     [-]      Tumbling
@@ -138,7 +141,7 @@ foreach (
  24946   Iridium 33     [-]      Tumbling
  24948   Iridium 28     [-]      Tumbling
  24950   Iridium 31     [+]      
- 24965   Iridium 19     [+]      
+ 24965   Iridium 19     [-]      Tumbling
  24966   Iridium 35     [+]      
  24967   Iridium 36     [-]      Tumbling
  24968   Iridium 37     [+]      
