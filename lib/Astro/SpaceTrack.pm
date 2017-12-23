@@ -2263,7 +2263,7 @@ my @all_iridium_classic = (
 	}
 	s/ [(] .*? [)\n] //smxg;	# Strip parenthetical comments
 	foreach ( split qr{ \n }smx ) {
-	    if (m/ &lt; -+ \s+ failed \s+ -+ &gt; /smxi) {
+	    if (m/ &lt; -+ \s+ failed \s+ (?: or \s+ retired \s+ )? -+ &gt; /smxi) {
 		$fail++;
 		$re = qr{ (\d+) (\w?) }smx;
 	    } elsif ( s/ \A \s* ( plane \s+ \d+ ) \s* : \s* //smxi ) {
