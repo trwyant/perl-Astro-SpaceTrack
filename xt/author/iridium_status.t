@@ -300,7 +300,7 @@ SLADEN
 	spacetrack => <<'SPACETRACK'],
  24792   Iridium 8      [D]      Decayed 2017-11-24
  24793   Iridium 7      [?]      SpaceTrack
- 24794   Iridium 6      [?]      SpaceTrack
+ 24794   Iridium 6      [D]      Decayed 2017-12-23
  24795   Iridium 5      [?]      SpaceTrack
  24796   Iridium 4      [?]      SpaceTrack
  24836   Iridium 914    [?]      SpaceTrack
