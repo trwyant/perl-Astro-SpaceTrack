@@ -146,7 +146,7 @@ foreach (
  24966   Iridium 35     [+]      
  24967   Iridium 36     [-]      Tumbling
  24968   Iridium 37     [+]      
- 24969   Iridium 34     [+]      
+ 24969   Iridium 34     [-]      Tumbling
  25039   Iridium 43     [-]      Tumbling
  25040   Iridium 41     [+]      
  25041   Iridium 40     [-]      Tumbling
@@ -200,7 +200,7 @@ foreach (
  27373   Iridium 90     [B]      
  27374   Iridium 94     [+]      
  27375   Iridium 95     [+]      
- 27376   Iridium 96     [+]      
+ 27376   Iridium 96     [P]      
  27450   Iridium 97     [+]      
  27451   Iridium 98     [+]      
 KELSO
