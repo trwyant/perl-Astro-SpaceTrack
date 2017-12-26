@@ -207,7 +207,6 @@ KELSO
 	["Rod Sladen's Iridium Constellation Status",
 	sladen => <<'SLADEN'],
  24793   Iridium 7      [-]      Plane 4 - Failed on station?
- 24794   Iridium 6      [-]      Plane 4 - Failed on station?
  24795   Iridium 5      [-]      Plane 4 - Failed on station?
  24796   Iridium 4      [-]      Plane 4 - Failed on station?
  24836   Iridium 914    [-]      Plane 5
