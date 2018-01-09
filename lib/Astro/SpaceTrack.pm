@@ -6720,7 +6720,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005-2017 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
+Copyright 2005-2018 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 LICENSE
 
