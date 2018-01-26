@@ -45,6 +45,7 @@ my %known_inconsistent = (
     24969 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
 				# SpaceTrack: Decayed 08-Jan-2018
     25042 => { sladen => 1 },	# 19-Aug-2016: Sladen - Failed on station?
+    25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
 #   25262 => { sladen => 1 },	# Kelso: spare; others: operational.
     				# 12-Nov-2017: Sladen - failed.
 				# Kelso: Failed 16-Nov-2017
@@ -118,7 +119,6 @@ foreach (
 	["T. S. Kelso's Iridium list",
 	kelso => <<'KELSO'],
  24793   Iridium 7      [+]      
- 24794   Iridium 6      [-]      Tumbling
  24795   Iridium 5      [-]      Tumbling
  24796   Iridium 4      [-]      Tumbling
  24836   Iridium 914    [-]      Tumbling
@@ -147,8 +147,7 @@ foreach (
  24965   Iridium 19     [-]      Tumbling
  24966   Iridium 35     [+]      
  24967   Iridium 36     [-]      Tumbling
- 24968   Iridium 37     [+]      
- 24969   Iridium 34     [-]      Tumbling
+ 24968   Iridium 37     [P]      
  25039   Iridium 43     [-]      Tumbling
  25040   Iridium 41     [+]      
  25041   Iridium 40     [-]      Tumbling
@@ -159,7 +158,7 @@ foreach (
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
  25106   Iridium 47     [+]      
- 25108   Iridium 49     [+]      
+ 25108   Iridium 49     [P]      
  25169   Iridium 52     [+]      
  25170   Iridium 56     [+]      
  25171   Iridium 54     [+]      
@@ -185,7 +184,7 @@ foreach (
  25343   Iridium 72     [+]      
  25344   Iridium 73     [-]      Tumbling
  25346   Iridium 75     [+]      
- 25431   Iridium 3      [+]      
+ 25431   Iridium 3      [P]      
  25432   Iridium 76     [+]      
  25467   Iridium 82     [-]      Tumbling
  25468   Iridium 81     [+]      
