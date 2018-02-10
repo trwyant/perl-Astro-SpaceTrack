@@ -111,6 +111,7 @@ my \@all_iridium_classic = (
 EOD
 
     foreach my $body ( @{ $data } ) {
+	$body->[1] =~ s/ ( [0-9]+ ) / $1 + 0 /smxe;
 	print <<"EOD";
     [ $body->[0], '$body->[1]', '$body->[2]', '$body->[3]', $symbolic[$body->[4]] ],
 EOD
