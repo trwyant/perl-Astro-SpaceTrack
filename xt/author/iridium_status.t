@@ -62,6 +62,7 @@ my %known_inconsistent = (
 				# 18-Feb-2014 McCants: operational;
 				#             others: spare
     27376 => { sladen => 1 },	# Sladen: failed 22-Dec-2017
+    25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
 );
 
 =begin comment
@@ -226,7 +227,7 @@ KELSO
  24873   Iridium 921    [-]      Plane 6
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [+]      Plane 2
- 24905   Iridium 46     [+]      Plane 2
+ 24905   Iridium 46     [-]      Plane 2 - Failed on station?
  24906   Iridium 23     [+]      Plane 2
  24907   Iridium 22     [-]      Plane 2 - Failed on station?
  24925   Dummy mass 1   [-]      Dummy
@@ -276,7 +277,6 @@ KELSO
  25343   Iridium 72     [+]      Plane 1
  25344   Iridium 73     [-]      Plane 1
  25346   Iridium 75     [+]      Plane 1
- 25431   Iridium 3      [-]      Plane 2 - Failed on station?
  25432   Iridium 76     [+]      Plane 2
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25468   Iridium 81     [-]      Plane 6
@@ -372,7 +372,7 @@ SLADEN
  25344   Iridium 73     [?]      SpaceTrack
  25345   Iridium 74     [D]      Decayed 2017-06-11
  25346   Iridium 75     [?]      SpaceTrack
- 25431   Iridium 03     [?]      SpaceTrack
+ 25431   Iridium 03     [D]      Decayed 2018-02-08
  25432   Iridium 76     [?]      SpaceTrack
  25467   Iridium 82     [?]      SpaceTrack
  25468   Iridium 81     [?]      SpaceTrack
