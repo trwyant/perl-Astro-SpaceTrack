@@ -35,8 +35,10 @@ my %known_inconsistent = (
     24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
     24872 => { sladen => 1 },	# Sladen: failed 19-May-2017
     24904 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
+				# Sladen: failed 14-Feb-2018
     24905 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
     24906 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
+				# Sladen: failed 14-May-2918
     24907 => { sladen => 1 },	# Kelso: failed 19-Dec-2017
 #   24949 => { sladen => 1 },	# Sladen: failed 23-Oct-2017
 				# Kelso: gone 16-Nov-2017
@@ -226,9 +228,9 @@ KELSO
  24872   Iridium 18     [-]      Plane 6
  24873   Iridium 921    [-]      Plane 6
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
- 24904   Iridium 25     [+]      Plane 2
+ 24904   Iridium 25     [-]      Plane 2
  24905   Iridium 46     [-]      Plane 2 - Failed on station?
- 24906   Iridium 23     [+]      Plane 2
+ 24906   Iridium 23     [-]      Plane 2 - Failed on station?
  24907   Iridium 22     [-]      Plane 2 - Failed on station?
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
@@ -241,7 +243,6 @@ KELSO
  24966   Iridium 35     [+]      Plane 4
  24967   Iridium 36     [-]      Plane 4
  24968   Iridium 37     [-]      Plane 4 - Failed on station?
- 25039   Iridium 43     [-]      Plane 6 - Failed on station?
  25040   Iridium 41     [+]      Plane 6
  25041   Iridium 40     [-]      Plane 6 - Failed on station?
  25042   Iridium 39     [-]      Plane 6 - Failed on station?
@@ -251,7 +252,6 @@ KELSO
  25104   Iridium 45     [+]      Plane 3
  25105   Iridium 24     [-]      Plane 2
  25106   Iridium 47     [+]      Plane 2
- 25108   Iridium 49     [-]      Plane 2 - Failed on station?
  25169   Iridium 52     [+]      Plane 5
  25170   Iridium 56     [+]      Plane 5
  25171   Iridium 54     [+]      Plane 5
