@@ -50,7 +50,7 @@ my %known_inconsistent = (
     24969 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
 				# SpaceTrack: Decayed 08-Jan-2018
     25042 => { sladen => 1 },	# 19-Aug-2016: Sladen - Failed on station?
-    25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
+#   25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
 #   25262 => { sladen => 1 },	# Kelso: spare; others: operational.
     				# 12-Nov-2017: Sladen - failed.
 				# Kelso: Failed 16-Nov-2017
@@ -58,7 +58,7 @@ my %known_inconsistent = (
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
-    25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
+#   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
     27374 => { sladen => 1 },	# 16-Nov-2012 Sladen: operational;
 				# 18-Feb-2014 McCants: operational;
@@ -154,7 +154,6 @@ foreach (
  24966   Iridium 35     [+]      
  24967   Iridium 36     [-]      Tumbling
  24968   Iridium 37     [P]      
- 25039   Iridium 43     [-]      Tumbling
  25040   Iridium 41     [+]      
  25041   Iridium 40     [-]      Tumbling
  25042   Iridium 39     [B]      
@@ -164,7 +163,6 @@ foreach (
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
  25106   Iridium 47     [+]      
- 25108   Iridium 49     [P]      
  25169   Iridium 52     [+]      
  25170   Iridium 56     [+]      
  25171   Iridium 54     [+]      
@@ -190,7 +188,6 @@ foreach (
  25343   Iridium 72     [+]      
  25344   Iridium 73     [-]      Tumbling
  25346   Iridium 75     [+]      
- 25431   Iridium 3      [P]      
  25432   Iridium 76     [+]      
  25467   Iridium 82     [-]      Tumbling
  25468   Iridium 81     [+]      
