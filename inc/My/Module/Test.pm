@@ -36,6 +36,9 @@ qw{
     VERIFY_HOSTNAME
 };
 
+use constant HASH_REF	=> ref {};
+use constant REGEXP_REF	=> ref qr{};
+
 use constant NO_SPACE_TRACK_ACCOUNT => 'No Space-Track account provided';
 
 # Deliberately not localized, to prevent unwanted settings from sneaking
@@ -123,7 +126,7 @@ sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
 
     sub prompt (@) {	## no critic (ProhibitSubroutinePrototypes)
 	my @args = @_;
-	my $opt = 'HASH' eq ref $args[0] ? shift @args : {};
+	my $opt = HASH_REF eq ref $args[0] ? shift @args : {};
 	$readkey_loaded
 	    or not $opt->{password}
 	    or push @args, '(ECHOED)';
@@ -336,7 +339,7 @@ sub throws_exception (@) {	## no critic (RequireArgUnpacking,ProhibitSubroutineP
     my ( $obj, $method, @args ) = @_;
     my $name = pop @args;
     my $exception = pop @args;
-    'Regexp' eq ref $exception
+    REGEXP_REF eq ref $exception
 	or $exception = qr{\A$exception};
     $rslt = eval { $obj->$method( @args ) }
 	and do {

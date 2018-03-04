@@ -129,11 +129,22 @@ use Exporter;
 our @ISA = qw{ Exporter };
 
 our $VERSION = '0.104';
-our @EXPORT_OK = qw{shell BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
-    BODY_STATUS_IS_TUMBLING BODY_STATUS_IS_DECAYED };
+our @EXPORT_OK = qw{
+    shell
+
+    BODY_STATUS_IS_OPERATIONAL
+    BODY_STATUS_IS_SPARE
+    BODY_STATUS_IS_TUMBLING
+    BODY_STATUS_IS_DECAYED
+
+    ARRAY_REF
+    CODE_REF
+    HASH_REF
+
+    };
 our %EXPORT_TAGS = (
-    status => [qw{BODY_STATUS_IS_OPERATIONAL BODY_STATUS_IS_SPARE
-	BODY_STATUS_IS_TUMBLING BODY_STATUS_IS_DECAYED } ],
+    ref		=> [ grep { m/ _REF \z /smx } @EXPORT_OK ],
+    status	=> [ grep { m/ \A BODY_STATUS_IS_ /smx } @EXPORT_OK ],
 );
 
 use Carp;
@@ -197,6 +208,11 @@ use constant DUMP_RESPONSE => 0x10;	# Dump response.
 use constant DUMP_RESPONSE_TRUNCATED => 0x20;	# Dump w/ truncated content
 # The following is used to see if we want to dump the response at all.
 use constant _DUMP_RESPONSE => DUMP_RESPONSE | DUMP_RESPONSE_TRUNCATED;
+
+# Manifest constants for reference types
+use constant ARRAY_REF	=> ref [];
+use constant CODE_REF	=> ref sub {};
+use constant HASH_REF	=> ref {};
 
 # These are the Space Track version 1 retrieve Getopt::Long option
 # specifications, and the descriptions of each option. These need to
@@ -3067,7 +3083,7 @@ sub _search_rest {
     if ( $opt->{tle} ) {
 	defined $opt->{format}
 	    or $opt->{format} = 'tle';
-	'ARRAY' eq ref $data
+	ARRAY_REF eq ref $data
 	    or croak "Format $rest_args->{format} does not support TLE retrieval";
 	my $ropt = _remove_search_options( $opt );
 
@@ -3660,7 +3676,7 @@ my %known_meta = (
 	after	=> sub {
 	    my ( $self, undef, $rslt ) = @_;	# Context unused
 
-	    'ARRAY' eq ref $rslt
+	    ARRAY_REF eq ref $rslt
 		and return;
 	    $rslt->is_success()
 		and 'orbit' eq ( $self->content_type( $rslt ) || '' )
@@ -3876,7 +3892,7 @@ EOD
 	    $pseudo->( $rslt );
 	}
 
-	if (ref $rslt eq 'ARRAY') {
+	if ( ARRAY_REF eq ref $rslt ) {
 	    foreach (@$rslt) {print { $out } "$_\n"}
 	} elsif ( ! ref $rslt ) {
 	    print { $out } "$rslt\n";
@@ -4786,7 +4802,7 @@ sub _accumulate_json_data {	## no critic (ProhibitUnusedPrivateSubroutines)
 
     my $data = $json->decode( $content );
 
-    'ARRAY' eq ref $data
+    ARRAY_REF eq ref $data
 	or $data = [ $data ];
 
     @{ $data }
@@ -5080,7 +5096,7 @@ sub _dump_request {
 	or return;
 
     foreach my $key ( keys %args ) {
-	'CODE' eq ref $args{$key}
+	CODE_REF eq ref $args{$key}
 	    or next;
 	$args{$key} = $args{$key}->( \%args );
     }
@@ -5141,7 +5157,7 @@ sub _expand_oid_list {
 
     sub _extract_keys {
 	my ( $lgl_opts ) = @_;
-	if ( 'ARRAY' eq ref $lgl_opts ) {
+	if ( ARRAY_REF eq ref $lgl_opts ) {
 	    my $len = @{ $lgl_opts };
 	    my @rslt;
 	    for ( my $inx = 0; $inx < $len; $inx += 2 ) {
@@ -5315,7 +5331,7 @@ sub _get_from_net {
 	    my %sanitary = %arg;
 	    foreach my $key ( qw{ pre_process post_process } ) {
 		delete $sanitary{$key}
-		    and $sanitary{$key} = 'CODE';
+		    and $sanitary{$key} = CODE_REF;
 	    }
 	    return \%sanitary;
 	},
@@ -5703,7 +5719,7 @@ sub _mutate_verify_hostname {
 	my $info = $catalogs{$source}
 	    or confess "Programming error - No such source as '$source'";
 
-	if ( 'ARRAY' eq ref $info ) {
+	if ( ARRAY_REF eq ref $info ) {
 	    my $inx = shift @args;
 	    $info = $info->[$inx]
 		or confess "Programming error - Illegal index $inx ",
@@ -5748,7 +5764,7 @@ sub _mutate_verify_hostname {
     sub _parse_args {
 	my ( $lgl_opts, @args ) = @_;
 	my $opt;
-	if ( 'HASH' eq ref $args[0] ) {
+	if ( HASH_REF eq ref $args[0] ) {
 	    $opt = { %{ shift @args } };	# Poor man's clone.
 	    # Validation is new, so I insert a hack to turn it off if need
 	    # be.
@@ -5792,7 +5808,7 @@ sub _parse_args_failure {
     my %arg = @_;
     my $msg = $arg{carp} ? 'Warning - ' : 'Error - ';
     if ( defined $arg{name} ) {
-	my @names = ( 'ARRAY' eq ref $arg{name} ) ?
+	my @names = ( ARRAY_REF eq ref $arg{name} ) ?
 	    @{ $arg{name} } :
 	    $arg{name};
 	@names
@@ -5898,7 +5914,7 @@ sub _parse_launch_date {
 
     sub _parse_retrieve_args {
 	my @args = @_;
-	my $extra_options = ref $args[0] eq 'ARRAY' ?
+	my $extra_options = ARRAY_REF eq ref $args[0] ?
 	    shift @args :
 	    undef;
 
@@ -6064,7 +6080,7 @@ EOD
     sub _parse_search_args {
 	my @args = @_;
 
-	my $extra = 'ARRAY' eq ref $args[0] ? shift @args : [];
+	my $extra = ARRAY_REF eq ref $args[0] ? shift @args : [];
 	@args = _parse_retrieve_args(
 	    [ @legal_search_args, @{ $extra } ], @args );
 
@@ -6122,7 +6138,7 @@ EOD
     sub _sort_rest_arguments {
 	my ( $rest_args ) = @_;
 
-	'HASH' eq ref $rest_args
+	HASH_REF eq ref $rest_args
 	    or return;
 
 	my @rslt;
@@ -6216,7 +6232,7 @@ sub _stringify_oid_list {
 
     if ( defined $range_operator ) {
 	foreach my $arg ( sort { $a <=> $b } @args ) {
-	    if ( 'ARRAY' eq ref $rslt[-1] ) {
+	    if ( ARRAY_REF eq ref $rslt[-1] ) {
 		if ( $arg == $rslt[-1][1] + 1 ) {
 		    $rslt[-1][1] = $arg;
 		} else {

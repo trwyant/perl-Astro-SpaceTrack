@@ -3,7 +3,7 @@ package main;
 use strict;
 use warnings;
 
-use Astro::SpaceTrack;
+use Astro::SpaceTrack qw{ :ref };
 use Test::More 0.96;	# Because of subtest().
 
 use lib qw{ inc };
@@ -91,7 +91,7 @@ foreach my $src (@sources) {
     if ($rslt->is_success) {
 	$text{$src} = $rslt->content;
 	my %sts;
-	ref $data eq 'ARRAY'
+	ARRAY_REF eq ref $data
 	    and %sts = map {$_->[0] => $_->[4]} @$data;
 	$status{$src} = \%sts;
 	foreach (@$data) {
