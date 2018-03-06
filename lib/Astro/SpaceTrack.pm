@@ -4211,8 +4211,8 @@ HTTP::Response from C<login()>.
 {
 
     my %unpack_query = (
-	HASH	=> sub { return $_[0] },
-	ARRAY	=> sub { return @{ $_[0] } },
+	ARRAY_REF()	=> sub { return @{ $_[0] } },
+	HASH_REF()	=> sub { return $_[0] },
     );
 
     # Unpack a Space Track REST query. References are unpacked per the
