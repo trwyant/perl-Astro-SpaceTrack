@@ -59,10 +59,13 @@ my %known_inconsistent = (
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
+    25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
+    25432 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
+    27373 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
     27374 => { sladen => 1 },	# 02-Mar-2018 Kelso: partly operationsl
     27376 => { sladen => 1 },	# Sladen: failed 22-Dec-2017
-    25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
+    27450 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
 );
 
 =begin comment
@@ -272,7 +275,7 @@ KELSO
  25343   Iridium 72     [+]      Plane 1
  25344   Iridium 73     [-]      Plane 1
  25346   Iridium 75     [+]      Plane 1
- 25432   Iridium 76     [+]      Plane 2
+ 25432   Iridium 76     [-]      Plane 2
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25468   Iridium 81     [-]      Plane 6
  25469   Iridium 80     [+]      Plane 6
@@ -285,11 +288,11 @@ KELSO
  25777   Iridium 14     [+]      Plane 1
  25778   Iridium 21     [+]      Plane 1
  27372   Iridium 91     [+]      Plane 3
- 27373   Iridium 90     [S]      Plane 5
+ 27373   Iridium 90     [-]      Plane 5 - Failed on station?
  27374   Iridium 94     [-]      Plane 2 - Failed on station?
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
- 27450   Iridium 97     [+]      Plane 4
+ 27450   Iridium 97     [-]      Plane 4
  27451   Iridium 98     [+]      Plane 6
 SLADEN
         $space_track_skip ? () :
