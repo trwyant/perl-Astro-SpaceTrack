@@ -232,7 +232,6 @@ KELSO
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
  24904   Iridium 25     [-]      Plane 2
  24905   Iridium 46     [-]      Plane 2 - Failed on station?
- 24906   Iridium 23     [-]      Plane 2 - Failed on station?
  24907   Iridium 22     [-]      Plane 2 - Failed on station?
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
