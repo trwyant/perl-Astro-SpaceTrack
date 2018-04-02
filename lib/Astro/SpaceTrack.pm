@@ -1757,6 +1757,8 @@ The following commands are defined:
         on anything it does;
       filter = true supresses all output to stdout except
         orbital elements;
+      identity = load username and password from identity file
+        if true and Config::Identity can be loaded;
       max_range = largest range of numbers that can be re-
         trieved (default: 500);
       password = the Space-Track password;
