@@ -1683,8 +1683,8 @@ This method exists for the convenience of the shell () method. It
 always returns success, with the content being whatever it's
 convenient (to the author) to include.
 
-If the L<webcmd|/webcmd> attribute is set, the L<http://search.cpan.org/>
-web page for this version of Astro::Satpass is launched.
+If the L<webcmd|/webcmd> attribute is set, the L<https://metacpan.org/>
+web page for Astro::Satpass is launched.
 
 If this method succeeds B<and> the webcmd attribute is not set, the
 response will contain header
@@ -1702,8 +1702,8 @@ sub help {
     my $self = shift;
     delete $self->{_pragmata};
     if ($self->{webcmd}) {
-	system (join ' ', $self->{webcmd},
-	    "http://search.cpan.org/~wyant/Astro-SpaceTrack-$VERSION/");
+	system ( join ' ', $self->{webcmd},
+	    'https://metacpan.org/release/Astro-SpaceTrack' );
 	return HTTP::Response->new (HTTP_OK, undef, undef, 'OK');
     } else {
 	my $resp = HTTP::Response->new (HTTP_OK, undef, undef, <<'EOD');
@@ -6540,7 +6540,7 @@ default is false (i.e. 0).
 
 This attribute specifies a system command that can be used to launch
 a URL into a browser. If specified, the 'help' command will append
-a space and the search.cpan.org URL for the documentation for this
+a space and the metacpan.org URL for the documentation for this
 version of Astro::SpaceTrack, and spawn that command to the operating
 system. You can use 'open' under Mac OS X, and 'start' under Windows.
 Anyone else will probably need to name an actual browser.
