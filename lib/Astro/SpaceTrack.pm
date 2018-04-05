@@ -1702,8 +1702,14 @@ sub help {
     my $self = shift;
     delete $self->{_pragmata};
     if ($self->{webcmd}) {
-	system ( join ' ', $self->{webcmd},
-	    'https://metacpan.org/release/Astro-SpaceTrack' );
+	my $cmd = $self->{webcmd};
+	if ( '1' eq $cmd ) {
+	    require Browser::Open;
+	    $cmd = Browser::Open::open_browser_cmd();
+	}
+	# TODO just use open_browser() once webcmd becomes Boolean.
+	system { $cmd } $cmd,
+	    'https://metacpan.org/release/Astro-SpaceTrack';
 	return HTTP::Response->new (HTTP_OK, undef, undef, 'OK');
     } else {
 	my $resp = HTTP::Response->new (HTTP_OK, undef, undef, <<'EOD');
@@ -6546,6 +6552,28 @@ a space and the metacpan.org URL for the documentation for this
 version of Astro::SpaceTrack, and spawn that command to the operating
 system. You can use 'open' under Mac OS X, and 'start' under Windows.
 Anyone else will probably need to name an actual browser.
+
+As of version [%% next_version %%], a value of C<'1'> causes
+L<Browser::Open|Browser::Open> to be loaded, and the web command is
+taken from it. All other true values are deprecated, on the following
+schedule:
+
+=over
+
+=item 2018-11-01: First use of deprecated value will warn;
+
+=item 2019-05-01: All uses of deprecated value will warn;
+
+=item 2019-11-01: Any use of deprecated value is fatal;
+
+=item 2020-05-01: Attribute is treated as Boolean.
+
+=back
+
+The above schedule may be extended based on what other changes are
+needed, but will not be compressed.
+
+The default is C<undef>, which leaves the functionality disabled.
 
 =item with_name (Boolean)
 
