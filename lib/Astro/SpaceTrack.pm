@@ -128,7 +128,7 @@ use Exporter;
 
 our @ISA = qw{ Exporter };
 
-our $VERSION = '0.105';
+our $VERSION = '0.105_01';
 our @EXPORT_OK = qw{
     shell
 
@@ -6553,7 +6553,7 @@ version of Astro::SpaceTrack, and spawn that command to the operating
 system. You can use 'open' under Mac OS X, and 'start' under Windows.
 Anyone else will probably need to name an actual browser.
 
-As of version [%% next_version %%], a value of C<'1'> causes
+As of version 0.105_01, a value of C<'1'> causes
 L<Browser::Open|Browser::Open> to be loaded, and the web command is
 taken from it. All other true values are deprecated, on the following
 schedule:
