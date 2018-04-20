@@ -382,7 +382,7 @@ SLADEN
  25778   Iridium 21     [?]      SpaceTrack
  27372   Iridium 91     [?]      SpaceTrack
  27373   Iridium 90     [?]      SpaceTrack
- 27374   Iridium 94     [?]      SpaceTrack
+ 27374   Iridium 94     [D]      Decayed 2018-04-18
  27375   Iridium 95     [?]      SpaceTrack
  27376   Iridium 96     [?]      SpaceTrack
  27450   Iridium 97     [?]      SpaceTrack
