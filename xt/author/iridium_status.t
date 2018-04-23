@@ -222,7 +222,7 @@ KELSO
  24872   Iridium 18     [-]      Plane 6
  24873   Iridium 921    [-]      Plane 6
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
- 24904   Iridium 25     [-]      Plane 2
+ 24904   Iridium 25     [-]      Plane 2 - Failed on station?
  24905   Iridium 46     [-]      Plane 2 - Failed on station?
  24907   Iridium 22     [-]      Plane 2 - Failed on station?
  24925   Dummy mass 1   [-]      Dummy
@@ -283,7 +283,6 @@ KELSO
  25778   Iridium 21     [+]      Plane 1
  27372   Iridium 91     [+]      Plane 3
  27373   Iridium 90     [-]      Plane 5 - Failed on station?
- 27374   Iridium 94     [-]      Plane 2 - Failed on station?
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
  27450   Iridium 97     [-]      Plane 4
