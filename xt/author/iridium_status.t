@@ -55,11 +55,13 @@ my %known_inconsistent = (
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
+    25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
     25432 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
     25577 => { sladen => 1 },	# 14-Apr-2018: Sladen failed
+    25578 => { sladen => 1 },	# 26-Apr-2018: Sladen failed
     27373 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
     27374 => { sladen => 1 },	# 02-Mar-2018 Kelso: partly operationsl
     27376 => { sladen => 1 },	# Sladen: failed 22-Dec-2017
@@ -182,7 +184,7 @@ foreach (
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
- 25343   Iridium 72     [+]      
+ 25343   Iridium 72     [P]      
  25344   Iridium 73     [-]      Tumbling
  25346   Iridium 75     [+]      
  25432   Iridium 76     [P]      
@@ -199,7 +201,6 @@ foreach (
  25778   Iridium 21     [+]      
  27372   Iridium 91     [+]      
  27373   Iridium 90     [B]      
- 27374   Iridium 94     [P]      
  27375   Iridium 95     [+]      
  27376   Iridium 96     [P]      
  27450   Iridium 97     [+]      
@@ -278,7 +279,7 @@ KELSO
  25530   Iridium 84     [+]      Plane 5
  25531   Iridium 83     [+]      Plane 5
  25577   Iridium 20     [-]      Plane 2
- 25578   Iridium 11     [+]      Plane 2
+ 25578   Iridium 11     [-]      Plane 2
  25777   Iridium 14     [+]      Plane 1
  25778   Iridium 21     [+]      Plane 1
  27372   Iridium 91     [+]      Plane 3
