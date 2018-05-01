@@ -214,7 +214,6 @@ KELSO
  24836   Iridium 914    [-]      Plane 5
  24837   Iridium 12     [-]      Plane 5
  24839   Iridium 10     [+]      Plane 5
- 24840   Iridium 13     [-]      Plane 5 - Failed on station?
  24841   Iridium 16     [-]      Plane 5
  24842   Iridium 911    [-]      Plane 5
  24869   Iridium 15     [-]      Plane 6
@@ -301,7 +300,7 @@ SLADEN
  24837   Iridium 12     [?]      SpaceTrack
  24838   Iridium 09     [D]      Decayed 2003-03-11
  24839   Iridium 10     [?]      SpaceTrack
- 24840   Iridium 13     [?]      SpaceTrack
+ 24840   Iridium 13     [D]      Decayed 2018-04-29
  24841   Iridium 16     [?]      SpaceTrack
  24842   Iridium 911    [?]      SpaceTrack
  24869   Iridium 15     [?]      SpaceTrack
