@@ -62,6 +62,7 @@ my %known_inconsistent = (
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
     25577 => { sladen => 1 },	# 14-Apr-2018: Sladen failed
     25578 => { sladen => 1 },	# 26-Apr-2018: Sladen failed
+    25778 => { sladen => 1 },	# 04-May-2018: Sladen failed
     27373 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
     27374 => { sladen => 1 },	# 02-Mar-2018 Kelso: partly operationsl
     27376 => { sladen => 1 },	# Sladen: failed 22-Dec-2017
