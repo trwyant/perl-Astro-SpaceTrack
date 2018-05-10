@@ -29,7 +29,7 @@ my $go = Getopt::Long::Parser->new();
 $go->getoptionsfromarray(
     \@ARGV,
     \%opt,
-    qw{ filter! }
+    qw{ filter! identity! }
 ) or die <<'EOD';
 
 SpaceTrack - Retrieve orbital elements from the Space Track database.
@@ -41,7 +41,11 @@ with the only legal option being
     to supress all output to stdout except orbital data.
 EOD
 
-my $st = Astro::SpaceTrack->new (filter => $opt{filter});
+my $st = Astro::SpaceTrack->new(
+    filter	=> $opt{filter},
+    identity	=> $opt{identity},
+);
+
 $st->shell (@ARGV);
 
 __END__
