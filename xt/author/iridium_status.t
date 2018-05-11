@@ -56,6 +56,9 @@ my %known_inconsistent = (
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
+    25287 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
+    25289 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
+    25291 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
@@ -133,7 +136,6 @@ foreach (
  24836   Iridium 914    [-]      Tumbling
  24837   Iridium 12     [P]      
  24839   Iridium 10     [+]      
- 24840   Iridium 13     [P]      
  24841   Iridium 16     [-]      Tumbling
  24842   Iridium 911    [-]      Tumbling
  24869   Iridium 15     [+]      
@@ -178,11 +180,11 @@ foreach (
  25276   Iridium 60     [+]      
  25285   Iridium 62     [+]      
  25286   Iridium 63     [-]      Tumbling
- 25287   Iridium 64     [+]      
+ 25287   Iridium 64     [P]      
  25288   Iridium 65     [+]      
- 25289   Iridium 66     [+]      
+ 25289   Iridium 66     [P]      
  25290   Iridium 67     [+]      
- 25291   Iridium 68     [+]      
+ 25291   Iridium 68     [P]      
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
@@ -200,7 +202,7 @@ foreach (
  25577   Iridium 20     [P]      
  25578   Iridium 11     [+]      
  25777   Iridium 14     [+]      
- 25778   Iridium 21     [+]      
+ 25778   Iridium 21     [P]      
  27372   Iridium 91     [+]      
  27373   Iridium 90     [B]      
  27375   Iridium 95     [+]      
