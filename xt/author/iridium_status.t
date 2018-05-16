@@ -144,7 +144,6 @@ foreach (
  24872   Iridium 18     [+]      
  24873   Iridium 921    [-]      Tumbling
  24903   Iridium 26     [-]      Tumbling
- 24904   Iridium 25     [P]      
  24905   Iridium 46     [P]      
  24907   Iridium 22     [-]      Tumbling
  24925   Dummy mass 1   [-]      Tumbling
@@ -188,7 +187,6 @@ foreach (
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
- 25343   Iridium 72     [P]      
  25344   Iridium 73     [-]      Tumbling
  25346   Iridium 75     [+]      
  25432   Iridium 76     [P]      
@@ -226,7 +224,6 @@ KELSO
  24872   Iridium 18     [-]      Plane 6
  24873   Iridium 921    [-]      Plane 6
  24903   Iridium 26     [-]      Plane 2 - Failed on station?
- 24904   Iridium 25     [-]      Plane 2 - Failed on station?
  24905   Iridium 46     [-]      Plane 2 - Failed on station?
  24907   Iridium 22     [-]      Plane 2 - Failed on station?
  24925   Dummy mass 1   [-]      Dummy
@@ -270,7 +267,6 @@ KELSO
  25319   Iridium 69     [-]      Plane 2
  25320   Iridium 71     [-]      Plane 2
  25342   Iridium 70     [+]      Plane 1
- 25343   Iridium 72     [-]      Plane 1 - Failed on station?
  25344   Iridium 73     [-]      Plane 1
  25346   Iridium 75     [+]      Plane 1
  25432   Iridium 76     [-]      Plane 2
@@ -313,7 +309,7 @@ SLADEN
  24872   Iridium 18     [?]      SpaceTrack
  24873   Iridium 921    [?]      SpaceTrack
  24903   Iridium 26     [?]      SpaceTrack
- 24904   Iridium 25     [?]      SpaceTrack
+ 24904   Iridium 25     [D]      Decayed 2018-05-14
  24905   Iridium 46     [?]      SpaceTrack
  24906   Iridium 23     [D]      Decayed 2018-03-28
  24907   Iridium 22     [?]      SpaceTrack
