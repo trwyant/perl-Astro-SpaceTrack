@@ -136,7 +136,7 @@ my @keys;
 foreach (
 	["T. S. Kelso's Iridium list",
 	kelso => <<'KELSO'],
- 24793   Iridium 7      [+]      
+ 24793   Iridium 7      [P]      
  24795   Iridium 5      [-]      Tumbling
  24796   Iridium 4      [-]      Tumbling
  24836   Iridium 914    [-]      Tumbling
@@ -163,7 +163,7 @@ foreach (
  24967   Iridium 36     [-]      Tumbling
  25040   Iridium 41     [+]      
  25041   Iridium 40     [-]      Tumbling
- 25042   Iridium 39     [B]      
+ 25042   Iridium 39     [P]      
  25043   Iridium 38     [-]      Tumbling
  25077   Iridium 42     [-]      Tumbling
  25078   Iridium 44     [-]      Tumbling
@@ -206,7 +206,7 @@ foreach (
  25578   Iridium 11     [+]      
  25777   Iridium 14     [+]      
  27372   Iridium 91     [+]      
- 27373   Iridium 90     [B]      
+ 27373   Iridium 90     [P]      
  27375   Iridium 95     [+]      
  27376   Iridium 96     [P]      
  27450   Iridium 97     [+]      
