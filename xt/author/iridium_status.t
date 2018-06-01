@@ -170,7 +170,7 @@ foreach (
  24869   Iridium 15     [B]      
  24870   Iridium 17     [-]      Tumbling
  24871   Iridium 920    [-]      Tumbling
- 24872   Iridium 18     [B]      
+ 24872   Iridium 18     [P]      
  24873   Iridium 921    [-]      Tumbling
  24903   Iridium 26     [-]      Tumbling
  24905   Iridium 46     [-]      Tumbling
