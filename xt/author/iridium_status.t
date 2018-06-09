@@ -81,6 +81,7 @@ my %known_inconsistent = (
 #   25291 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
 				# 18-May-2018: Sladen failed
 				# Kelso: Failed 30-May-2918
+				# Space Track: Decayed 06-Jun-2018
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
@@ -212,7 +213,6 @@ foreach (
  25288   Iridium 65     [+]      
  25289   Iridium 66     [B]      
  25290   Iridium 67     [P]      
- 25291   Iridium 68     [-]      Tumbling
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
@@ -380,7 +380,7 @@ SLADEN
  25288   Iridium 65     [?]      SpaceTrack
  25289   Iridium 66     [?]      SpaceTrack
  25290   Iridium 67     [?]      SpaceTrack
- 25291   Iridium 68     [?]      SpaceTrack
+ 25291   Iridium 68     [D]      Decayed 2018-06-06
  25319   Iridium 69     [?]      SpaceTrack
  25320   Iridium 71     [?]      SpaceTrack
  25342   Iridium 70     [?]      SpaceTrack
