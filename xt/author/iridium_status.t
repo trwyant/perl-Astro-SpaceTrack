@@ -35,74 +35,75 @@ my %known_inconsistent = (
 				# Sladen: still operational.
     24837 => { sladen => 1 },	# Kelso: Spare 23-Mar-2018
 				# Sladen: Failed 24-Mar-2018
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     24840 => { sladen => 1 },	# Sladen: failed 17-Mar-2018
     24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
-				# Kelso: Backup 30-May-2918
-    24872 => { sladen => 1 },	# Sladen: failed 19-May-2017
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
+#   24872 => { sladen => 1 },	# Sladen: failed 19-May-2017
+				# Kelso: Backup 30-May-2018
+				# Kelso: Tumbling 12-Jun-2018
     24904 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
 				# Sladen: failed 14-Feb-2018
 #   24905 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
-				# Kelso: Tumbling 30-May-2918
+				# Kelso: Tumbling 30-May-2018
     24906 => { sladen => 1 },	# Kelso: spare 08-Feb-2018
-				# Sladen: failed 14-May-2918
+				# Sladen: failed 14-May-2018
 				# Decayed: 28-Mar-2018
     24907 => { sladen => 1 },	# Kelso: failed 19-Dec-2017
     24950 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     24966 => { sladen => 1 },	# 14-Apr-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
 #   24968 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
 				# Decayed 26-May-2018
     24969 => { sladen => 1 },	# Sladen: failed 09-Dec-2017
 				# SpaceTrack: Decayed 08-Jan-2018
 #   25042 => { sladen => 1 },	# 19-Aug-2016: Sladen - Failed on station?
-				# Kelso: Failed 30-May-2918
+				# Kelso: Failed 30-May-2018
     25106 => { sladen => 1 },	# 06-May 2018: Sladen - Failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
 #   25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25285 => { sladen => 1 },	# 18-May-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25287 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
 				# 18-May-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25289 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
 				# 18-May-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25290 => { sladen => 1 },	# 08-Jun-2018: Kelso partly operational
 				# 11-Jun-2018: Sladen failed on station
 #   25291 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
 				# 18-May-2018: Sladen failed
-				# Kelso: Failed 30-May-2918
+				# Kelso: Failed 30-May-2018
 				# Space Track: Decayed 06-Jun-2018
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
     25432 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25468 => { sladen => 1 },	# Sladen: failed 14-May-2017
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25577 => { sladen => 1 },	# 14-Apr-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
     25578 => { sladen => 1 },	# 26-Apr-2018: Sladen failed
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
 #   25778 => { sladen => 1 },	# 04-May-2018: Sladen failed
 				# 25-May-2018: Decayed
 #   27373 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
 				# Kelso: Failed 30-May-2018
     27374 => { sladen => 1 },	# 02-Mar-2018 Kelso: partly operationsl
 #   27376 => { sladen => 1 },	# Sladen: failed 22-Dec-2017
-				# Kelso: Failed 30-May-2918
+				# Kelso: Failed 30-May-2018
     27450 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
-				# Kelso: Backup 30-May-2918
+				# Kelso: Backup 30-May-2018
 );
 
 =begin comment
@@ -173,7 +174,7 @@ foreach (
  24869   Iridium 15     [B]      
  24870   Iridium 17     [-]      Tumbling
  24871   Iridium 920    [-]      Tumbling
- 24872   Iridium 18     [P]      
+ 24872   Iridium 18     [-]      Tumbling
  24873   Iridium 921    [-]      Tumbling
  24903   Iridium 26     [-]      Tumbling
  24905   Iridium 46     [-]      Tumbling
