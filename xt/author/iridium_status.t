@@ -87,6 +87,7 @@ my %known_inconsistent = (
     25342 => { sladen => 1 },	# 14-Jun-2018: Sladen failed.
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
     25346 => { sladen => 1 },	# 14-Jun-2018: Kelso partly operational
+				# 15-Jun-2018: Sladen failed on station
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
     25432 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
@@ -107,18 +108,6 @@ my %known_inconsistent = (
     27450 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
 				# Kelso: Backup 30-May-2018
 );
-
-=begin comment
-
-my %status_map = (
-    &Astro::SpaceTrack::BODY_STATUS_IS_OPERATIONAL => 'Operational',
-    &Astro::SpaceTrack::BODY_STATUS_IS_SPARE => 'Spare',
-    &Astro::SpaceTrack::BODY_STATUS_IS_TUMBLING => 'Tumbling',
-);
-
-=end comment
-
-=cut
 
 my $st = Astro::SpaceTrack->new();
 
@@ -298,7 +287,7 @@ KELSO
  25320   Iridium 71     [-]      Plane 2
  25342   Iridium 70     [-]      Plane 1
  25344   Iridium 73     [-]      Plane 1
- 25346   Iridium 75     [+]      Plane 1
+ 25346   Iridium 75     [-]      Plane 1 - Failed on station?
  25432   Iridium 76     [-]      Plane 2
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25468   Iridium 81     [-]      Plane 6 - Failed on station?
