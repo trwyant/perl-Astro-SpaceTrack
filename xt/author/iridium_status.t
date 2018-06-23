@@ -88,8 +88,9 @@ my %known_inconsistent = (
 				# Space Track: Decayed 06-Jun-2018
     25342 => { sladen => 1 },	# 14-Jun-2018: Sladen failed.
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
-    25346 => { sladen => 1 },	# 14-Jun-2018: Kelso partly operational
+#   25346 => { sladen => 1 },	# 14-Jun-2018: Kelso partly operational
 				# 15-Jun-2018: Sladen failed on station
+				# 22-Jun-2018: Kelso failed
 #   25431 => { sladen => 1 },	# 21-Jan-2018: Sladen failed.
     25431 => { sladen => 1 },	# Sladen: failed 09-Feb-2018
     25432 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
@@ -213,7 +214,7 @@ foreach (
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25346   Iridium 75     [P]      
+ 25346   Iridium 75     [-]      Tumbling
  25432   Iridium 76     [B]      
  25467   Iridium 82     [-]      Tumbling
  25468   Iridium 81     [-]      Tumbling
