@@ -127,7 +127,7 @@ EOD
     foreach my $body ( @{ $data } ) {
 	$body->[1] =~ s/ ( [0-9]+ ) / $1 + 0 /smxe;
 	my_print( <<"EOD" );
-    [ $body->[0], '$body->[1]', '$body->[2]', '$body->[3]', $symbolic[$body->[4]] ],
+    [ $body->[0], '$body->[1]', '$body->[2]', '$body->[3]', $body->[4] ],
 EOD
     }
 
