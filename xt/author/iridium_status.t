@@ -389,7 +389,7 @@ SLADEN
  25343   Iridium 72     [D]      Decayed 2018-05-14
  25344   Iridium 73     [?]      SpaceTrack
  25345   Iridium 74     [D]      Decayed 2017-06-11
- 25346   Iridium 75     [?]      SpaceTrack
+ 25346   Iridium 75     [D]      Decayed 2018-07-10
  25431   Iridium 03     [D]      Decayed 2018-02-08
  25432   Iridium 76     [?]      SpaceTrack
  25467   Iridium 82     [?]      SpaceTrack
