@@ -217,7 +217,6 @@ foreach (
  25285   Iridium 62     [B]      
  25286   Iridium 63     [-]      Tumbling
  25287   Iridium 64     [B]      
- 25288   Iridium 65     [-]      Tumbling
  25289   Iridium 66     [B]      
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
@@ -225,7 +224,7 @@ foreach (
  25344   Iridium 73     [-]      Tumbling
  25432   Iridium 76     [B]      
  25467   Iridium 82     [-]      Tumbling
- 25469   Iridium 80     [P]      
+ 25469   Iridium 80     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
  25528   Iridium 86     [+]      
  25530   Iridium 84     [+]      
@@ -377,7 +376,7 @@ SLADEN
  25285   Iridium 62     [?]      SpaceTrack
  25286   Iridium 63     [?]      SpaceTrack
  25287   Iridium 64     [?]      SpaceTrack
- 25288   Iridium 65     [?]      SpaceTrack
+ 25288   Iridium 65     [D]      Decayed 2018-07-19
  25289   Iridium 66     [?]      SpaceTrack
  25290   Iridium 67     [D]      Decayed 2018-07-02
  25291   Iridium 68     [D]      Decayed 2018-06-06
