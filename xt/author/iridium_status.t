@@ -286,7 +286,7 @@ KELSO
  25285   Iridium 62     [-]      Plane 1
  25286   Iridium 63     [-]      Plane 1 - Failed on station?
  25287   Iridium 64     [-]      Plane 1
- 25289   Iridium 66     [-]      Plane 1
+ 25289   Iridium 66     [-]      Plane 1 - Failed on station?
  25319   Iridium 69     [-]      Plane 2
  25320   Iridium 71     [-]      Plane 2
  25342   Iridium 70     [-]      Plane 1
