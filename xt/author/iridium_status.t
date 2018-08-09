@@ -214,12 +214,12 @@ foreach (
  25285   Iridium 62     [B]      
  25286   Iridium 63     [-]      Tumbling
  25287   Iridium 64     [B]      
- 25289   Iridium 66     [P]      
+ 25289   Iridium 66     [-]      Tumbling
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25432   Iridium 76     [B]      
+ 25432   Iridium 76     [P]      
  25467   Iridium 82     [-]      Tumbling
  25469   Iridium 80     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
