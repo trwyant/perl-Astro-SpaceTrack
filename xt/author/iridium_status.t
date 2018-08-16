@@ -220,7 +220,7 @@ foreach (
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25432   Iridium 76     [P]      
+ 25432   Iridium 76     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
  25528   Iridium 86     [+]      
@@ -242,7 +242,7 @@ KELSO
  24795   Iridium 5      [-]      Plane 4 - Failed on station?
  24796   Iridium 4      [-]      Plane 4 - Failed on station?
  24836   Iridium 914    [-]      Plane 5
- 24837   Iridium 12     [-]      Plane 5
+ 24837   Iridium 12     [-]      Plane 5 - Failed on station?
  24839   Iridium 10     [+]      Plane 5
  24841   Iridium 16     [-]      Plane 5
  24842   Iridium 911    [-]      Plane 5
