@@ -62,8 +62,9 @@ my %known_inconsistent = (
 				# SpaceTrack: Decayed 08-Jan-2018
 #   25042 => { sladen => 1 },	# 19-Aug-2016: Sladen - Failed on station?
 				# Kelso: Failed 30-May-2018
-    25106 => { sladen => 1 },	# 06-May 2018: Sladen - Failed
+#   25106 => { sladen => 1 },	# 06-May 2018: Sladen - Failed
 				# Kelso: Backup 30-May-2018
+				# Kelso: Failed 25-Aug-2018
 #   25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
     25170 => { sladen => 1 },	# Kelso: Partial failure 23-Aug-2018
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
@@ -203,7 +204,7 @@ foreach (
  25078   Iridium 44     [-]      Tumbling
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
- 25106   Iridium 47     [P]      
+ 25106   Iridium 47     [-]      Tumbling
  25169   Iridium 52     [+]      
  25170   Iridium 56     [P]      
  25171   Iridium 54     [+]      
@@ -237,7 +238,6 @@ foreach (
  27375   Iridium 95     [+]      
  27376   Iridium 96     [-]      Tumbling
  27450   Iridium 97     [B]      
- 27451   Iridium 98     [-]      Tumbling
 KELSO
 	["Rod Sladen's Iridium Constellation Status",
 	sladen => <<'SLADEN'],
@@ -274,7 +274,7 @@ KELSO
  25105   Iridium 24     [-]      Plane 2
  25106   Iridium 47     [-]      Plane 2 - Failed on station?
  25169   Iridium 52     [+]      Plane 5
- 25170   Iridium 56     [+]      Plane 5
+ 25170   Iridium 56     [-]      Plane 5 - Failed on station?
  25171   Iridium 54     [+]      Plane 5
  25172   Iridium 50     [+]      Plane 5
  25173   Iridium 53     [+]      Plane 5
@@ -295,7 +295,7 @@ KELSO
  25432   Iridium 76     [-]      Plane 2 - Failed on station?
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
- 25528   Iridium 86     [+]      Plane 5
+ 25528   Iridium 86     [-]      Plane 5 - Failed on station?
  25530   Iridium 84     [+]      Plane 5
  25531   Iridium 83     [+]      Plane 5
  25577   Iridium 20     [-]      Plane 2
@@ -306,7 +306,6 @@ KELSO
  27375   Iridium 95     [+]      Plane 3
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
  27450   Iridium 97     [-]      Plane 4
- 27451   Iridium 98     [-]      Plane 6 - Failed on station?
 SLADEN
         $space_track_skip ? () :
 	[ "Space Track Iridium status",
@@ -405,7 +404,7 @@ SLADEN
  27375   Iridium 95     [?]      SpaceTrack
  27376   Iridium 96     [?]      SpaceTrack
  27450   Iridium 97     [?]      SpaceTrack
- 27451   Iridium 98     [?]      SpaceTrack
+ 27451   Iridium 98     [D]      Decayed 2018-08-24
 SPACETRACK
 	) {
     my ( $what, $file, $data ) = @$_;
