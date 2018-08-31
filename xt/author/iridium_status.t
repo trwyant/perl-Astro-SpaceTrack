@@ -225,7 +225,6 @@ foreach (
  25320   Iridium 71     [-]      Tumbling
  25342   Iridium 70     [+]      
  25344   Iridium 73     [-]      Tumbling
- 25432   Iridium 76     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
  25528   Iridium 86     [P]      
