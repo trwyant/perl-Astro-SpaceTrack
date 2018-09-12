@@ -4173,7 +4173,8 @@ The following catalogs are available:
     human_spaceflight
                     Human Spaceflight
     well_tracked_objects
-                    Well-Tracked Objects
+                    Well-Tracked Objects having
+		    unknown country and launch point
 
 The following option is supported:
 
