@@ -35,21 +35,25 @@ spacetrack_skip_no_prompt();
     my $node = $tree->look_down( _tag => 'div', class => 'tab-pane', id =>
 	'recent' );
 
-    # We have to remove the links to the complete daily files, since
-    # these change from day to day. If we can't find it, we probably get
-    # an error anyway, so we can fix what went wrong.
-    if (
-	my $daily = $node->look_down(
-	    _tag => 'div', class => 'span3 offset2' )
-    ) {
-	$daily->detach();
-    }
-
     defined $node
 	or do {
 	fail 'Space Track catalog information could not be found';
 	last;
     };
+
+    # We have to remove the links to the complete daily files, since
+    # these change from day to day. If we can't find it, we probably get
+    # an error anyway, so we can fix what went wrong.
+#    if (
+#	my $daily = $node->look_down(
+#	    _tag => 'div', class => 'span3 offset2' )
+#    ) {
+#	$daily->detach();
+#    }
+    foreach my $daily ( $node->look_down(
+	    _tag => 'a', href => qr< \b PUBLISH_EPOCH \b >smx ) ) {
+	$daily->detach();
+    }
 
     my %data;
     $data{expect} = <<'EOD';
@@ -90,7 +94,9 @@ spacetrack_skip_no_prompt();
                     <br />
                     <div class="col-md-3">
                         <ul>
-                            <li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_publish/PUBLISH_EPOCH/2018-09-09 00:00:00--2018-09-10 00:00:00/orderby/TLE_LINE1/format/tle" target="_blank">2018 252</a><li><a data-original-title="Query URL" href="https://www.space-track.org/basicspacedata/query/class/tle_publish/PUBLISH_EPOCH/2018-09-10 00:00:00--2018-09-11 00:00:00/orderby/TLE_LINE1/format/tle" target="_blank">2018 253</a></ul>
+                            <li>
+                            <li>
+                        </ul>
                     </div>
                 </div>
             </div>
