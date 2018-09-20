@@ -38,7 +38,8 @@ my %known_inconsistent = (
 				# Kelso: Backup 30-May-2018
 				# Kelso: Failed 23-Aug-2018
 				# Decayed: 02-Sep-2018
-    24839 => { sladen => 1 },	# Kelso: Partial failure 16-Sep-2018
+#   24839 => { sladen => 1 },	# Kelso: Partial failure 16-Sep-2018
+				# Kelso: Failed 20-Sep-2018
     24840 => { sladen => 1 },	# Sladen: failed 17-Mar-2018
     24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
 				# Kelso: Backup 30-May-2018
@@ -75,7 +76,8 @@ my %known_inconsistent = (
 #   25172 => { sladen => 1 },	# Kelso: Partial failure 31-Aug-2018
 				# Sladen: failed 02-Sep-2018
 				# Kelso: failed 08-Sep-2018
-    25173 => { sladen => 1 },	# Sladen: Failed 17-Sep-2018
+#   25173 => { sladen => 1 },	# Sladen: Failed 17-Sep-2018
+				# Kelso: Failed 20-Sep-2018
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
 				# Kelso: Backup 30-May-2018
@@ -103,6 +105,7 @@ my %known_inconsistent = (
 				# Kelso: Failed 30-May-2018
 				# Space Track: Decayed 06-Jun-2018
     25342 => { sladen => 1 },	# 14-Jun-2018: Sladen failed.
+				# Kelso: partial failure 20-Sep-2018
     25343 => { sladen => 1 },	# 27-Apr-2018: Kelso partly operational
 #   25346 => { sladen => 1 },	# 14-Jun-2018: Kelso partly operational
 				# 15-Jun-2018: Sladen failed on station
@@ -190,7 +193,7 @@ foreach (
  24795   Iridium 5      [-]      Tumbling
  24796   Iridium 4      [-]      Tumbling
  24836   Iridium 914    [-]      Tumbling
- 24839   Iridium 10     [P]      
+ 24839   Iridium 10     [-]      Tumbling
  24841   Iridium 16     [-]      Tumbling
  24842   Iridium 911    [-]      Tumbling
  24869   Iridium 15     [B]      
@@ -220,7 +223,7 @@ foreach (
  25170   Iridium 56     [-]      Tumbling
  25171   Iridium 54     [+]      
  25172   Iridium 50     [-]      Tumbling
- 25173   Iridium 53     [+]      
+ 25173   Iridium 53     [-]      Tumbling
  25262   Iridium 51     [-]      Tumbling
  25263   Iridium 61     [B]      
  25272   Iridium 55     [B]      
@@ -233,7 +236,7 @@ foreach (
  25287   Iridium 64     [B]      
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
- 25342   Iridium 70     [+]      
+ 25342   Iridium 70     [P]      
  25344   Iridium 73     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
