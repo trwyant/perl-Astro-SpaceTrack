@@ -133,6 +133,7 @@ my %known_inconsistent = (
 				# Kelso: Backup 30-May-2018
     25578 => { sladen => 1 },	# 26-Apr-2018: Sladen failed
 				# Kelso: Backup 30-May-2018
+    25777 => { sladen => 1 },	# Sladen failed 27-Sep-2018
 #   25778 => { sladen => 1 },	# 04-May-2018: Sladen failed
 				# 25-May-2018: Decayed
 #   27373 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
@@ -309,7 +310,7 @@ KELSO
  25531   Iridium 83     [+]      Plane 5
  25577   Iridium 20     [-]      Plane 2
  25578   Iridium 11     [-]      Plane 2
- 25777   Iridium 14     [+]      Plane 1
+ 25777   Iridium 14     [-]      Plane 1
  27372   Iridium 91     [+]      Plane 3
  27373   Iridium 90     [-]      Plane 5 - Failed on station?
  27375   Iridium 95     [+]      Plane 3
