@@ -80,6 +80,7 @@ my %known_inconsistent = (
 				# Spacetrack: decayed 23-Sep-2018
 #   25173 => { sladen => 1 },	# Sladen: Failed 17-Sep-2018
 				# Kelso: Failed 20-Sep-2018
+				# Space Track: decayed 30-Sep-2018
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
 				# Kelso: Backup 30-May-2018
@@ -370,7 +371,7 @@ SLADEN
  25170   Iridium 56     [?]      SpaceTrack
  25171   Iridium 54     [?]      SpaceTrack
  25172   Iridium 50     [D]      Decayed 2018-09-23
- 25173   Iridium 53     [?]      SpaceTrack
+ 25173   Iridium 53     [D]      Decayed 2018-09-30
  25262   Iridium 51     [?]      SpaceTrack
  25263   Iridium 61     [?]      SpaceTrack
  25272   Iridium 55     [?]      SpaceTrack
