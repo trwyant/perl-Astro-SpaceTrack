@@ -40,6 +40,7 @@ my %known_inconsistent = (
 				# Decayed: 02-Sep-2018
 #   24839 => { sladen => 1 },	# Kelso: Partial failure 16-Sep-2018
 				# Kelso: Failed 20-Sep-2018
+				# Decayed: 06-Oct-2018
     24840 => { sladen => 1 },	# Sladen: failed 17-Mar-2018
 #   24869 => { sladen => 1 },	# Sladen: failed 14-May-2017
 				# Kelso: Backup 30-May-2018
@@ -127,8 +128,9 @@ my %known_inconsistent = (
 #   25469 => { sladen => 1 },	# 12-Jul-2018: Kelso partially operational
 				# 12-Jul-2018: Sladen failed
 				# 12-Aug-2018: Decayed
-    25528 => { sladen => 1 },	# Kelso: partial failure 23-Aug-2018
+#   25528 => { sladen => 1 },	# Kelso: partial failure 23-Aug-2018
 				# Kelso: failed 11-Sep-2018
+				# Decayed: 05-Oct-2018
 #   25530 => { sladen => 1 },	# Kelso: partial failure 07-Sep-2018
     				# Sladen: failed 09-Sep-2018
 				# Kelso: failed 26-Sep-2018
@@ -329,7 +331,7 @@ SLADEN
  24836   Iridium 914    [?]      SpaceTrack
  24837   Iridium 12     [D]      Decayed 2018-09-02
  24838   Iridium 09     [D]      Decayed 2003-03-11
- 24839   Iridium 10     [?]      SpaceTrack
+ 24839   Iridium 10     [D]      Decayed 2018-10-06
  24840   Iridium 13     [D]      Decayed 2018-04-29
  24841   Iridium 16     [?]      SpaceTrack
  24842   Iridium 911    [?]      SpaceTrack
@@ -401,7 +403,7 @@ SLADEN
  25470   Iridium 79     [D]      Decayed 2000-11-29
  25471   Iridium 77     [D]      Decayed 2017-09-22
  25527   Iridium 2      [?]      SpaceTrack
- 25528   Iridium 86     [?]      SpaceTrack
+ 25528   Iridium 86     [D]      Decayed 2018-10-05
  25529   Iridium 85     [D]      Decayed 2000-12-30
  25530   Iridium 84     [?]      SpaceTrack
  25531   Iridium 83     [?]      SpaceTrack
