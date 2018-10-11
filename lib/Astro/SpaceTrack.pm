@@ -234,6 +234,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	'tle-new' => {name => "Last 30 Days' Launches"},
 	stations => {name => 'International Space Station'},
 	visual => {name => '100 (or so) brightest'},
+	active => { name => 'Active Satellites' },
+	analyst => { name => 'Analyst Satellites' },
 	weather => {name => 'Weather'},
 	noaa => {name => 'NOAA'},
 	goes => {name => 'GOES'},
