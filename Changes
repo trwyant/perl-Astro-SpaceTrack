@@ -1,3 +1,14 @@
+0.119_01	2018-10-13	T. R. Wyant
+    Add Celestrak catalogs 'active' and 'analyst'. 'Active' seems to be
+    satellites actually in service, based on correlating this list with
+    the Iridium status list. 'Analyst' seems not to be real satellites,
+    and may be pathological test cases.
+
+    Update canned status table for decay of
+
+    - Iridium 56
+    - Iridium 70
+
 0.119		2018-10-08	T. R. Wyant
     Update canned status table for decay of
 
