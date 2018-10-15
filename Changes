@@ -1,3 +1,10 @@
+0.119_02	2018-10-14	T. R. Wyant
+    RT 127371 Dependency problem when bulding with Module::Build.
+    Thanks to Slaven Rezic for finding this (unlike many dependency
+    problems it does NOT manifest when run against a base Perl
+    installation) and reporting it in such detail that all I had to do
+    was pick an implementation. CPAN TESTERS RULE!
+
 0.119_01	2018-10-13	T. R. Wyant
     Add Celestrak catalogs 'active' and 'analyst'. 'Active' seems to be
     satellites actually in service, based on correlating this list with
