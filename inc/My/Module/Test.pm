@@ -295,8 +295,10 @@ EOD
 
 Several tests require the username and password of a registered Space
 Track user. Because you have not provided environment variable
-SPACETRACK_USER, you will be prompted for this information. If you
-leave either username or password blank, the tests will be skipped.
+SPACETRACK_USER, you will be prompted for this information. The password
+will be echoed unless Term::ReadKey is installed and supports ReadMode.
+If you leave either username or password blank, the tests will be
+skipped.
 
 If you set environment variable SPACETRACK_USER to your Space Track
 username and password, separated by a slash ("/") character, that
