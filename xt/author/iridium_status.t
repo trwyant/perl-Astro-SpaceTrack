@@ -47,6 +47,7 @@ my %known_inconsistent = (
 				# Kelso: Failed 04-Oct-2018
 				# Kelso: partial failure 26-Sep-2018
 				# Kelso & Sladen dropped 15-Oct-2018
+				# Decayed 14-Oct-2018
 #   24872 => { sladen => 1 },	# Sladen: failed 19-May-2017
 				# Kelso: Backup 30-May-2018
 				# Kelso: Tumbling 12-Jun-2018
@@ -74,6 +75,7 @@ my %known_inconsistent = (
 				# Kelso: Failed 25-Aug-2018
 #   25108 => { sladen => 1 },	# 26-Jan-2018: Kelso - Partly operational.
     25169 => { sladen => 1 },	# Sladen: Failed 17-Sep-2018
+				# Kelso: Partial 16-Oct-2018
     25170 => { sladen => 1 },	# Kelso: Partial failure 23-Aug-2018
 				# Kelso: Failure 11-Sep-2018
     25171 => { sladen => 1 },	# Sladen: Failed 09-Sep-2018
@@ -229,7 +231,7 @@ foreach (
  25078   Iridium 44     [-]      Tumbling
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
- 25169   Iridium 52     [+]      
+ 25169   Iridium 52     [P]      
  25171   Iridium 54     [+]      
  25262   Iridium 51     [-]      Tumbling
  25263   Iridium 61     [B]      
@@ -329,7 +331,7 @@ SLADEN
  24840   Iridium 13     [D]      Decayed 2018-04-29
  24841   Iridium 16     [?]      SpaceTrack
  24842   Iridium 911    [?]      SpaceTrack
- 24869   Iridium 15     [?]      SpaceTrack
+ 24869   Iridium 15     [D]      Decayed 2018-10-14
  24870   Iridium 17     [?]      SpaceTrack
  24871   Iridium 920    [?]      SpaceTrack
  24872   Iridium 18     [D]      Decayed 2018-08-19
