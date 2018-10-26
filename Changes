@@ -1,10 +1,9 @@
-0.120_02	2018-10-23	T. R. Wyant
+0.121		2018-10-26	T. R. Wyant
     Update canned status table for decay of
 
     - Iridium 11
     - Iridium 20
 
-0.120_01	2018-10-19	T. R. Wyant
     Skip data tests on fetch error. All tests but t/query_spacetrack.t
     also skip the fetch if it returns a 500.
 
