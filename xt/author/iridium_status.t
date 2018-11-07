@@ -244,7 +244,6 @@ foreach (
  25078   Iridium 44     [-]      Tumbling
  25104   Iridium 45     [+]      
  25105   Iridium 24     [-]      Tumbling
- 25169   Iridium 52     [-]      Tumbling
  25171   Iridium 54     [+]      
  25262   Iridium 51     [-]      Tumbling
  25263   Iridium 61     [B]      
@@ -261,7 +260,6 @@ foreach (
  25344   Iridium 73     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
- 25531   Iridium 83     [-]      Tumbling
  25777   Iridium 14     [+]      
  27372   Iridium 91     [+]      
  27373   Iridium 90     [-]      Tumbling
@@ -298,7 +296,6 @@ KELSO
  25078   Iridium 44     [-]      Plane 6
  25104   Iridium 45     [+]      Plane 3
  25105   Iridium 24     [-]      Plane 2
- 25169   Iridium 52     [-]      Plane 5 - Failed on station?
  25171   Iridium 54     [-]      Plane 5
  25262   Iridium 51     [-]      Plane 4 - Failed on station?
  25263   Iridium 61     [-]      Plane 4
@@ -315,7 +312,6 @@ KELSO
  25344   Iridium 73     [-]      Plane 1
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
- 25531   Iridium 83     [-]      Plane 5 - Failed on station?
  25777   Iridium 14     [-]      Plane 1
  27372   Iridium 91     [+]      Plane 3
  27373   Iridium 90     [-]      Plane 5 - Failed on station?
@@ -372,7 +368,7 @@ SLADEN
  25106   Iridium 47     [D]      Decayed 2018-09-01
  25107   Iridium 48     [D]      Decayed 2001-05-05
  25108   Iridium 49     [D]      Decayed 2018-02-13
- 25169   Iridium 52     [?]      SpaceTrack
+ 25169   Iridium 52     [D]      Decayed 2018-11-05
  25170   Iridium 56     [D]      Decayed 2018-10-11
  25171   Iridium 54     [?]      SpaceTrack
  25172   Iridium 50     [D]      Decayed 2018-09-23
@@ -409,7 +405,7 @@ SLADEN
  25528   Iridium 86     [D]      Decayed 2018-10-05
  25529   Iridium 85     [D]      Decayed 2000-12-30
  25530   Iridium 84     [D]      Decayed 2018-11-04
- 25531   Iridium 83     [?]      SpaceTrack
+ 25531   Iridium 83     [D]      Decayed 2018-11-05
  25577   Iridium 20     [D]      Decayed 2018-10-22
  25578   Iridium 11     [D]      Decayed 2018-10-22
  25777   Iridium 14     [?]      SpaceTrack
