@@ -253,7 +253,7 @@ SLADEN
  25274   Iridium 58     [?]      SpaceTrack
  25275   Iridium 59     [?]      SpaceTrack
  25276   Iridium 60     [?]      SpaceTrack
- 25285   Iridium 62     [?]      SpaceTrack
+ 25285   Iridium 62     [D]      Decayed 2018-11-07
  25286   Iridium 63     [?]      SpaceTrack
  25287   Iridium 64     [?]      SpaceTrack
  25288   Iridium 65     [D]      Decayed 2018-07-19
