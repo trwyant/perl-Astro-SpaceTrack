@@ -177,7 +177,6 @@ KELSO
  25274   Iridium 58     [-]      Plane 3
  25275   Iridium 59     [+]      Plane 3
  25276   Iridium 60     [+]      Plane 3
- 25285   Iridium 62     [-]      Plane 1 - Failed on station?
  25286   Iridium 63     [-]      Plane 1 - Failed on station?
  25287   Iridium 64     [-]      Plane 1
  25319   Iridium 69     [-]      Plane 2
