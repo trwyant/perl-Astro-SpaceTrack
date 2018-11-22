@@ -105,6 +105,8 @@ sub is_success_or_skip (@) {	## no critic (RequireArgUnpacking,ProhibitSubroutin
     my ( $obj, $method, @args ) = @_;
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     my $skip = pop @args;
+    $skip =~ m/ [^0-9] /smx
+	and fail "Skip number '$skip' not numeric";
     my $name = pop @args;
     $rslt = eval { $obj->$method( @args ) } or do {
 	fail "$name threw exception: $!" ;
