@@ -1,3 +1,7 @@
+0.122_01	2018-11-22	T. R. Wyant
+    Skip data tests in t/query_spacetrack.t on fetch error. Also skip
+    the fetch if it returns a 500.
+
 0.122		2018-11-13	T. R. Wyant
     Update canned status table for decay of
 
