@@ -275,6 +275,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	argos	=> { name => 'ARGOS Data Collection System' },
 	planet	=> { name => 'Planet Labs (Rapideye, Flock)' },
 	spire	=> { name => 'Spire Global (Lemur weather and ship tracking)' },
+	satnogs	=> { name => 'SatNOGS' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
