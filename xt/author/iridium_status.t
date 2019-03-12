@@ -28,6 +28,7 @@ my %known_inconsistent = (
 #   24945 => { sladen => 1 },	# Kelso: Partial failure 07-Feb-2019
 				# Sladen: Failure 10-Feb-2019
 				# Kelso: Failure 14-Feb-2019
+				# SpaceTrack: Decayed 10-Mar-2019
     25171 => { sladen => 1 },	# Sladen: Failed 09-Sep-2018
     25263 => { sladen => 1 },	# Sladen: operational; others: spare.
 				# Sladen: failed 09-Dec-2017 (Kelso: operational)
@@ -39,6 +40,7 @@ my %known_inconsistent = (
 #   25275 => { sladen => 1 },	# Kelso: Partial failure 21-Feb-2019
 				# Sladen: Failed 23-Feb-2019
 				# Kelso: Failed 02-Mar-2019
+				# Sladen: Dropped 12-Mar-2019
     25276 => { sladen => 1 },	# Kelso: Partial failure 02-Mar-2019
 				# Kelso: Failed 05-Mar-2019
     25287 => { sladen => 1 },	# 10-May-2018: Kelso partly operational
@@ -164,7 +166,6 @@ KELSO
  24925   Dummy mass 1   [-]      Dummy
  24926   Dummy mass 2   [-]      Dummy
  24944   Iridium 29     [-]      Plane 3 - Failed on station?
- 24945   Iridium 32     [-]      Plane 3 - Failed on station?
  24946   Iridium 33     [-]      Plane 3
  24948   Iridium 28     [-]      Plane 3 - Failed on station?
  24967   Iridium 36     [-]      Plane 4
@@ -180,7 +181,6 @@ KELSO
  25272   Iridium 55     [-]      Plane 3
  25273   Iridium 57     [-]      Plane 3 - Failed on station?
  25274   Iridium 58     [-]      Plane 3
- 25275   Iridium 59     [-]      Plane 3 - Failed on station?
  25276   Iridium 60     [-]      Plane 3 - Failed on station?
  25286   Iridium 63     [-]      Plane 1 - Failed on station?
  25287   Iridium 64     [-]      Plane 1
@@ -221,7 +221,7 @@ SLADEN
  24906   Iridium 23     [D]      Decayed 2018-03-28
  24907   Iridium 22     [?]      SpaceTrack
  24944   Iridium 29     [?]      SpaceTrack
- 24945   Iridium 32     [?]      SpaceTrack
+ 24945   Iridium 32     [D]      Decayed 2019-03-10
  24946   Iridium 33     [?]      SpaceTrack
  24947   Iridium 27     [D]      Decayed 2002-02-01
  24948   Iridium 28     [?]      SpaceTrack
@@ -254,7 +254,7 @@ SLADEN
  25272   Iridium 55     [?]      SpaceTrack
  25273   Iridium 57     [?]      SpaceTrack
  25274   Iridium 58     [?]      SpaceTrack
- 25275   Iridium 59     [?]      SpaceTrack
+ 25275   Iridium 59     [D]      Decayed 2019-03-11
  25276   Iridium 60     [?]      SpaceTrack
  25285   Iridium 62     [D]      Decayed 2018-11-07
  25286   Iridium 63     [?]      SpaceTrack
