@@ -35,6 +35,7 @@ my %known_inconsistent = (
 				# Kelso: Backup 30-May-2018
     25272 => { sladen => 1 },	# 14-Aug-2017: Sladen tumbling.
 				# Kelso: Backup 30-May-2018
+				# Kelso: Partial failure 13-Mar-2019
     25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
 				# Kelso: Backup 30-May-2018
 #   25275 => { sladen => 1 },	# Kelso: Partial failure 21-Feb-2019
@@ -52,6 +53,7 @@ my %known_inconsistent = (
 #   27372 => { sladen => 1 },	# Kelso: Partial failure 14-Feb-2019
 				# Sladen: Failure 16-Feb-2019
 				# Kelso: Failure 21-Feb-2019
+				# Decay: 13-Mar-2019
     27375 => { sladen => 1 },	# Kelso: Partual failure 07-Mar-2019
 				# Sladen: Failure 08-Mar-2019
     27450 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
@@ -118,7 +120,6 @@ foreach (
  24925   Dummy mass 1   [-]      Tumbling
  24926   Dummy mass 2   [-]      Tumbling
  24944   Iridium 29     [-]      Tumbling
- 24945   Iridium 32     [-]      Tumbling
  24946   Iridium 33     [-]      Tumbling
  24948   Iridium 28     [-]      Tumbling
  24967   Iridium 36     [-]      Tumbling
@@ -131,10 +132,9 @@ foreach (
  25171   Iridium 54     [+]      
  25262   Iridium 51     [-]      Tumbling
  25263   Iridium 61     [B]      
- 25272   Iridium 55     [B]      
+ 25272   Iridium 55     [P]      
  25273   Iridium 57     [-]      Tumbling
  25274   Iridium 58     [B]      
- 25275   Iridium 59     [-]      Tumbling
  25276   Iridium 60     [-]      Tumbling
  25286   Iridium 63     [-]      Tumbling
  25287   Iridium 64     [B]      
@@ -190,7 +190,6 @@ KELSO
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
  25777   Iridium 14     [-]      Plane 1 - Failed on station?
- 27372   Iridium 91     [-]      Plane 3 - Failed on station?
  27375   Iridium 95     [-]      Plane 3 - Failed on station?
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
  27450   Iridium 97     [-]      Plane 4
@@ -286,7 +285,7 @@ SLADEN
  25578   Iridium 11     [D]      Decayed 2018-10-22
  25777   Iridium 14     [?]      SpaceTrack
  25778   Iridium 21     [D]      Decayed 2018-05-24
- 27372   Iridium 91     [?]      SpaceTrack
+ 27372   Iridium 91     [D]      Decayed 2019-03-13
  27373   Iridium 90     [D]      Decayed 2019-01-23
  27374   Iridium 94     [D]      Decayed 2018-04-18
  27375   Iridium 95     [?]      SpaceTrack
