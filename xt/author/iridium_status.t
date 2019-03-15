@@ -137,14 +137,13 @@ foreach (
  25274   Iridium 58     [B]      
  25276   Iridium 60     [-]      Tumbling
  25286   Iridium 63     [-]      Tumbling
- 25287   Iridium 64     [B]      
+ 25287   Iridium 64     [P]      
  25319   Iridium 69     [-]      Tumbling
  25320   Iridium 71     [-]      Tumbling
  25344   Iridium 73     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
  25777   Iridium 14     [-]      Tumbling
- 27372   Iridium 91     [-]      Tumbling
  27375   Iridium 95     [P]      
  27376   Iridium 96     [-]      Tumbling
  27450   Iridium 97     [B]      
@@ -178,7 +177,7 @@ KELSO
  25171   Iridium 54     [-]      Plane 5
  25262   Iridium 51     [-]      Plane 4 - Failed on station?
  25263   Iridium 61     [-]      Plane 4
- 25272   Iridium 55     [-]      Plane 3
+ 25272   Iridium 55     [-]      Plane 3 - Failed on station?
  25273   Iridium 57     [-]      Plane 3 - Failed on station?
  25274   Iridium 58     [-]      Plane 3
  25276   Iridium 60     [-]      Plane 3 - Failed on station?
@@ -189,7 +188,6 @@ KELSO
  25344   Iridium 73     [-]      Plane 1
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
- 25777   Iridium 14     [-]      Plane 1 - Failed on station?
  27375   Iridium 95     [-]      Plane 3 - Failed on station?
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
  27450   Iridium 97     [-]      Plane 4
