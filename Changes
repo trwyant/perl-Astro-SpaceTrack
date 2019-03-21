@@ -1,23 +1,11 @@
-0.126_04	2019-03-18	T. R. Wyant
-    Update canned status table for decay of
-
-    - Iridium 60
-
-0.126_03	2019-03-16	T. R. Wyant
+0.127		2019-03-21	T. R. Wyant
     Update canned status table for decay of
 
     - Iridium 14
-
-0.126_02	2019-03-14	T. R. Wyant
-    Update canned status table for decay of
-
-    - Iridium 91
-
-0.126_01	2019-03-12	T. R. Wyant
-    Update canned status table for decay of
-
     - Iridium 32
     - Iridium 59
+    - Iridium 60
+    - Iridium 91
 
 0.126		2019-02-12	T. R. Wyant
     Add satnogs to known Celestrak catalogs.
