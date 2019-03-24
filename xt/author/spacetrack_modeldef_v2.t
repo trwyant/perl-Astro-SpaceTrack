@@ -308,7 +308,7 @@ if ( $rslt->is_success() ) {
          "Type" : "varchar(8)"
       },
       {
-         "Default" : "0000-00-00 00:00:00",
+         "Default" : "1000-01-01 00:00:00",
          "Extra" : "",
          "Field" : "EPOCH",
          "Key" : "",
@@ -590,7 +590,7 @@ if ( $rslt->is_success() ) {
          "Type" : "varchar(8)"
       },
       {
-         "Default" : "0000-00-00 00:00:00",
+         "Default" : "1000-01-01 00:00:00",
          "Extra" : "",
          "Field" : "EPOCH",
          "Key" : "",
