@@ -21,7 +21,7 @@ my $space_track_skip = My::Module::Test::__spacetrack_skip(
 # only two source names need be given.
 
 my %known_inconsistent = (
-    24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
+#    24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
 				# Kelso: Failed 16-Nov-2017
 				# Decayed: 24-Nov-2017
 				# Sladen removed 24-Nov-2017
@@ -61,6 +61,7 @@ my %known_inconsistent = (
 #   27375 => { sladen => 1 },	# Kelso: Partual failure 07-Mar-2019
 				# Sladen: Failure 08-Mar-2019
 				# Kelso: Failed 21-Mar-2019
+				# Decay: 25-Mar-2019
     27450 => { sladen => 1 },	# 10-Mar-2018: Sladen failed.
 				# Kelso: Backup 30-May-2018
 );
@@ -288,7 +289,7 @@ SLADEN
  27372   Iridium 91     [D]      Decayed 2019-03-13
  27373   Iridium 90     [D]      Decayed 2019-01-23
  27374   Iridium 94     [D]      Decayed 2018-04-18
- 27375   Iridium 95     [?]      SpaceTrack
+ 27375   Iridium 95     [D]      Decayed 2019-03-25
  27376   Iridium 96     [?]      SpaceTrack
  27450   Iridium 97     [?]      SpaceTrack
  27451   Iridium 98     [D]      Decayed 2018-08-24
