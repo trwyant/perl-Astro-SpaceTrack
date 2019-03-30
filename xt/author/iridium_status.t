@@ -21,7 +21,7 @@ my $space_track_skip = My::Module::Test::__spacetrack_skip(
 # only two source names need be given.
 
 my %known_inconsistent = (
-#    24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
+#   24792 => { sladen => 1 },	# Sladen: Failed 02-Nov-2017
 				# Kelso: Failed 16-Nov-2017
 				# Decayed: 24-Nov-2017
 				# Sladen removed 24-Nov-2017
@@ -38,8 +38,9 @@ my %known_inconsistent = (
 				# Kelso: Backup 30-May-2018
 				# Kelso: Partial failure 13-Mar-2019
 				# Kelso: Failed 21-Mar-2019
-    25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
+#   25274 => { sladen => 1 },	# about 28-Aug-2017: Sladen declares failed.
 				# Kelso: Backup 30-May-2018
+				# Kelso: Failed 30-Mar-2019
 #   25275 => { sladen => 1 },	# Kelso: Partial failure 21-Feb-2019
 				# Sladen: Failed 23-Feb-2019
 				# Kelso: Failed 02-Mar-2019
@@ -141,7 +142,7 @@ foreach (
  25263   Iridium 61     [B]      
  25272   Iridium 55     [-]      Tumbling
  25273   Iridium 57     [-]      Tumbling
- 25274   Iridium 58     [P]      
+ 25274   Iridium 58     [-]      Tumbling
  25286   Iridium 63     [-]      Tumbling
  25287   Iridium 64     [-]      Tumbling
  25319   Iridium 69     [-]      Tumbling
@@ -149,7 +150,6 @@ foreach (
  25344   Iridium 73     [-]      Tumbling
  25467   Iridium 82     [-]      Tumbling
  25527   Iridium 2      [-]      Tumbling
- 27375   Iridium 95     [-]      Tumbling
  27376   Iridium 96     [-]      Tumbling
  27450   Iridium 97     [B]      
 KELSO
