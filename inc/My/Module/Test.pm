@@ -380,6 +380,8 @@ EOD
 
 sub spacetrack_skip_no_prompt {
     my $skip;
+    $ENV{SPACETRACK_TEST_LIVE}
+	or plan skip_all => 'SPACETRACK_TEST_LIVE not set';
     defined( $skip = __spacetrack_skip(
 	    envir	=> 1,
 	    no_prompt	=> NO_SPACE_TRACK_ACCOUNT,

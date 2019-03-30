@@ -945,9 +945,12 @@ There are no arguments.
 		$content .= join( "\t", @{ $row } ) . "\n";
 	    }
 	    foreach my $datum ( @{ $data } ) {
-		$datum->{SPADOC_CD} eq 'ALL'
+		defined $datum->{SPADOC_CD}
+		    and $datum->{SPADOC_CD} eq 'ALL'
 		    and $datum->{SPADOC_CD} = 'Total';
-		$content .= join( "\t", map { $datum->{$_} } @fields ) . "\n";
+		$content .= join( "\t", map {
+			defined $datum->{$_} ? $datum->{$_} : '<undef>'
+		    } @fields ) . "\n";
 	    }
 
 	    $resp = HTTP::Response->new (HTTP_OK, undef, undef, $content);
@@ -1480,7 +1483,8 @@ sub country_names {
 
     my %dict;
     foreach my $datum ( @{ $data } ) {
-	$dict{$datum->{SPADOC_CD}} = $datum->{COUNTRY};
+	defined $datum->{SPADOC_CD}
+	    and $dict{$datum->{SPADOC_CD}} = $datum->{COUNTRY};
     }
 
     if ( $opt->{json} ) {
@@ -2458,7 +2462,8 @@ There are no arguments.
 
 	my %dict;
 	foreach my $datum ( @{ $data } ) {
-	    $dict{$datum->{SITE_CODE}} = $datum->{LAUNCH_SITE};
+	    defined $datum->{SITE_CODE}
+		and $dict{$datum->{SITE_CODE}} = $datum->{LAUNCH_SITE};
 	}
 
 	if ( $opt->{json} ) {
@@ -6663,6 +6668,13 @@ and the result passed to the set command.
 If you specify username or password in SPACETRACK_OPT and you also
 specify SPACETRACK_USER, the latter takes precedence, and arguments
 passed explicitly to the new () method take precedence over both.
+
+=head2 SPACETRACK_TEST_LIVE
+
+If environment variable C<SPACETRACK_TEST_LIVE> is defined to a true
+value (in the Perl sense), tests that use the Space Track web site will
+actually access it. Otherwise they will either use canned data (i.e. a
+regression test) or be skipped.
 
 =head2 SPACETRACK_USER
 

@@ -10,12 +10,25 @@ use Test::More 0.96;	# For subtest
 use lib qw{ inc };
 use My::Module::Test;
 
+if ( $ENV{SPACETRACK_TEST_LIVE} ) {
+    diag 'Live test against Space Track. Be aware of their usage guidelines';
+} else {
+    use Mock::LWP::UserAgent;
+    note <<'EOD';
+Testing against canned data. Set environment variable
+SPACETRACK_TEST_LIVE to test against the actual Space Track web site,
+and be aware of their usage guidelines.
+EOD
+}
+
 my $desired_content_interface = 2;
 # my $rslt;
 my $space_track_domain = 'www.space-track.org';
 my $st;
 
 # Things to search for.
+# NOTE that if these are changed, the corresponding canned data must be
+# regenerated with tools/capture.
 my $search_date = '2012-06-13';
 my $start_epoch = '2012/04/01';
 
