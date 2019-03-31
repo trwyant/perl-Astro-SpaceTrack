@@ -1,3 +1,11 @@
+0.127_03	2019-03-31	T. R. Wyant
+    Use dummy data for Space Track testing, The idea here is to lighten
+    the load on Space Track when I am testing heavily. The tests hit the
+    Space Track web site only when environment variable
+    SPACETRACK_TEST_LIVE is true. Otherwise dummy data are used, or
+    tests are skipped.
+
+
 0.127_01	2019-03-27	T. R. Wyant
     Update canned status table for decay of
 
