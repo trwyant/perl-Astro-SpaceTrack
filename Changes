@@ -1,3 +1,8 @@
+0.127_04	2019-04-02	T. R. Wyant
+    Update canned status table for decay of
+
+    - Iridium 55
+
 0.127_03	2019-03-31	T. R. Wyant
     Use dummy data for Space Track testing, The idea here is to lighten
     the load on Space Track when I am testing heavily. The tests hit the
