@@ -36,20 +36,25 @@ $Mock::LWP::UserAgent::CANNED_RESPONSE_DIR = $opt{directory};
 $opt{list}
     and list_captures();
 
+my $st = Astro::SpaceTrack::Dumper->new(
+    prompt => 'SpaceTrack capture> ',
+);
+
 {
     local $Astro::SpaceTrack::RETRIEVAL_SIZE = $opt{retrieval_size};
-    my $st = Astro::SpaceTrack::Dumper->new(
-	prompt => 'SpaceTrack capture> ',
-    );
     $opt{verbose}
 	and $st->set( dump_headers => Astro::SpaceTrack->DUMP_RESPONSE() );
     $st->shell( @ARGV );
 }
 
-sub Astro::SpaceTrack::site_check {
-    my ( undef, $site );
-    My::Module::Test::site_check( $site );
-    return;
+{
+    my $ast;
+    sub Astro::SpaceTrack::site_check {
+	my ( undef, $site ) = @_;
+	my $uri = My::Module::Test::__site_to_check_uri( $site )
+	    or die "No check URI for site '$site'\n";
+	return $st->_get_from_net( url => $uri );
+    }
 }
 
 sub list_captures {

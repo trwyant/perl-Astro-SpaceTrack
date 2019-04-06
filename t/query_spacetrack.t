@@ -10,17 +10,6 @@ use Test::More 0.96;	# For subtest
 use lib qw{ inc };
 use My::Module::Test;
 
-if ( $ENV{SPACETRACK_TEST_LIVE} ) {
-    diag 'Live test against Space Track. Be aware of their usage guidelines';
-} else {
-    use Mock::LWP::UserAgent;
-    note <<'EOD';
-Testing against canned data. Set environment variable
-SPACETRACK_TEST_LIVE to test against the actual Space Track web site,
-and be aware of their usage guidelines.
-EOD
-}
-
 my $desired_content_interface = 2;
 # my $rslt;
 my $space_track_domain = 'www.space-track.org';
@@ -32,7 +21,8 @@ my $st;
 my $search_date = '2012-06-13';
 my $start_epoch = '2012/04/01';
 
-{
+if ( $ENV{SPACETRACK_TEST_LIVE} ) {
+    diag 'live test against space track. be aware of their usage guidelines';
     my $skip;
     $skip = site_check $space_track_domain	# To make sure we have account
 	and plan skip_all	=> $skip;
@@ -42,8 +32,23 @@ my $start_epoch = '2012/04/01';
 	verify_hostname	=> VERIFY_HOSTNAME,
     );
 
-    $st->set( space_track_version => $desired_content_interface );
+} else {
+    require Mock::LWP::UserAgent;
+    Mock::LWP::UserAgent->import();
+    note <<'EOD';
+Testing against canned data. Set environment variable
+SPACETRACK_TEST_LIVE to test against the actual Space Track web site,
+and be aware of their usage guidelines.
+EOD
+
+    $st = Astro::SpaceTrack->new(
+	username	=> 'bogua',
+	password	=> 'equally bogus',
+	verify_hostname	=> VERIFY_HOSTNAME,
+    );
 }
+
+$st->set( space_track_version => $desired_content_interface );
 
 ## my $username = $st->getv( 'username' );
 ## my $password = $st->getv( 'password' );
@@ -349,9 +354,11 @@ SKIP: {
     }
 
     SKIP: {
+	my $number_skipped = 13;
+
 	my $skip;
 	$skip = site_check 'celestrak.com'
-	    and skip $skip, 13;
+	    and skip $skip, $number_skipped;
 
 	SKIP: {
 	    is_success_or_skip $st, celestrak => 'stations',

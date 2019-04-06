@@ -220,6 +220,12 @@ sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
 	    }
 	}
     }
+
+    sub __site_to_check_uri {
+	my ( $site ) = @_;
+	return $info{$site}{url};
+    }
+
     my $ua;
 
     sub set_skip ($;$) {	## no critic (ProhibitSubroutinePrototypes)
@@ -240,7 +246,7 @@ sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
     sub _site_check {
 	my ( $site ) = @_;
 	exists $skip_site{$site} and return $skip_site{$site};
-	my $url = $info{$site}{url} or do {
+	my $url = __site_to_check_uri( $site ) or do {
 	    my $skip = "Programming error - No known url for '$site'";
 	    diag( $skip );
 	    return ( $skip_site{$site} = $skip );
