@@ -265,7 +265,7 @@ if ( $rslt->is_success() ) {
          "Field" : "ORIGINATOR",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(5)"
+         "Type" : "varchar(7)"
       },
       {
          "Default" : "0",
@@ -547,7 +547,7 @@ if ( $rslt->is_success() ) {
          "Field" : "ORIGINATOR",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(5)"
+         "Type" : "varchar(7)"
       },
       {
          "Default" : "0",
