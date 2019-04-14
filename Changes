@@ -1,33 +1,14 @@
-0.127_07	2019-04-08	T. R. Wyant
-    Update canned status table for decay of
-
-    - Iridium 58
-
-0.127_06	2019-04-06	T. R. Wyant
-    Finish adding dummy Space Track tests.
-
-0.127_05	2019-04-03	T. R. Wyant
-    Update canned status table for decay of
-
-    - Iridium 64
-
-0.127_04	2019-04-02	T. R. Wyant
+0.128		2019-04-14	T. R. Wyant
     Update canned status table for decay of
 
     - Iridium 55
-
-0.127_03	2019-03-31	T. R. Wyant
-    Use dummy data for Space Track testing, The idea here is to lighten
-    the load on Space Track when I am testing heavily. The tests hit the
-    Space Track web site only when environment variable
-    SPACETRACK_TEST_LIVE is true. Otherwise dummy data are used, or
-    tests are skipped.
-
-
-0.127_01	2019-03-27	T. R. Wyant
-    Update canned status table for decay of
-
+    - Iridium 58
+    - Iridium 64
     - Iridium 95
+
+    Do Space Track tests with dummy data by default. You can test live
+    by setting environment variable SPACETRACK_TEST_LIVE to a true
+    value.
 
 0.127		2019-03-21	T. R. Wyant
     Update canned status table for decay of
