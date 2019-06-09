@@ -104,7 +104,7 @@ without any warranty; without even the implied warranty of
 merchantability or fitness for a particular purpose.
 
 The data obtained by this script may be subject to the Space
-Track user agreement (L<http://www.space-track.org/perl/user_agreement.pl>).
+Track user agreement (L<https://www.space-track.org/documentation#/user_agree>).
 
 =cut
 
