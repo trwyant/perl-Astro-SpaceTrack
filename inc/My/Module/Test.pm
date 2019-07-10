@@ -195,7 +195,7 @@ sub not_defined ($$) {	## no critic (ProhibitSubroutinePrototypes)
 		url	=> 'http://celestrak.com/',
 	    },
 	    'mike.mccants'	=> {
-		url	=> 'http://www.prismnet.com/~mmccants/tles/iridium.html',
+		url	=> 'http://www.prismnet.com/~mmccants/',
 	    },
 	    'rod.sladen'	=> {
 		url	=> 'http://www.rod.sladen.org.uk/iridium.htm',
