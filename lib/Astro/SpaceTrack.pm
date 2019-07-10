@@ -57,12 +57,10 @@ Mike McCants appears to get his Iridium status from Rod Sladen, and not
 to have updated it since late 2013. Therefore support of C<'mccants'> as
 a source of Iridium status is deprecated effective immediately.
 
-As previously documented, as of 0.100_02 the default status
-is C<'kelso'>, and the first use of status C<'mccants'> will result in a
-warning.  This will become a warning with every use in another 6 months,
-and fatal 6 months after that.
-
-Also, in 6 months' time the default status source will become C<'kelso'>.
+Unfortunately I did not pursue deprecating McCants' status, but this is
+being resumed with all attempts to use it producing a warning. This
+warning is redundant, since as of July 10 2019 his Iridium status is
+404.
 
 Of course, with the Iridium satellites being replaced by the non-flaring
 Iridium Next, the quality of McCants' status becomes moot. When the last
@@ -4996,10 +4994,10 @@ sub _check_cookie_generic {
 #	    shuttle	=> 3,
 #	},
 	iridium_status	=> {
-	    mccants	=> 1,
+	    mccants	=> 2,
 	},
 	iridium_status_format	=> {
-	    mccants	=> 1,
+	    mccants	=> 2,
 	},
     );
 
