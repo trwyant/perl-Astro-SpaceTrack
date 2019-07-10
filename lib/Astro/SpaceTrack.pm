@@ -1861,14 +1861,14 @@ convenience:
 
 The comment will be 'Spare', 'Tumbling', or '' depending on the status.
 
-If the format is 'mccants', the primary source of information will be
-Mike McCants' "Status of Iridium Payloads" web page,
-L<https://www.prismnet.com/~mmccants/tles/iridium.html> (which gives
-status on non-functional Iridium satellites).
+Historically, if the format was 'mccants', the primary source of
+information would be Mike McCants' "Status of Iridium Payloads" web
+page, C<https://www.prismnet.com/~mmccants/tles/iridium.html> (which ave
+status on non-functional Iridium satellites). As of July 10 2019 this is
+404.
 
 B<This format is deprecated,> since Mike no longer maintains this page.
-As of version 0.100_02 the first use of this format will
-generate a warning. See
+See
 L<DEPRECATION NOTICE: IRIDIUM STATUS|/DEPRECATION NOTICE: IRIDIUM STATUS>
 for the deprecation schedule.
 
