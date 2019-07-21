@@ -1,4 +1,4 @@
-0.130_01	2019-07-10	T. R. Wyant
+0.131		2019-07-20	T. R. Wyant
     Fix broken POD links, and add test to ensure they stay fixed.
     
     Further deprecate McCants' Iridium status. This is really moot,
