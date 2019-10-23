@@ -696,7 +696,7 @@ sub new {
 =item $resp = $st->amsat ()
 
 This method downloads current orbital elements from the Radio Amateur
-Satellite Corporation's web page, L<http://www.amsat.org/>. This lists
+Satellite Corporation's web page, L<https://www.amsat.org/>. This lists
 satellites of interest to radio amateurs, and appears to be updated
 weekly.
 
@@ -1366,7 +1366,7 @@ If the response object B<is> provided, you can call this as a static
 method (i.e. as Astro::SpaceTrack->content_type($response)).
 
 For the format of the magnitude data, see
-L<http://www.prismnet.com/~mmccants/tles/index.html>.
+L<https://www.prismnet.com/~mmccants/tles/index.html>.
 
 =cut
 
@@ -1847,7 +1847,7 @@ to the value of the C<iridium_status_format> attribute.
 If the format is 'kelso', only Dr. Kelso's Celestrak web site
 (L<http://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
 the data. The possible status values are documented at
-L<http://celestrak.com/satcat/status.asp>, and repeated here for
+L<http://celestrak.com/satcat/status.php>, and repeated here for
 convenience:
 
     '[+]' - Operational
@@ -3957,7 +3957,7 @@ sub source {
 =item $resp = $st->spaceflight ()
 
 This method downloads current orbital elements from NASA's human
-spaceflight site, L<http://spaceflight.nasa.gov/>. As of July 21 2011
+spaceflight site, L<https://spaceflight.nasa.gov/>. As of July 21 2011
 you only get the International Space Station.
 
 You can specify the argument 'ISS' (case-insensitive) to explicitly
@@ -6773,7 +6773,7 @@ itself returns them.
 =head1 ACKNOWLEDGMENTS
 
 The author wishes to thank Dr. T. S. Kelso of
-L<http://celestrak.com/> and the staff of L<http://www.space-track.org/>
+L<http://celestrak.com/> and the staff of L<https://www.space-track.org/>
 (whose names are unfortunately unknown to me) for their co-operation,
 assistance and encouragement.
 
