@@ -285,6 +285,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	orbcomm		=> { name => 'Orbcomm (no rms data)' },
 	iss		=> { name => 'ISS (from NASA, no rms data)' },
 	cpf		=> { name => 'CPF TLEs',	rms => 1 },
+	starlink	=> { name => 'Starlink TLEs',	rms => 1 },
     },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
@@ -1114,21 +1115,25 @@ These TLE data are B<not> redistributed from Space Track, but are
 derived from publicly available ephemeris data for the satellites in
 question. Valid data set names are:
 
+ cpf: CPF TLEs
  glonass: Glonass satellites
  gps: GPS satellites
  intelsat: Intelsat satellites
+ iss: ISS (from NASA, no rms data
  meteosat: Meteosat satellites
  orbcomm: Orbcomm satellites (no RMS data)
  ses: SES satellites
+ starlink Starlink TLEs
 
 You can specify options as either command-type options (e.g.
-C<< amsat( '-file', 'foo.dat' ) >>) or as a leading hash reference (e.g.
-C<< amsat( { file => 'foo.dat' } ) >>). If you specify the hash
-reference, option names must be specified in full, without the leading
-'-', and the argument list will not be parsed for command-type options.
-If you specify command-type options, they may be abbreviated, as long as
-the abbreviation is unique. Errors in either sort result in an exception
-being thrown.
+C<< celestrak_supplemental( '-file', 'foo.dat' ) >>) or as a leading
+hash reference (e.g.
+C<< celestrak_supplemental( { file => 'foo.dat' }) >>). If you specify
+the hash reference, option names must be specified in full, without the
+leading '-', and the argument list will not be parsed for command-type
+options.  If you specify command-type options, they may be abbreviated,
+as long as the abbreviation is unique. Errors in either sort result in
+an exception being thrown.
 
 The legal options are:
 
