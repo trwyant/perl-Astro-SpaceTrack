@@ -191,7 +191,7 @@ KELSO
  25467   Iridium 82     [-]      Plane 6 - Failed on station?
  25527   Iridium 2      [-]      Plane 5
  27376   Iridium 96     [-]      Plane 4 - Failed on station?
- 27450   Iridium 97     [-]      Plane 4
+ 27450   Iridium 97     [-]      Plane 4 - Failed on station?
 SLADEN
         $space_track_skip ? () :
 	[ "Space Track Iridium status",
