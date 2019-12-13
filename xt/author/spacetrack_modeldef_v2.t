@@ -50,12 +50,12 @@ if ( $rslt->is_success() ) {
          "Type" : "mediumint(8) unsigned"
       },
       {
-         "Default" : "",
+         "Default" : null,
          "Extra" : "",
          "Field" : "OBJECT_TYPE",
          "Key" : "",
-         "Null" : "NO",
-         "Type" : "varchar(11)"
+         "Null" : "YES",
+         "Type" : "varchar(100)"
       },
       {
          "Default" : "",
@@ -289,7 +289,7 @@ if ( $rslt->is_success() ) {
          "Field" : "OBJECT_TYPE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "varchar(11)"
+         "Type" : "varchar(100)"
       },
       {
          "Default" : "",
@@ -498,6 +498,14 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "double(20,3)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "DECAYED",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "int(11)"
       }
    ]
 }
