@@ -103,6 +103,10 @@ foreach my $src (@sources) {
     }
 }
 
+# FIXME
+# Eliminate the hard-coded skip once we resolve the Space Track issue.
+$skip{spacetrack} = 'Spacetrack appears unable to select on OBJECT_TYPE';
+
 # We used to compute the following as all permutations of sources, BUT:
 # 1) McCants' data is no longer maintained
 # 2) We added 'spacetrack' which, when raw, is not really comparable.
