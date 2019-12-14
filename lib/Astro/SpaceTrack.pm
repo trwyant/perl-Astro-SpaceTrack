@@ -2349,6 +2349,10 @@ The BODY_STATUS constants are exportable using the :status tag.
 	return $resp;
     }
 
+    # FIXME in the last couple days this has started returning nothing.
+    # It looks like -exclude debris excludes everything, as does
+    # -exclude rocket.
+
     # Get Iridium status from Space Track. Unlike the other sources,
     # Space Track does not know whether satellites are in service or
     # not, but it does know about all of them, and whether or not they
@@ -2964,16 +2968,13 @@ sub retrieve {
 	all	=> '',
     );
 
-    my %exclude_map = (
-	rocket	=> 1 << 0,
-	debris	=> 1 << 1,
-    );
-
-    my @exclude_query = (
-	undef,
-	'PAYLOAD,DEBRIS,UNKNOWN,TBA,OTHER',
-	'PAYLOAD,ROCKET BODY,UNKNOWN,TBA,OTHER',
-	'PAYLOAD,UNKNOWN,TBA,OTHER',
+    my %include_map = (
+	payload	=> 'PAYLOAD',
+	rocket	=> 'ROCKET BODY',
+	debris	=> 'DEBRIS',
+	unknown	=> 'UNKNOWN',
+	tba	=> 'TBA',
+	other	=> 'OTHER',
     );
 
     sub _convert_search_options_to_rest {
@@ -2988,14 +2989,29 @@ sub retrieve {
 	}
 
 	{
-	    my $inx = 0;
-	    foreach my $excl ( @{ $opt->{exclude} || [] } ) {
-		defined $exclude_map{$excl}
-		    or croak "Unknown excludion '$excl'";
-		$inx |= $exclude_map{$excl};
+	    my %incl;
+
+	    if ( $opt->{exclude} && @{ $opt->{exclude} } ) {
+		%incl = map { $_ => 1 } keys %include_map;
+		foreach ( @{ $opt->{exclude} } ) {
+		    $include_map{$_}
+			or croak "Unknown exclusion '$_'";
+		    delete $incl{$_};
+		}
 	    }
-	    defined $exclude_query[$inx]
-		and $rest{OBJECT_TYPE} = $exclude_query[$inx];
+
+	    if ( $opt->{include} && @{ $opt->{include} } ) {
+		foreach ( @{ $opt->{include} } ) {
+		    $include_map{$_}
+			or croak "Unknown inclusion '$_'";
+		    $incl{$_} = 1;
+		}
+	    }
+
+	    keys %incl
+		and $rest{OBJECT_TYPE} = join ',',
+		    map { $include_map{$_} } sort keys %incl;
+
 	}
 
 	return \%rest;
@@ -3222,10 +3238,14 @@ options may be specified:
 
  -exclude
    specifies the types of bodies to exclude. The
-   value is one or more of 'debris' or 'rocket'.
-   If you specify both as command-style options,
-   you may either specify the option more than once,
-   or specify the values comma-separated.
+   value is one or more of 'payload', 'debris', 'rocket',
+   'unknown', 'tba', or 'other'. If you specify this as a
+   command-line option you may either specify this more
+   than once or specify the values comma-separated.
+ -include
+   specifies the types of bodies to include. The possible
+   values are the same as for -exclude. If you specify a
+   given body as both included and excluded it is included.
  -rcs
    used to specify that the radar cross-section returned
    by the search was to be appended to the name, in the form
@@ -6092,7 +6112,8 @@ EOD
 	'rcs!' => '(ignored and deprecated)',
 	'tle!' => '(return TLE data from search (defaults true))',
 	'status=s' => q{('onorbit', 'decayed', or 'all')},
-	'exclude=s@' => q{('debris', 'rocket', or 'debris,rocket')},
+	'exclude=s@' => q{('payload', 'debris', 'rocket', ... )},
+	'include=s@' => q{('payload', 'debris', 'rocket', ... )},
 	'comment!' => '(include comment in satcat data)',
     );
     my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
