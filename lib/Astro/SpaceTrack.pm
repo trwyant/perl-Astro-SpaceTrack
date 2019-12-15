@@ -2365,7 +2365,7 @@ The BODY_STATUS constants are exportable using the :status tag.
 	my ( $resp, $data ) = $self->search_name( {
 		tle	=> 0,
 		status	=> 'all',
-		exclude	=> [ qw{ rocket debris } ],
+		include	=> [ qw{ payload } ],
 		format	=> 'legacy',
 	    }, 'iridium' );
 	$resp->is_success()
