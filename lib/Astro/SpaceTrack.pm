@@ -2961,64 +2961,6 @@ sub retrieve {
 }
 
 {
-
-    my %status_query = (
-	onorbit	=> 'null-val',
-	decayed	=> '<>null-val',
-	all	=> '',
-    );
-
-    my %include_map = (
-	payload	=> 'PAYLOAD',
-	rocket	=> 'ROCKET BODY',
-	debris	=> 'DEBRIS',
-	unknown	=> 'UNKNOWN',
-	tba	=> 'TBA',
-	other	=> 'OTHER',
-    );
-
-    sub _convert_search_options_to_rest {
-	my ( undef, $opt ) = @_;	# Invocant unused
-	my %rest;
-
-	if ( defined $opt->{status} ) {
-	    defined ( my $query = $status_query{$opt->{status}} )
-		or croak "Unknown status '$opt->{status}'";
-	    $query
-		and $rest{DECAY} = $query;
-	}
-
-	{
-	    my %incl;
-
-	    if ( $opt->{exclude} && @{ $opt->{exclude} } ) {
-		%incl = map { $_ => 1 } keys %include_map;
-		foreach ( @{ $opt->{exclude} } ) {
-		    $include_map{$_}
-			or croak "Unknown exclusion '$_'";
-		    delete $incl{$_};
-		}
-	    }
-
-	    if ( $opt->{include} && @{ $opt->{include} } ) {
-		foreach ( @{ $opt->{include} } ) {
-		    $include_map{$_}
-			or croak "Unknown inclusion '$_'";
-		    $incl{$_} = 1;
-		}
-	    }
-
-	    keys %incl
-		and $rest{OBJECT_TYPE} = join ',',
-		    map { $include_map{$_} } sort keys %incl;
-
-	}
-
-	return \%rest;
-    }
-}
-
-{
     my @heading_info = (
 	[ undef,	OBJECT_NUMBER	=> 'Catalog Number' ],
 	[ undef,	OBJECT_NAME	=> 'Common Name' ],
@@ -6106,7 +6048,63 @@ EOD
 #	list. If the first argument is a hash reference, it validates
 #	that the hash contains only legal options.
 
+
 {
+
+    my %status_query = (
+	onorbit	=> 'null-val',
+	decayed	=> '<>null-val',
+	all	=> '',
+    );
+
+    my %include_map = (
+	payload	=> 'PAYLOAD',
+	rocket	=> 'ROCKET BODY',
+	debris	=> 'DEBRIS',
+	unknown	=> 'UNKNOWN',
+	tba	=> 'TBA',
+	other	=> 'OTHER',
+    );
+
+    sub _convert_search_options_to_rest {
+	my ( undef, $opt ) = @_;	# Invocant unused
+	my %rest;
+
+	if ( defined $opt->{status} ) {
+	    defined ( my $query = $status_query{$opt->{status}} )
+		or croak "Unknown status '$opt->{status}'";
+	    $query
+		and $rest{DECAY} = $query;
+	}
+
+	{
+	    my %incl;
+
+	    if ( $opt->{exclude} && @{ $opt->{exclude} } ) {
+		%incl = map { $_ => 1 } keys %include_map;
+		foreach ( @{ $opt->{exclude} } ) {
+		    $include_map{$_}
+			or croak "Unknown exclusion '$_'";
+		    delete $incl{$_};
+		}
+	    }
+
+	    if ( $opt->{include} && @{ $opt->{include} } ) {
+		foreach ( @{ $opt->{include} } ) {
+		    $include_map{$_}
+			or croak "Unknown inclusion '$_'";
+		    $incl{$_} = 1;
+		}
+	    }
+
+	    keys %incl
+		and $rest{OBJECT_TYPE} = join ',',
+		    map { $include_map{$_} } sort keys %incl;
+
+	}
+
+	return \%rest;
+    }
 
     my @legal_search_args = (
 	'rcs!' => '(ignored and deprecated)',
@@ -6116,7 +6114,6 @@ EOD
 	'include=s@' => q{('payload', 'debris', 'rocket', ... )},
 	'comment!' => '(include comment in satcat data)',
     );
-    my %legal_search_exclude = map {$_ => 1} qw{debris rocket};
     my %legal_search_status = map {$_ => 1} qw{onorbit decayed all};
 
     sub _parse_search_args {
@@ -6135,14 +6132,15 @@ Error - Illegal status '$opt->{status}'. You must specify one of
 	@{[join ', ', map {"'$_'"} sort keys %legal_search_status]}
 EOD
 
-	$opt->{exclude} ||= [];
-	$opt->{exclude} = [map {split ',', $_} @{$opt->{exclude}}];
-	foreach (@{$opt->{exclude}}) {
-	    $legal_search_exclude{$_} or croak <<"EOD";
-Error - Illegal exclusion '$_'. You must specify one or more of
-	@{[join ', ', map {"'$_'"} sort keys %legal_search_exclude]}
+	foreach my $key ( qw{ exclude include } ) {
+	    $opt->{$key} ||= [];
+	    $opt->{$key} = [ map { split ',', $_ } @{ $opt->{$key} } ];
+	    foreach ( @{ $opt->{$key} } ) {
+		$include_map{$_} or croak <<"EOD";
+Error - Illegal -$key value '$_'. You must specify one or more of
+	@{[join ', ', map {"'$_'"} sort keys %include_map]}
 EOD
-
+	    }
 	}
 
 	defined $opt->{tle}
