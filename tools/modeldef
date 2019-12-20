@@ -318,7 +318,7 @@ zeroes.
 EOD
 	    OBJECT_TYPE	=> <<'EOD',
 This is a computed value representing the general type of the body. It
-can be 'DEBRIS', 'PAYLOAD', 'ROCKET BODY', 'UNKNOWN', or 'OTHER'.
+can be 'DEBRIS', 'PAYLOAD', 'ROCKET BODY', 'TBA', 'UNKNOWN', or 'OTHER'.
 EOD
 	    ORBITAL_TBA		=> <<'EOD',	# boxscore
 At a guess, number of objects on-orbit which are not yet classified.
