@@ -55,7 +55,7 @@ if ( $rslt->is_success() ) {
          "Field" : "OBJECT_TYPE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "varchar(100)"
+         "Type" : "varchar(12)"
       },
       {
          "Default" : "",
@@ -289,7 +289,7 @@ if ( $rslt->is_success() ) {
          "Field" : "OBJECT_TYPE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "varchar(100)"
+         "Type" : "varchar(12)"
       },
       {
          "Default" : "",
@@ -505,7 +505,7 @@ if ( $rslt->is_success() ) {
          "Field" : "DECAYED",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "int(11)"
+         "Type" : "tinyint(1) unsigned"
       }
    ]
 }
@@ -539,7 +539,7 @@ if ( $rslt->is_success() ) {
          "Field" : "ORDINAL",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "tinyint(3) unsigned"
+         "Type" : "tinyint(1) unsigned"
       },
       {
          "Default" : "",
@@ -571,7 +571,7 @@ if ( $rslt->is_success() ) {
          "Field" : "OBJECT_NAME",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(60)"
+         "Type" : "varchar(25)"
       },
       {
          "Default" : null,
@@ -579,7 +579,7 @@ if ( $rslt->is_success() ) {
          "Field" : "OBJECT_TYPE",
          "Key" : "",
          "Null" : "YES",
-         "Type" : "varchar(11)"
+         "Type" : "varchar(12)"
       },
       {
          "Default" : "",
@@ -723,7 +723,7 @@ if ( $rslt->is_success() ) {
          "Field" : "TLE_LINE0",
          "Key" : "",
          "Null" : "NO",
-         "Type" : "varchar(62)"
+         "Type" : "varchar(27)"
       },
       {
          "Default" : "",
@@ -788,6 +788,14 @@ if ( $rslt->is_success() ) {
          "Key" : "",
          "Null" : "NO",
          "Type" : "double(20,3)"
+      },
+      {
+         "Default" : "0",
+         "Extra" : "",
+         "Field" : "DECAYED",
+         "Key" : "",
+         "Null" : "YES",
+         "Type" : "tinyint(1) unsigned"
       }
    ]
 }
