@@ -1,4 +1,6 @@
-0.133_01	2019-12-17	T. R. Wyant
+0.134		2019-12-24	T. R. Wyant
+    Document 'TBA' as valid OBJECT_TYPE in modeldef.
+
     Rework Space Track -exclude query logic and add -include. If both
     are specified, -include rules.
 
