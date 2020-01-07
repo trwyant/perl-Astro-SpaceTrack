@@ -286,7 +286,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	iss		=> { name => 'ISS (from NASA, no rms data)' },
 	cpf		=> { name => 'CPF TLEs',	rms => 1 },
 	starlink	=> { name => 'Starlink TLEs',	rms => 1 },
-	'starlink-3'	=> { name => 'Starlink 3 Pre-Launch TLEs', rms => 1 },
     },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
