@@ -1,4 +1,4 @@
-0.136_01	2020-01-27	T. R. Wyant
+0.137		2020-02-04	T. R. Wyant
     Use of McCants' Iridium status now throws exception, per deprecation
     schedule.
 
