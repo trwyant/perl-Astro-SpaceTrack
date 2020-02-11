@@ -255,6 +255,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	spire	=> { name => 'Spire Global (Lemur weather and ship tracking)' },
 	satnogs	=> { name => 'SatNOGS' },
 	starlink	=> { name => 'Starlink' },
+	oneweb		=> { name => 'OneWeb' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
