@@ -268,6 +268,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	cpf		=> { name => 'CPF TLEs',	rms => 1 },
 	starlink	=> { name => 'Starlink TLEs',	rms => 1 },
 	oneweb		=> { name => 'OneWeb TLEs',	rms => 1 },
+	planet		=> {
+	    name	=> 'Planet TLEs (no, not Mercury etc)',
+	    rms		=> 1,
+	},
     },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
