@@ -1402,7 +1402,9 @@ sub _get_pragma_value {
     foreach ( $resp->header( 'Pragma' ) ) {
 	m/ $re \s+ = \s+ (.+) /smxi and return $1;
     }
-    return;
+    # Sorry, PBP -- to be compatible with the performance of this method
+    # when $resp is defined, we must return an explicit undef here.
+    return undef;	## no critic (ProhibitExplicitReturnUndef)
 }
 
 =for html <a name="country_names"></a>
