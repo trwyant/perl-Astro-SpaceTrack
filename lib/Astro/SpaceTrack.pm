@@ -4863,7 +4863,7 @@ sub _check_cookie_generic {
 #	    shuttle	=> 3,
 #	},
 	attribute	=> {
-	    url_iridium_status_mccants	=> 1,
+	    url_iridium_status_mccants	=> 2,
 	},
 	iridium_status	=> {
 	    mccants	=> 3,
@@ -6420,9 +6420,9 @@ The default is 'http://celestrak.com/SpaceTrack/query/iridium.txt'
 
 =item url_iridium_status_mccants (text)
 
-This attribute is B<deprecated>, and will warn on first use. On the
-first release after August 1 2020 it will warn on every use, and six
-months after that it will be fatal.
+This attribute is B<deprecated>, and will warn on every use. On the
+first release after February 15 2021, any access of this attribute will
+be fatal.
 
 This attribute specifies the location of Mike McCants' Iridium status
 page. You should normally not change this, but it is provided so you
