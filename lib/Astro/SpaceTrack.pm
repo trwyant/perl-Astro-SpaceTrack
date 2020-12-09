@@ -256,6 +256,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	satnogs	=> { name => 'SatNOGS' },
 	starlink	=> { name => 'Starlink' },
 	oneweb		=> { name => 'OneWeb' },
+	swarm		=> { name => 'Swarm' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
