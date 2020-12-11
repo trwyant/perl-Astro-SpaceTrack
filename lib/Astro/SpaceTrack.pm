@@ -6665,6 +6665,10 @@ systems, Perl versions, and Perl module versions. It is rather likely,
 for example, that the module will die horribly if run with an
 insufficiently-up-to-date version of LWP.
 
+Please file bug reports at
+L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues>, or in
+electronic mail to the author.
+
 =head1 MODIFICATIONS OF HISTORICAL INTEREST
 
 =head2 Data Throttling
