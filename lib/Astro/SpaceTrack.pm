@@ -257,6 +257,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	starlink	=> { name => 'Starlink' },
 	oneweb		=> { name => 'OneWeb' },
 	swarm		=> { name => 'Swarm' },
+	gnss		=> { name => 'GNSS navigational satellites' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
@@ -274,6 +275,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    name	=> 'Planet TLEs (no, not Mercury etc)',
 	    rms		=> 1,
 	},
+	'transporter-1'	=> {	# SpaceX smallsat program
+	    name	=> 'Transporter-1 Post-Deployment TLEs',
+	    rms		=> 1,
+	},
+	# Project Kuiper Internet
     },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
