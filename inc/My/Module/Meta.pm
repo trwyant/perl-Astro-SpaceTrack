@@ -23,6 +23,7 @@ sub build_requires {
 ##	'Test::More'	=> 0.40,
 ##	'Test::More'	=> 0.88,	# Because of done_testing().
 	'Test::More'	=> 0.96,	# Because of subtest()
+	lib		=> 0,
     };
 }
 
@@ -90,6 +91,7 @@ sub requires {
 
     return {
 	'Carp'			=> 0,
+	'Config'		=> 0,
 	'Data::Dumper'		=> 0,
 	'Exporter'		=> 0,
 	'Getopt::Long'		=> 2.39,	# For getoptionsfromarray
