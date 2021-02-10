@@ -92,7 +92,6 @@ sub requires {
     return {
 	'Carp'			=> 0,
 	'Config'		=> 0,
-	'Data::Dumper'		=> 0,
 	'Exporter'		=> 0,
 	'Getopt::Long'		=> 2.39,	# For getoptionsfromarray
 	'HTTP::Date'		=> 0,

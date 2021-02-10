@@ -1,7 +1,5 @@
 package main;
 
-use 5.010;
-
 use strict;
 use warnings;
 
@@ -12,14 +10,22 @@ eval {
     1;
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
-Test::Prereq::Meta->new(
+my $tpm = Test::Prereq::Meta->new(
     accept	=> [ qw{
 	Browser::Open
 	Config::Identity
 	Term::ReadLine
 	Time::HiRes
 	} ],
-)->all_prereq_ok();
+    uses	=> [ qw{
+	LWP::Protocol::https
+	Mozilla::CA
+	} ],
+);
+
+$tpm->all_prereq_ok();
+
+$tpm->all_prereqs_used();
 
 done_testing;
 
