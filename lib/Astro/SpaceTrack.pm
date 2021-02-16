@@ -56,12 +56,8 @@ Track web site.
 As of version 0.137, Iridium status format C<'mccants'> is fully
 deprecated, and will result in an exception.
 
-I should have put the
-C<url_iridium_status_mccants> accessor and mutator through a deprecation
-cycle at the same time, but did not. So the first attempt to access or
-change this attribute will result in a warning. At the first release
-after August 1 2020, all accesses or changes will result in a warning,
-and six months after that they will be fatal.
+As of version 0.143, any access of attribute
+C<url_iridium_status_mccants> is fatal.
 
 Of course, since there are no longer any Iridium Classic satellites in
 service, all the Iridium status machinery is a candidate for deprecation
@@ -642,8 +638,6 @@ sub new {
 	space_track_version	=> DEFAULT_SPACE_TRACK_VERSION,
 	url_iridium_status_kelso =>
 	    'http://celestrak.com/SpaceTrack/query/iridium.txt',
-	url_iridium_status_mccants =>
-	    'http://www.prismnet.com/~mmccants/tles/iridium.html',
 	url_iridium_status_sladen =>
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
@@ -785,14 +779,17 @@ This method returns a list of legal attribute names.
 
 sub attribute_names {
     my ( $self ) = @_;
+    my @keys = grep { ! {
+	    url_iridium_status_mccants	=> 1,
+	}->{$_} } sort keys %mutator;
     ref $self
-	or return wantarray ? sort keys %mutator : [sort keys %mutator];
+	or return wantarray ? @keys : \@keys;
     my $space_track_version = $self->getv( 'space_track_version' );
     my @names = grep {
 	$mutator{$_} == \&_mutate_spacetrack_interface ?
 	exists $self->{_space_track_interface}[$space_track_version]{$_}
 	: 1
-    } sort keys %mutator;
+    } @keys;
     return wantarray ? @names : \@names;
 }
 
@@ -4867,7 +4864,7 @@ sub _check_cookie_generic {
 #	    shuttle	=> 3,
 #	},
 	attribute	=> {
-	    url_iridium_status_mccants	=> 2,
+	    url_iridium_status_mccants	=> 3,
 	},
 	iridium_status	=> {
 	    mccants	=> 3,
@@ -6424,16 +6421,7 @@ The default is 'http://celestrak.com/SpaceTrack/query/iridium.txt'
 
 =item url_iridium_status_mccants (text)
 
-This attribute is B<deprecated>, and will warn on every use. On the
-first release after February 15 2021, any access of this attribute will
-be fatal.
-
-This attribute specifies the location of Mike McCants' Iridium status
-page. You should normally not change this, but it is provided so you
-will not be dead in the water if Mr. McCants needs to change his
-ISP or re-arrange his web site.
-
-The default is 'http://www.prismnet.com/~mmccants/tles/iridium.html'.
+This attribute is B<deprecated>, and any access of it will be fatal.
 
 =item url_iridium_status_sladen (text)
 
