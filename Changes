@@ -1,3 +1,11 @@
+0.143_01	2021-02-16	T. R. Wyant
+    Any access of iridium_status_mccants is now fatal
+
+    Get prerequisites up to snuff and add xt/author/prereq.t to ensure
+    they stay that way.
+
+    Add Celestrak catalog 'gnss'.
+
 0.143		2021-01-09	T. R. Wyant
     Add Travis CI testing.
 
