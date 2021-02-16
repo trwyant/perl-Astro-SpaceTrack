@@ -17,6 +17,14 @@ sub new {
     return $self;
 }
 
+sub abstract {
+    return 'Download satellite orbital elements from Space Track';
+}
+
+sub author {
+    return 'Tom Wyant (wyant at cpan dot org)';
+}
+
 sub build_requires {
     return +{
 	'File::Temp'	=> 0,
@@ -27,32 +35,67 @@ sub build_requires {
     };
 }
 
+sub configure_requires {
+    return +{
+	'Config'	=> 0,
+	'FileHandle'	=> 0,
+	'Getopt::Std'	=> 0,
+	'lib'	=> 0,
+	'strict'	=> 0,
+	'warnings'	=> 0,
+    };
+}
+
+sub dist_name {
+    return 'Astro-SpaceTrack';
+}
+
 sub distribution {
     my ( $self ) = @_;
     return $self->{distribution};
 }
 
+
+sub license {
+    return 'perl';
+}
+
 sub meta_merge {
+    my ( undef, @extra ) = @_;
     return {
 	'meta-spec'	=> {
 	    version	=> 2,
 	},
 	dynamic_config	=> 1,
-	no_index	=> {
-	    directory	=> [ qw{ inc t tools xt } ],
-	},
 	resources	=> {
 	    bugtracker	=> {
 		web	=> 'https://github.com/trwyant/perl-Astro-SpaceTrack/issues',
-		mailto	=> 'wyant@cpan.org',
-            },
+		mailto  => 'wyant@cpan.org',
+	    },
 	    license	=> 'http://dev.perl.org/licenses/',
 	    repository	=> {
 		type	=> 'git',
 		url	=> 'git://github.com/trwyant/perl-Astro-SpaceTrack.git',
 		web	=> 'https://github.com/trwyant/perl-Astro-SpaceTrack',
 	    },
-	}
+	},
+	@extra,
+    };
+}
+
+
+sub module_name {
+    return 'Astro::SpaceTrack';
+}
+
+sub no_index {
+    return +{
+      directory => [
+                     'inc',
+                     't',
+                     'tools',
+                     'xt',
+                   ],
     };
 }
 
@@ -84,6 +127,17 @@ EOD
     } else {
 	return @possible_exes;
     }
+}
+
+sub provides {
+    -d 'lib'
+	or return;
+    local $@ = undef;
+    my $provides = eval {
+	require Module::Metadata;
+	Module::Metadata->provides( version => 2, dir => 'lib' );
+    } or return;
+    return ( provides => $provides );
 }
 
 sub requires {
@@ -128,6 +182,12 @@ sub requires_perl {
 }
 
 
+sub script_files {
+    return [
+	'script/SpaceTrack',
+    ];
+}
+
 1;
 
 __END__
@@ -162,6 +222,14 @@ This class supports the following public methods:
 
 This method instantiates the class.
 
+=head2 abstract
+
+This method returns the distribution's abstract.
+
+=head2 author
+
+This method returns the name of the distribution author
+
 =head2 build_requires
 
  use JSON;
@@ -171,6 +239,20 @@ This method computes and returns a reference to a hash describing the
 modules required to build the C<Astro::Coord::ECI> package, suitable for
 use in a F<Build.PL> C<build_requires> key, or a F<Makefile.PL>
 C<< {META_MERGE}->{build_requires} >> key.
+
+=head2 configure_requires
+
+ use YAML;
+ print Dump( $meta->configure_requires() );
+
+This method returns a reference to a hash describing the modules
+required to configure the package, suitable for use in a F<Build.PL>
+C<configure_requires> key, or a F<Makefile.PL>
+C<< {META_MERGE}->{configure_requires} >> or C<CONFIGURE_REQUIRES> key.
+
+=head2 dist_name
+
+This method returns the distribution name.
 
 =head2 distribution
 
@@ -183,6 +265,10 @@ C<< {META_MERGE}->{build_requires} >> key.
 This method returns the value of the environment variable
 C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
 
+=head2 license
+
+This method returns the distribution's license.
+
 =head2 meta_merge
 
  use YAML;
@@ -190,8 +276,20 @@ C<MAKING_MODULE_DISTRIBUTION> at the time the object was instantiated.
 
 This method returns a reference to a hash describing the meta-data which
 has to be provided by making use of the builder's C<meta_merge>
-functionality. This includes the C<dynamic_config>, C<no_index> and
-C<resources> data.
+functionality. This includes the C<dynamic_config> and C<resources>
+data.
+
+Any arguments will be appended to the generated array.
+
+=head2 module_name
+
+This method returns the name of the module the distribution is based
+on.
+
+=head2 no_index
+
+This method returns the names of things which are not to be indexed
+by CPAN.
 
 =head2 notice
 
@@ -201,6 +299,16 @@ This method prints a notice before building. It returns a list of
 executables to build.
 
 The argument is the options hash returned by the build system.
+
+=head2 provides
+
+ use YAML;
+ print Dump( [ $meta->provides() ] );
+
+This method attempts to load L<Module::Metadata|Module::Metadata>. If
+this succeeds, it returns a C<provides> entry suitable for inclusion in
+L<meta_merge()|/meta_merge> data (i.e. C<'provides'> followed by a hash
+reference). If it can not load the required module, it returns nothing.
 
 =head2 requires
 
@@ -219,6 +327,11 @@ configuration-specific modules may be added.
  print 'This package requires Perl ', $meta->requires_perl(), "\n";
 
 This method returns the version of Perl required by the package.
+
+=head2 script_files
+
+This method returns a reference to an array containing the names of
+script files provided by this distribution. This array may be empty.
 
 =head1 ATTRIBUTES
 
