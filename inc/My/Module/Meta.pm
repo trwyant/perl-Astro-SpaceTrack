@@ -188,6 +188,10 @@ sub script_files {
     ];
 }
 
+sub version_from {
+    return 'lib/Astro/SpaceTrack.pm';
+}
+
 1;
 
 __END__
@@ -332,6 +336,11 @@ This method returns the version of Perl required by the package.
 
 This method returns a reference to an array containing the names of
 script files provided by this distribution. This array may be empty.
+
+=head2 version_from
+
+This method returns the name of the distribution file from which the
+distribution's version is to be derived.
 
 =head1 ATTRIBUTES
 

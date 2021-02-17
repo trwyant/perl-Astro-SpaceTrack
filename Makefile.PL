@@ -32,12 +32,12 @@ my %args = (
     AUTHOR	=> $meta->author(),
     DISTNAME	=> $meta->dist_name(),
     NAME	=> $meta->module_name(),
-    # VERSION_FROM => 'lib/Astro/SpaceTrack.pm',
     PREREQ_PM	=> $meta->requires(),
     PL_FILES	=> {},	# Prevent old MakeMaker from running Build.PL
     realclean	=> {
 	FILES => 'cover_db xt/author/optionals',
     },
+    VERSION_FROM => $meta->version_from(),
 );
 
 $mmv >= 6.31
