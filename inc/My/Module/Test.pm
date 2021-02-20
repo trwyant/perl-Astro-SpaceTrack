@@ -319,6 +319,7 @@ sub __spacetrack_identity {
 	defined $id->{username} && defined $id->{password} &&
 	    "$id->{username}/$id->{password}";
     };
+    return;
 }
 
 {

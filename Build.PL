@@ -28,8 +28,14 @@ my %args = (
     requires	=> $meta->requires(
 	perl	=> $meta->requires_perl(),
     ),
-    script_files	=> $meta->script_files(),
+    script_files	=> [],
 );
+
+$mbv >= 0.26
+    and $args{get_options} = {
+	n	=> { type => '!' },
+	y	=> { type => '!' },
+    };
 
 if ( $mbv >= 0.28 ) {
     $args{meta_merge} = $meta->meta_merge();
