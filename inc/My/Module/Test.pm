@@ -201,7 +201,8 @@ sub not_defined {
 		url	=> 'http://www.rod.sladen.org.uk/iridium.htm',
 	    },
 	    'spaceflight.nasa.gov'	=> {
-		url	=> 'http://spaceflight.nasa.gov',
+		# url	=> 'http://spaceflight.nasa.gov',
+		url	=> 'https://spaceflight.nasa.gov/realdata/elements/index.html'
 	    },
 	    'www.amsat.org'	=> {
 		url	=> 'http://www.amsat.org/',

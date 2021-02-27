@@ -3942,6 +3942,7 @@ sub spaceflight {
     my $html = '';
     my $now = time ();
     my %tle;
+    $DB::single = 1;	# Debug
     foreach my $url (@list) {
 	my $resp = $self->_get_agent()->get ($url);
 	__tweak_response( $resp );
