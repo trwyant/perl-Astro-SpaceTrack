@@ -51,6 +51,8 @@ You should consult the above link for the full text of the user
 agreement before using this software to retrieve content from the Space
 Track web site.
 
+=head1 FUNCTIONAL NOTICES
+
 =head2 DEPRECATION NOTICE: IRIDIUM STATUS
 
 As of version 0.137, Iridium status format C<'mccants'> is fully
@@ -62,6 +64,34 @@ C<url_iridium_status_mccants> is fatal.
 Of course, since there are no longer any Iridium Classic satellites in
 service, all the Iridium status machinery is a candidate for deprecation
 and removal. Stay tuned.
+
+=head2 RETIREMENT OF NASA HUMAN SPACE FLIGHT WEB SITE
+
+On February 25 2021 NASA shut down their Human Space Flight web site at
+L<https://spaceflight.nasa.gov/>. This means that the
+C<spaceflight()> method is non-functional. As of February
+28 2021 access redirects to
+L<https://www.nasa.gov/feature/spaceflightnasagov-has-been-retired/>.
+This lists a number of replacement resources, including
+L<https://spotthestation.nasa.gov/> and L<https://www.nasa.gov/station>.
+
+Unfortunately, so far I have found no replacement source for ISS TLEs.
+The redirection page notes the availability of state vectors in both
+text and XML, at
+C<https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.txt>
+and
+C<https://nasa-public-data.s3.amazonaws.com/iss-coords/current/ISS_OEM/ISS.OEM_J2K_EPH.xml>
+respectively. I may provide download access to these, but it will be a
+while until a state-vector analog to
+L<Astro::Coord::ECI::TLE|Astro::Coord::ECI::TLE> is written, if it ever
+is.
+
+The functional result of this is that the C<spaceflight()> method
+gives a C<403> error as of February 28 2021. If some reasonable
+replacement becomes known to me, I will use it; otherwise this method
+will be removed. My usual removal schedule calls for the method to warn
+on the first use September 2021, warn on every use March 2022, die
+September 2022, and be removed completely March 2023.
 
 =head1 DESCRIPTION
 
@@ -3825,6 +3855,11 @@ sub source {
 =for html <a name="spaceflight"></a>
 
 =item $resp = $st->spaceflight ()
+
+B<Notice:> NASA shut down the source of this information on February 25
+2021. See
+L<RETIREMENT OF NASA HUMAN SPACE FLIGHT WEB SITE|/ RETIREMENT OF NASA HUMAN SPACE FLIGHT WEB SITE>
+above for more information, including deprecation plans for this method.
 
 This method downloads current orbital elements from NASA's human
 spaceflight site, L<https://spaceflight.nasa.gov/>. As of July 21 2011

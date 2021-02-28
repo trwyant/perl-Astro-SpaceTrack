@@ -213,6 +213,10 @@ sub not_defined {
 	    }
 	);
 
+	%skip_site = (
+	    'spaceflight.nasa.gov'	=> 'Site retired',
+	);
+
 	if ( defined $ENV{ASTRO_SPACETRACK_SKIP_SITE} ) {
 	    foreach my $site ( split qr{ \s* , \s* }smx,
 		$ENV{ASTRO_SPACETRACK_SKIP_SITE} ) {
