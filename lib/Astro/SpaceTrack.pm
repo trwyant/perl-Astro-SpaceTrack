@@ -6691,8 +6691,9 @@ systems, Perl versions, and Perl module versions. It is rather likely,
 for example, that the module will die horribly if run with an
 insufficiently-up-to-date version of LWP.
 
-Please file bug reports at
-L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues>, or in
+Support is by the author. Please file bug reports at
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack>,
+L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues/>, or in
 electronic mail to the author.
 
 =head1 MODIFICATIONS OF HISTORICAL INTEREST
@@ -6730,8 +6731,6 @@ and the warning becoming fatal six months after that.
 On the other hand, the C<RCSVALUE> and C<RCS_SIZE> data will continue
 to be returned in such ways and places that the Space Track web site
 itself returns them.
-
-
 
 =head1 ACKNOWLEDGMENTS
 
