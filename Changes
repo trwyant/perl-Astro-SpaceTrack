@@ -1,19 +1,9 @@
-0.143_05	2021-02-28	T. R. Wyant
+0.144		2021-03-07	T. R. Wyant
+    Add rt.cpan.org back to bug reporting methods. Long live RT!
+
     Document retirement of NASA Human Space Flight web site, and its
     effect on this package.
 
-0.143_04	2021-02-27	T. R. Wyant
-    Make Human Space Flight testing more robust.
-
-0.143_03	2021-02-20	T. R. Wyant
-    Fix toolchain problems introduced in 0.143_01.  The option
-    processing was not being done, so 'perl Makefile.PL -n' installed
-    the SpaceTrack script anyway. And same for Build.PL.
-
-0.143_02	2021-02-19	T. R. Wyant
-    Add add_to_cleanup() to inc/My/Module/Meta.pm.  Also version_from().
-
-0.143_01	2021-02-16	T. R. Wyant
     Any access of iridium_status_mccants is now fatal
 
     Get prerequisites up to snuff and add xt/author/prereq.t to ensure
