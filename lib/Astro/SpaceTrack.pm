@@ -773,7 +773,8 @@ sub amsat {
 
     return $self->_get_from_net(
 	%{ $opt },
-	url	=> 'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
+	# url	=> 'http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt',
+	url	=> 'https://www.amsat.org/tle/current/nasabare.txt',
 	post_process	=> sub {
 	    my ( $self, $resp ) = @_;
 	    unless ( $self->{direct} || $self->{with_name} ) {

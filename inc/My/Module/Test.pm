@@ -205,7 +205,7 @@ sub not_defined {
 		url	=> 'https://spaceflight.nasa.gov/realdata/elements/index.html'
 	    },
 	    'www.amsat.org'	=> {
-		url	=> 'http://www.amsat.org/',
+		url	=> 'https://www.amsat.org/',
 	    },
 	    'www.space-track.org'	=> {
 		url	=> 'https://www.space-track.org/',
@@ -266,6 +266,7 @@ sub not_defined {
 	}
 
 	$ua ||= LWP::UserAgent->new(
+	    agent	=> 'curl/7.77.0',
 	    ssl_opts	=> { verify_hostname => VERIFY_HOSTNAME },
 	);
 	my $rslt = $ua->get( $url );
