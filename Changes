@@ -1,4 +1,4 @@
-0.146_01	2021-09-01	T. R. Wyant
+0.147		2021-09-08	T. R. Wyant
     Warn on first use of deprecated spaceflight() method.  It does not
     work anyway since the underlying web site has gone away.
 
