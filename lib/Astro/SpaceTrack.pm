@@ -284,6 +284,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	oneweb		=> { name => 'OneWeb' },
 	swarm		=> { name => 'Swarm' },
 	gnss		=> { name => 'GNSS navigational satellites' },
+	'1982-092'	=> { name => 'Russian ASAT Test Debris (COSMOS 1408)' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
