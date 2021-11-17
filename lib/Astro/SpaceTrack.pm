@@ -1091,7 +1091,17 @@ These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 You can specify the C<retrieve()> options on this method as well, but
-they will have no effect if the 'direct' attribute is true.
+they will have no effect if the C<'direct'> attribute is true.
+
+In addition, this method takes the C<observing_list> option, which
+causes the return of the actual observing list corresponding to the
+catalog. This can be specified as C<--observing-list> if you are passing
+options command-style. This option will also have no effect if the
+C<'direct'> attribute is true. If this option is passed, a successful
+response will contain headers
+
+ Pragma: spacetrack-type = observing-list
+ Pragma: spacetrack-source = celestrak
 
 =cut
 
@@ -1101,7 +1111,10 @@ sub celestrak {
 
     ( my $opt, @args ) = $self->{direct} ?
 	_parse_args( CLASSIC_RETRIEVE_OPTIONS, @args ) :
-	_parse_retrieve_args( @args );
+	_parse_retrieve_args(
+	    [ 'observing_list|observing-list!' => 'return observing list' ],
+	    @args,
+	);
 
     my $name = shift @args;
     defined $name
@@ -5392,16 +5405,29 @@ sub _handle_observing_list {
 	push @catnum, $id;
 	push @data, [ $id, $name ];
     }
-    my $resp = $self->retrieve( $opt, sort {$a <=> $b} @catnum );
-    if ( $resp->is_success ) {
-
-	unless ( $self->{_pragmata} ) {
-	    $self->_add_pragmata($resp,
-		'spacetrack-type' => 'orbit',
-		'spacetrack-source' => 'spacetrack',
-	    );
-	}
+    my $resp;
+    if ( $opt->{observing_list} ) {
+	$resp = HTTP::Response->new( HTTP_OK, undef, undef,
+	    join '', map { m/ \n \z /smx ? $_ : "$_\n" } @args );
+	my $source = ( caller 1 )[3];
+	$source =~ s/ .* :: //smx;
+	$self->_add_pragmata( $resp,
+	    'spacetrack-type' => 'observing-list',
+	    'spacetrack-source' => $source,
+	);
 	$self->__dump_response( $resp );
+    } else {
+	$resp = $self->retrieve( $opt, sort {$a <=> $b} @catnum );
+	if ( $resp->is_success ) {
+
+	    unless ( $self->{_pragmata} ) {
+		$self->_add_pragmata( $resp,
+		    'spacetrack-type' => 'orbit',
+		    'spacetrack-source' => 'spacetrack',
+		);
+	    }
+	    $self->__dump_response( $resp );
+	}
     }
     return wantarray ? ($resp, \@data) : $resp;
 }
