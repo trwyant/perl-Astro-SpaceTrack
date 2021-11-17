@@ -668,7 +668,7 @@ sub new {
 	],
 	space_track_version	=> DEFAULT_SPACE_TRACK_VERSION,
 	url_iridium_status_kelso =>
-	    'http://celestrak.com/SpaceTrack/query/iridium.txt',
+	    'https://celestrak.com/SpaceTrack/query/iridium.txt',
 	url_iridium_status_sladen =>
 	    'http://www.rod.sladen.org.uk/iridium.htm',
 	username => undef,	# Login username.
@@ -1022,10 +1022,10 @@ even if it is not on the list, and if he removes one, being on the list
 won't help.
 
 In general, the data set names are the same as the file names given at
-L<http://celestrak.com/NORAD/elements/>, but without the '.txt' on the
+L<https://celestrak.com/NORAD/elements/>, but without the '.txt' on the
 end; for example, the name of the 'International Space Station' data set
 is 'stations', since the URL for this is
-L<http://celestrak.com/NORAD/elements/stations.txt>.
+L<https://celestrak.com/NORAD/elements/stations.txt>.
 
 The Celestrak web site makes a few items available for direct-fetching
 only (C<< $st->set(direct => 1) >>, see below.) These are typically
@@ -1114,7 +1114,7 @@ sub celestrak {
     $self->{direct}
 	and return $self->_celestrak_direct( $opt, $name );
     my $resp = $self->_get_agent()->get (
-	"http://celestrak.com/SpaceTrack/query/$name.txt");
+	"https://celestrak.com/SpaceTrack/query/$name.txt");
     if ( my $check = $self->_response_check( $resp, celestrak => $name ) ) {
 	return $check;
     }
@@ -1190,7 +1190,7 @@ true, the C<Last-Modified> header of the response will contain the
 modification time of the file.
 
 For more information, see
-L<http://celestrak.com/NORAD/elements/supplemental/>.
+L<https://celestrak.com/NORAD/elements/supplemental/>.
 
 =cut
 
@@ -1215,7 +1215,7 @@ sub celestrak_supplemental {
 	    ( $info->{spacetrack_type}, my $sfx ) = $arg->{rms} ?
 		( 'rms', 'rms.txt' ) :
 		( 'orbit', 'txt' );
-	    $info->{url} = "http://celestrak.com/NORAD/elements/supplemental/$name.$sfx";
+	    $info->{url} = "https://celestrak.com/NORAD/elements/supplemental/$name.$sfx";
 	    return;
 	},
 	post_process	=> sub {
@@ -1236,7 +1236,7 @@ sub _celestrak_direct {
     delete $self->{_pragmata};
 
     my $resp = $self->_get_agent()->get (
-	"http://celestrak.com/NORAD/elements/$name.txt");
+	"https://celestrak.com/NORAD/elements/$name.txt");
     if (my $check = $self->_response_check($resp, celestrak => $name, 'direct')) {
 	return $check;
     }
@@ -1872,9 +1872,9 @@ results is determined by the optional $format argument, which defaults
 to the value of the C<iridium_status_format> attribute.
 
 If the format is 'kelso', only Dr. Kelso's Celestrak web site
-(L<http://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
+(L<https://celestrak.com/SpaceTrack/query/iridium.txt>) is queried for
 the data. The possible status values are documented at
-L<http://celestrak.com/satcat/status.php>, and repeated here for
+L<https://celestrak.com/satcat/status.php>, and repeated here for
 convenience:
 
     '[+]' - Operational
@@ -6467,7 +6467,7 @@ information. You should normally not change this, but it is provided
 so you will not be dead in the water if Dr. Kelso needs to re-arrange
 his web site.
 
-The default is 'http://celestrak.com/SpaceTrack/query/iridium.txt'
+The default is 'https://celestrak.com/SpaceTrack/query/iridium.txt'
 
 =item url_iridium_status_mccants (text)
 
@@ -6752,7 +6752,7 @@ itself returns them.
 =head1 ACKNOWLEDGMENTS
 
 The author wishes to thank Dr. T. S. Kelso of
-L<http://celestrak.com/> and the staff of L<https://www.space-track.org/>
+L<https://celestrak.com/> and the staff of L<https://www.space-track.org/>
 (whose names are unfortunately unknown to me) for their co-operation,
 assistance and encouragement.
 

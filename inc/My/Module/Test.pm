@@ -192,7 +192,7 @@ sub not_defined {
     BEGIN {
 	%info = (
 	    'celestrak.com'	=> {
-		url	=> 'http://celestrak.com/',
+		url	=> 'https://celestrak.com/',
 	    },
 	    'mike.mccants'	=> {
 		url	=> 'http://www.prismnet.com/~mmccants/',
