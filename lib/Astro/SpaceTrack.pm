@@ -285,6 +285,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	swarm		=> { name => 'Swarm' },
 	gnss		=> { name => 'GNSS navigational satellites' },
 	'1982-092'	=> { name => 'Russian ASAT Test Debris (COSMOS 1408)' },
+	'1999-025'	=> { name => 'Fengyun 1C debris' },
+	'cosmos-2251-debris' => { name => 'Cosmos 2251 debris' },
+	'iridium-33-debris' => { name => 'Iridium 33 debris' },
+	'2012-044'	=> { name => 'BREEZE-M R/B Breakup (2012-044C)' },
+	'2019-006'	=> { name => 'Indian ASAT Test Debris' },
     },
     celestrak_supplemental => {
 	gps		=> { name => 'GPS',		rms => 1 },
