@@ -307,6 +307,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    name	=> 'Planet TLEs (no, not Mercury etc)',
 	    rms		=> 1,
 	},
+	iridium		=> {
+	    name	=> 'Iridium Next',
+	    rms		=> 1,
+	},
 	# Project Kuiper Internet
     },
     iridium_status => {
