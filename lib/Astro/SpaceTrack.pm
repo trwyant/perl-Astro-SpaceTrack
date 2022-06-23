@@ -307,27 +307,77 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	# '2019-006'	=> { name => 'Indian ASAT Test Debris' },
     },
     celestrak_supplemental => {
-	gps		=> { name => 'GPS',		rms => 1, match => 1 },
-	glonass		=> { name => 'Glonass',		rms => 1, match => 1 },
-	meteosat	=> { name => 'Meteosat',	rms => 1, match => 1 },
-	intelsat	=> { name => 'Intelsat',	rms => 1, match => 1 },
-	ses		=> { name => 'SES',		rms => 1, match => 1 },
-	telesat		=> { name => 'Telesat',		rms => 1, match => 1 },
-	orbcomm		=> { name => 'Orbcomm (no RMS or match data)' },
+	gps		=> {
+	    name	=> 'GPS Operational',
+	    source	=> 'GPS-A',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	glonass		=> {
+	    name	=> 'GLONASS Operational',
+	    source	=> 'GLONASS-RE',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	meteosat	=> {
+	    name	=> 'METEOSAT',
+	    source	=> 'METEOSAT-SV',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	intelsat	=> {
+	    name	=> 'Intelsat',
+	    source	=> 'Intelsat-11P',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	ses		=> {
+	    name	=> 'SES',
+	    source	=> 'SES-11P',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	telesat		=> {
+	    name	=> 'Telesat',
+	    source	=> 'Telesat-E',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	orbcomm		=> {
+	    name	=> 'Orbcomm (no RMS or match data)',
+	    source	=> 'Orbcomm-TLE',
+	},
 	iss		=> {
 	    name	=> 'ISS (from NASA, no match data)',
+	    source	=> 'ISS-E',
 	    rms		=> 1,
 	},
-	cpf		=> { name => 'CPF TLEs (no match data)', rms => 1 },
-	starlink	=> { name => 'Starlink TLEs',	rms => 1, match => 1 },
-	oneweb		=> { name => 'OneWeb TLEs',	rms => 1, match => 1 },
+	cpf		=> {
+	    name	=> 'CPF (no match data)',
+	    source	=> 'CPF',
+	    rms		=> 1,
+	},
+	starlink	=> {
+	    name	=> 'Starlink',
+	    source	=> 'SpaceX-E',
+	    rms		=> 1,
+	    match	=> 1,
+	},
+	oneweb		=> {
+	    name	=> 'OneWeb',
+	    source	=> 'OneWeb-E',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	planet		=> {
-	    name	=> 'Planet TLEs (no, not Mercury etc)',
+	    name	=> 'Planet (no, not Mercury etc)',
+	    source	=> 'Planet-E',
 	    rms		=> 1,
 	    match	=> 1,
 	},
 	iridium		=> {
 	    name	=> 'Iridium Next',
+	    source	=> 'Iridium-E',
 	    rms		=> 1,
 	    match	=> 1,
 	},
@@ -1023,6 +1073,16 @@ There are no arguments.
     }
 }
 
+# UNSUPPORTED AND SUBJECT TO CHANGE OR REMOVAL WITHOUT NOTICE!
+# If you have a use for this information, please let me know and I will
+# see about putting together something I believe I can support.
+sub __catalog {
+    my ( undef, $name ) = @_;
+    $catalogs{$name}
+	or confess "Bug - catalog $name does not exist";
+    return $catalogs{$name};
+}
+
 =for html <a name="celestrak"></a>
 
 =item $resp = $st->celestrak ($name);
@@ -1272,11 +1332,25 @@ sub celestrak_supplemental {
 		    HTTP_PRECONDITION_FAILED,
 		    "$name does not take the -$key option" );
 	    }
-	    ( $info->{spacetrack_type}, my $sfx ) = $arg->{rms} ?
-		( rms => 'rms.txt' ) :
-		$arg->{match} ? ( match => 'match.txt' ) :
-		( orbit => 'txt' );
-	    $info->{url} = "https://celestrak.com/NORAD/elements/supplemental/$name.$sfx";
+	    my $source = $catalogs{celestrak_supplemental}{$name}{source}
+		|| $name;
+		my $base_url = 'https://celestrak.com/NORAD/elements/supplemental';
+	    if ( $arg->{rms} ) {
+		$info->{spacetrack_type} = 'rms';
+		$info->{url} = "$base_url/$name.rms.txt";
+	    } elsif ( $arg->{match} ) {
+		$info->{spacetrack_type} = 'match';
+		$info->{url} = "$base_url/$name.match.txt";
+
+	    } else {
+		$info->{spacetrack_type} = 'orbit';
+		my $uri = URI->new( "$base_url/sup-gp.php" );
+		$uri->query_form(
+		    SOURCE	=> $source,
+		    FORMAT	=> 'tle',
+		);
+		$info->{url} = $uri;
+	    }
 	    return;
 	},
 	post_process	=> sub {
@@ -1310,6 +1384,16 @@ sub _celestrak_direct {
 	GROUP	=> $name,
 	FORMAT	=> 'tle',
     );
+
+    if ( my $resp = $self->_dump_request(
+	    args	=> [ $name ],
+	    method	=> 'GET',
+	    url		=> $uri,
+	    version	=> 2,
+	) ) {
+	return $resp;
+    }
+
     my $resp = $self->_get_agent()->get ( $uri );
 
     if (my $check = $self->_response_check($resp, celestrak => $name, 'direct')) {
@@ -2741,7 +2825,6 @@ sub names {
     }
     return ($resp, \@list);
 }
-
 
 =for html <a name="retrieve"></a>
 
@@ -4421,8 +4504,7 @@ C<'tle_latest'>,
 	if ( my $resp = $self->_dump_request(
 		args	=> \@args,
 		method	=> 'GET',
-#		url	=> $url,
-		url	=> $uri->as_string(),
+		url	=> $uri,
 		version	=> 2,
 	    ) ) {
 	    return $resp;
@@ -5116,6 +5198,8 @@ sub _dump_request {
 	    or next;
 	$args{$key} = $args{$key}->( \%args );
     }
+    ref $args{url}
+	and $args{url} = $args{url}->as_string();
 
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
@@ -5329,6 +5413,15 @@ sub _get_from_net {
 	    or confess "Programming error - No url defined for $method( '$arg{catalog}' )";
     } else {
 	confess q<Programming error - neither 'url' nor 'catalog' specified>;
+    }
+
+    if ( my $resp = $self->_dump_request(
+	    args	=> { map { $_ => CODE_REF eq ref $arg{$_} ? 'sub { ... }' : $arg{$_} } keys %arg },
+	    method	=> 'GET',
+	    url		=> $url,
+	    version	=> 2,
+	) ) {
+	return $resp;
     }
 
     my $agent = $self->_get_agent();
