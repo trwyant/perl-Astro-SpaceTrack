@@ -191,8 +191,8 @@ sub not_defined {
     my %skip_site;
     BEGIN {
 	%info = (
-	    'celestrak.com'	=> {
-		url	=> 'https://celestrak.com/',
+	    'celestrak.org'	=> {
+		url	=> 'https://celestrak.org/',
 	    },
 	    'mike.mccants'	=> {
 		url	=> 'http://www.prismnet.com/~mmccants/',
@@ -562,12 +562,12 @@ and represents the skip message, if any.
 
 =head2 site_check
 
- site_check 'spaceflight.nasa.gov', 'celestrak.com';
+ site_check 'spaceflight.nasa.gov', 'celestrak.org';
 
 This subroutine tests a preselected URL on the given sites, and sets the
 skip indicator appropriately. Allowed site names are:
 
- celestrak.com
+ celestrak.org
  mike.mccants
  rod.sladen
  spaceflight.nasa.gov

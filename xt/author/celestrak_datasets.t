@@ -15,7 +15,7 @@ my $ua = LWP::UserAgent->new ();
 
 note 'Celestrak current data';
 
-my $rslt = $ua->get ('https://celestrak.com/NORAD/elements/');
+my $rslt = $ua->get ('https://celestrak.org/NORAD/elements/');
 
 $rslt->is_success()
     or plan skip_all => 'Celestrak inaccessable: ' . $rslt->status_line;
@@ -104,7 +104,7 @@ ok ( ! keys %got, 'The above is all there is' ) or do {
 
 note 'Celestrak supplemental data';
 
-$rslt = $ua->get ('https://celestrak.com/NORAD/elements/supplemental/');
+$rslt = $ua->get ('https://celestrak.org/NORAD/elements/supplemental/');
 
 %got = parse_string( $rslt->content, source => 'celestrak_supplemental' );
 
