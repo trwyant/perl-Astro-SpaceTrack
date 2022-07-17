@@ -13,7 +13,7 @@ use HTTP::Response;
 use LWP::UserAgent;
 use JSON;
 
-our $VERSION = '0.154_01';
+our $VERSION = '0.155';
 
 our $CANNED_RESPONSE_DIR = File::Spec->catdir(
     qw{ t data Mock-LWP-UserAgent } );
