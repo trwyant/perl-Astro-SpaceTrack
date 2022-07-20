@@ -147,12 +147,12 @@ sub complete {
     sub classic_retrieve_options {
 	my ( $extra ) = @_;
 	@opt
-	    or @opt = sort( process_options(
-	    Astro::SpaceTrack::CLASSIC_RETRIEVE_OPTIONS() ) );
+	    or @opt = sort +process_options(
+		Astro::SpaceTrack::CLASSIC_RETRIEVE_OPTIONS() );
 	$extra
 	    and @{ $extra }
 	    or return @opt;
-	return sort( @opt, process_options( $extra ) );
+	return sort @opt, process_options( $extra );
     }
 }
 
@@ -161,17 +161,17 @@ sub complete {
     sub retrieve_options {
 	my ( $extra ) = @_;
 	@opt
-	    or @opt = sort( classic_retrieve_options( [
+	    or @opt = sort +classic_retrieve_options( [
 		'since_file=i'
 		    => '(Return only results added after the given file number)',
 		'json!'	=> '(Return TLEs in JSON format)',
 		'format=s' => 'Specify data format'
 	    ]
-	) );
+	);
 	$extra
 	    and @{ $extra }
 	    or return @opt;
-	return sort( @opt, process_options( $extra ) );
+	return sort @opt, process_options( $extra );
     }
 }
 
