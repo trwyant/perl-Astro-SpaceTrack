@@ -1481,7 +1481,9 @@ sub _celestrak_repack_iridium {
 	    $valid_type{$_}
 		or next;
 	    # As of February 12 2022 Celestrak does this
-	    $resp->decoded_content() =~ m/\ANo GP data found\b/
+	    # As of July 23 2022 this is not at the beginning of the
+	    # string
+	    $resp->decoded_content() =~ m/^No GP data found\b/sm
 		and last;
 	    return;
 	}
