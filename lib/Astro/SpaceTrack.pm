@@ -1476,14 +1476,18 @@ sub _celestrak_repack_iridium {
 	    return $self->_no_such_catalog(
 		$source => $name, $msg);
 	};
-	foreach ( _trim( split ',', $type ) ) {
-	    s/ ; .* //smx;
-	    $valid_type{$_}
+	foreach my $type ( _trim( split ',', $type ) ) {
+	    $type =~ s/ ; .* //smx;
+	    $valid_type{$type}
 		or next;
+	    local $_ = $resp->decoded_content();
 	    # As of February 12 2022 Celestrak does this
 	    # As of July 23 2022 this is not at the beginning of the
 	    # string
-	    $resp->decoded_content() =~ m/^No GP data found\b/sm
+	    m/^No GP data found\b/sm
+		and last;
+	    # As of July 25 2022 Celestrak does this.
+	    m/^(?:GROUP|FILE) "[^"]+" does not exist/sm
 		and last;
 	    return;
 	}
