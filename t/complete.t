@@ -13,7 +13,15 @@ use Astro::SpaceTrack;
 use Test::More 0.88;	# Because of done_testing();
 
 my $app = Astro::SpaceTrack->new();
-$app->_get_readline();	# To initialize internals.
+
+{
+    local $@ = undef;
+    eval {
+	$app->_get_readline();	# To initialize internals.
+	1;
+    } or plan skip_all => "Term::ReadLine not available: $@";
+}
+
 $INC{'Term/ReadLine/Perl.pm'}
     or plan skip_all => 'Term::ReadLine::Perl not available';
 
