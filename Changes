@@ -1,13 +1,8 @@
-0.155_03	2022-07-26	T. R. Wyant
-    t/complete.t shoult skip, not fail, if no /dev/tty.
+0.156		2022-08-02	T. R. Wyant
+    t/complete.t should skip, not fail, if no /dev/tty.
 
-0.155_02	2022-07-25	T. R. Wyant
-    Track further changes in necessary Celestrak error detecton
+    Track changes in necessary Celestrak error detecton
 
-0.155_01	2022-07-23	T. R. Wyant
-    Tweak Celestrak error detection.
-
-0.155_001	2022-07-20	T. R. Wyant
     Add command completion.
 
 0.155		2022-07-17	T. R. Wyant
