@@ -39,7 +39,7 @@ complete( 'box_score -n', [ qw{ --no-json } ] );
 
 $app->set( direct => 1 );
 complete( 'celestrak -',
-    [ classic_retrieve_options() ],
+    [ celestrak_direct_retrieve_options() ],
     q/Complete 'celestrak -', direct => 1/,
 );
 
@@ -147,6 +147,16 @@ sub complete {
 	    @core = sort @core;
 	}
 	return \@core;
+    }
+}
+
+{
+    my @opt;
+    sub celestrak_direct_retrieve_options {
+	@opt
+	    or @opt = sort +process_options(
+		Astro::SpaceTrack::CELESTRAK_API_OPTIONS() );
+	return @opt;
     }
 }
 

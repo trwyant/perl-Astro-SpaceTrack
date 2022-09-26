@@ -175,6 +175,7 @@ use HTTP::Status qw{
     HTTP_NOT_FOUND
     HTTP_I_AM_A_TEAPOT
     HTTP_INTERNAL_SERVER_ERROR
+    HTTP_NOT_ACCEPTABLE
     HTTP_NOT_MODIFIED
     HTTP_OK
     HTTP_PRECONDITION_FAILED
@@ -245,6 +246,12 @@ use constant CLASSIC_RETRIEVE_OPTIONS => [
     'sort=s' =>
 	"type ('catnum' or 'epoch', with 'catnum' the default)",
     'start_epoch=s' => 'date',
+];
+
+use constant CELESTRAK_API_OPTIONS	=> [
+    @{ CLASSIC_RETRIEVE_OPTIONS() },	# TODO deprecate and remove
+    'query=s',	'query type',
+    'format=s',	'data format',
 ];
 
 our $COMPLETION_APP;	# A hack.
@@ -1102,118 +1109,89 @@ B<Note:> As of version 0.150 of this module a false value of the
 C<'direct'> attribute is unsupported. See L<CELESTRAK API|/CELESTRAK API>
 above for details.
 
-This method takes the name of a Celestrak data set and returns an
-HTTP::Response object whose content is the relevant element sets.
-If called in list context, the first element of the list is the
-aforementioned HTTP::Response object, and the second element is a
-list reference to list references  (i.e. a list of lists). Each
-of the list references contains the catalog ID of a satellite or
-other orbiting body and the common name of the body.
-
-If the C<direct> attribute is true, or if the C<fallback> attribute is
-true and the data are not available from Space Track, the elements will
-be fetched directly from Celestrak, and no login is needed. Otherwise,
-this method implicitly calls the C<login()> method if the session cookie
-is missing or expired, and returns the SpaceTrack data for the OIDs
-fetched from Celestrak. If C<login()> fails, you will get the
-HTTP::Response from C<login()>.
-
-A list of valid names and brief descriptions can be obtained by calling
-C<< $st->names ('celestrak') >>. If you have set the C<verbose> attribute true
-(e.g. C<< $st->set (verbose => 1) >>), the content of the error response will
-include this list. Note, however, that this list does not determine what
-can be retrieved; if Dr.  Kelso adds a data set, it can be retrieved
-even if it is not on the list, and if he removes one, being on the list
-won't help.
-
-In general, the data set names are the same as the file names given at
-L<https://celestrak.org/NORAD/elements/>, but without the '.txt' on the
-end; for example, the name of the 'International Space Station' data set
-is 'stations', since the URL for this is
-L<https://celestrak.org/NORAD/elements/stations.txt>.
-
-The Celestrak web site makes a few items available for direct-fetching
-only (C<< $st->set(direct => 1) >>, see below.) These are typically
-debris from collisions or explosions. I have not corresponded with Dr.
-Kelso on this, but I think it reasonable to believe that asking Space
-Track for a couple thousand sets of data at once would not be a good
-thing.
-
-As of this release, the following data sets may be direct-fetched only:
+As of version 0.158 this version is an interface to the CelesTrak API.
+The argument is the argument of a Celestrak query (see
+L<https://celestrak.org/NORAD/documentation/gp-data-formats.php>).  The
+following options are available:
 
 =over
 
-=item 1999-025
+=item format
 
-This is the debris of Chinese communication satellite Fengyun 1C,
-created by an antisatellite test on January 11 2007. As of February 21
-2010 there are 2631 pieces of debris in the data set. This is an
-increase from the 2375 recorded on March 9 2009.
+ --format json
 
-=item usa-193-debris
+This option specifies the format of the returned data. Valid values are
+C<'TLE'>, C<'3LE'>, C<'2LE'>, C<'XML'>, C<'KVN'>, C<'JSON'>, or
+C<'CSV'>. See
+L<https://celestrak.org/NORAD/documentation/gp-data-formats.php> for a
+discussion of these. C<'JSON-PRETTY'> is not a valid format option, but
+will be generated if the C<pretty> attribute is true.
 
-This is the debris of U.S. spy satellite USA-193 shot down by the U.S.
-on February 20 2008. As of February 21 2010 there are no pieces of
-debris in the data set. I noted 1 piece on March 9 2009, but this was an
-error - that piece actually decayed October 9 2008, but I misread the
-data. The maximum was 173. Note that as of February 21 2010 you still
-get the remaining piece when you direct-fetch the data from Celestrak.
+The default is C<'TLE'>.
 
-=item cosmos-2251-debris
+=item query
 
-This is the debris of Russian communication satellite Cosmos 2251,
-created by its collision with Iridium 33 on February 10 2009. As of
-February 21 2010 there are 1105 pieces of debris in the data set, up
-from the 357 that had been cataloged as of March 9 2009.
+ --query name
 
-=item iridium-33-debris
+This option specifies the type of query to be done. Valid values are
 
-This is the debris of U.S. communication satellite Iridium 33, created
-by its collision with Cosmos 2251 on February 10 2009. As of February 21
-2010 there are 461 pieces of debris in the data set, up from the 159
-that had been cataloged as of March 9 2009.
+=over
 
-=item 2012-044
+=item CATNR
 
-This is the debris of a Breeze-M upper stage (OID 38746, International
-Designator 2012-044C), which exploded October 16 2012. As of October 25
-there were 81 pieces of debris in the data set.
+The argument is a NORAD catalog number (1-9 digits).
+
+=item GROUP
+
+The argument is the name of a named group of satellites.
+
+=item INTDES
+
+The argument is an international launch designator of the form yyyy-nnn,
+where the C<yyyy> is the Gregorian year, and the C<nnn> is the launch
+number in the year.
+
+=item NAME
+
+The argument is a satellite name or a portion thereof.
+
+=item SPECIAL
+
+The argument specifies a special data set.
 
 =back
+
+The default is C<'CATNR'> if the argument is numeric, C<'INTDES'> if the
+argument looks like an international designator, or C<'GROUP'>
+otherwise.
+
+=back
+
+A list of valid C<GROUP> names and brief descriptions can be obtained by
+calling C<< $st->names ('celestrak') >>. If you have set the C<verbose>
+attribute true (e.g. C<< $st->set (verbose => 1) >>), the content of the
+error response will include this list. Note, however, that this list
+does not determine what can be retrieved; if Dr. Kelso adds a data set,
+it can be retrieved even if it is not on the list, and if he removes
+one, being on the list won't help.
 
 If this method succeeds, the response will contain headers
 
  Pragma: spacetrack-type = orbit
- Pragma: spacetrack-source = 
-
-The spacetrack-source will be C<'spacetrack'> if the TLE data actually
-came from Space Track, or C<'celestrak'> if the TLE data actually came
-from Celestrak. The former will be the case if the C<direct> attribute
-is false and either the C<fallback> attribute was false or the Space
-Track web site was accessible. Otherwise, the latter will be the case.
+ Pragma: spacetrack-source = celestrak
 
 These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 You can specify the C<retrieve()> options on this method as well, but
-they will have no effect if the C<'direct'> attribute is true.
-
-In addition, this method takes the C<observing_list> option, which
-causes the return of the actual observing list corresponding to the
-catalog. This can be specified as C<--observing-list> if you are passing
-options command-style. This option will also have no effect if the
-C<'direct'> attribute is true. If this option is passed, a successful
-response will contain headers
-
- Pragma: spacetrack-type = observing-list
- Pragma: spacetrack-source = celestrak
+they will have no effect. The plan is to deprecate and remove them.
 
 =cut
 
 # Called dynamically
 sub _celestrak_opts {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
     return $COMPLETION_APP->{direct} ?
-    CLASSIC_RETRIEVE_OPTIONS :
+    CELESTRAK_API_OPTIONS :
     [
 	_get_retrieve_options(),
 	'observing_list|observing-list!' => 'return observing list',
@@ -1225,7 +1203,7 @@ sub celestrak {
     delete $self->{_pragmata};
 
     ( my $opt, @args ) = $self->{direct} ?
-	_parse_args( CLASSIC_RETRIEVE_OPTIONS, @args ) :
+	_parse_args( CELESTRAK_API_OPTIONS, @args ) :
 	$self->_parse_retrieve_args(
 	    [ 'observing_list|observing-list!' => 'return observing list' ],
 	    @args,
@@ -1390,50 +1368,63 @@ sub celestrak_supplemental {
     );
 }
 
-sub _celestrak_direct {
-##  my ( $self, $opt, $name ) = @_;
-    my ( $self, undef, $name ) = @_;		# Options unused
-    delete $self->{_pragmata};
+{
+    my %valid_format = map { $_ => 1 } qw{ TLE 3LE 2LE XML KVN JSON CSV };
+    my %valid_query = map { $_ => 1 } qw{ CATNR INTDES GROUP NAME SPECIAL };
 
-=begin comment
+    sub _celestrak_direct {
+	my ( $self, $opt, $name ) = @_;
+	delete $self->{_pragmata};
 
-    my $resp = $self->_get_agent()->get (
-	"https://celestrak.org/NORAD/elements/$name.txt");
+	my $query = uc( defined $opt->{query} ? $opt->{query} :
+	    $name =~ m/ \A [0-9]+ \z /smx ? 'CATNR' :
+	    $name =~ m/ \A [0-9]{4}-[0-9]+ \z /smx ? 'INTDES' :
+	    'GROUP' );
+	$valid_query{$query}
+	    or return HTTP::Response->new(
+	    HTTP_NOT_ACCEPTABLE,
+	    "Query '$query' is not valid" );
+	my $format = uc( defined $opt->{format} ? $opt->{format} : 'TLE' );
+	$valid_format{$format}
+	    or return HTTP::Response->new(
+	    HTTP_NOT_ACCEPTABLE,
+	    "Format '$format' is not valid" );
+	$format eq 'JSON'
+	    and $self->getv( 'pretty' )
+	    and $format = 'JSON-PRETTY';
+	my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
+	$uri->query_form(
+	    $query	=> $name,
+	    FORMAT	=> $format,
+	);
 
-=end comment
+	if ( my $resp = $self->_dump_request(
+		args	=> [ $name ],
+		method	=> 'GET',
+		url	=> $uri,
+		version	=> 2,
+	    ) ) {
+	    return $resp;
+	}
 
-=cut
+	my $resp = $self->_get_agent()->get ( $uri->as_string() );
 
-    my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
-    $uri->query_form(
-	GROUP	=> $name,
-	FORMAT	=> 'tle',
-    );
-
-    if ( my $resp = $self->_dump_request(
-	    args	=> [ $name ],
-	    method	=> 'GET',
-	    url		=> $uri,
-	    version	=> 2,
-	) ) {
+	if (my $check = $self->_response_check(
+		$resp, celestrak => $name, 'direct' )
+	) {
+	    return $check;
+	}
+	$self->_convert_content ($resp);
+	if ($name eq 'iridium') {
+	    _celestrak_repack_iridium( $resp );
+	}
+	$self->_add_pragmata($resp,
+	    'spacetrack-type' => 'orbit',
+	    'spacetrack-source' => 'celestrak',
+	);
+	$self->__dump_response( $resp );
 	return $resp;
     }
-
-    my $resp = $self->_get_agent()->get ( $uri );
-
-    if (my $check = $self->_response_check($resp, celestrak => $name, 'direct')) {
-	return $check;
-    }
-    $self->_convert_content ($resp);
-    if ($name eq 'iridium') {
-	_celestrak_repack_iridium( $resp );
-    }
-    $self->_add_pragmata($resp,
-	'spacetrack-type' => 'orbit',
-	'spacetrack-source' => 'celestrak',
-    );
-    $self->__dump_response( $resp );
-    return $resp;
 }
 
 sub _celestrak_repack_iridium {
@@ -1449,7 +1440,8 @@ sub _celestrak_repack_iridium {
 
 {	# Local symbol block.
 
-    my %valid_type = ('text/plain' => 1, 'text/text' => 1);
+    my %valid_type = map { $_ => 1 }
+	qw{ text/plain text/text application/json };
 
     sub _response_check {
 	my ($self, $resp, $source, $name, @args) = @_;
