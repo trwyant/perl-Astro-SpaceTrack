@@ -43,6 +43,8 @@ complete( 'celestrak -',
     q/Complete 'celestrak -', direct => 1/,
 );
 
+=begin comment
+
 $app->set( direct => 0 );
 complete( 'celestrak -',
     [
@@ -53,6 +55,10 @@ complete( 'celestrak -',
     ],
     q/Complete 'celestrak -', direct => 0/,
 );
+
+=end comment
+
+=cut
 
 complete( 'celestrak o', [ qw{ oneweb orbcomm other other-comm } ] );
 

@@ -1190,24 +1190,14 @@ they will have no effect. The plan is to deprecate and remove them.
 
 # Called dynamically
 sub _celestrak_opts {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-    return $COMPLETION_APP->{direct} ?
-    CELESTRAK_API_OPTIONS :
-    [
-	_get_retrieve_options(),
-	'observing_list|observing-list!' => 'return observing list',
-    ];
+    return CELESTRAK_API_OPTIONS;
 }
 
 sub celestrak {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    ( my $opt, @args ) = $self->{direct} ?
-	_parse_args( CELESTRAK_API_OPTIONS, @args ) :
-	$self->_parse_retrieve_args(
-	    [ 'observing_list|observing-list!' => 'return observing list' ],
-	    @args,
-	);
+    ( my $opt, @args ) = _parse_args( CELESTRAK_API_OPTIONS, @args );
 
     my $name = shift @args;
     defined $name
@@ -1217,18 +1207,7 @@ sub celestrak {
 
     $self->_deprecation_notice( celestrak => $name );
 
-    $self->{direct}
-	and return $self->_celestrak_direct( $opt, $name );
-    my $resp = $self->_get_agent()->get (
-	"https://celestrak.org/SpaceTrack/query/$name.txt");
-    if ( my $check = $self->_response_check( $resp, celestrak => $name ) ) {
-	return $check;
-    }
-    $self->_convert_content ($resp);
-    $self->__dump_response( $resp );
-    $resp = $self->_handle_observing_list( $opt, $resp->content() );
-    return ( $resp->is_success || !$self->{fallback} ) ? $resp :
-	$self->_celestrak_direct( $opt, $name );
+    return $self->_celestrak_direct( $opt, $name );
 }
 
 =for html <a name="celestrak_supplemental"></a>
