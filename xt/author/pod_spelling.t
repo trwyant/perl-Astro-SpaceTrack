@@ -80,7 +80,7 @@ redirections
 redistributer
 redistributers
 RCS
-RMS
+rms
 SATCAT
 sladen
 spaceflight

@@ -249,10 +249,20 @@ use constant CLASSIC_RETRIEVE_OPTIONS => [
 ];
 
 use constant CELESTRAK_API_OPTIONS	=> [
-    @{ CLASSIC_RETRIEVE_OPTIONS() },	# TODO deprecate and remove
     'query=s',	'query type',
     'format=s',	'data format',
 ];
+
+use constant CELESTRAK_OPTIONS	=> [
+    @{ CLASSIC_RETRIEVE_OPTIONS() },	# TODO deprecate and remove
+    @{ CELESTRAK_API_OPTIONS() },
+];
+
+use constant CELESTRAK_SUPPLEMENTAL_VALID_QUERY => {
+    map { $_ => 1 } qw{ CATNR INTDES SOURCE NAME SPECIAL FILE } };
+
+use constant CELESTRAK_VALID_QUERY => {
+    map { $_ => 1 } qw{ CATNR INTDES GROUP NAME SPECIAL } };
 
 our $COMPLETION_APP;	# A hack.
 
@@ -1190,14 +1200,14 @@ they will have no effect. The plan is to deprecate and remove them.
 
 # Called dynamically
 sub _celestrak_opts {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-    return CELESTRAK_API_OPTIONS;
+    return CELESTRAK_OPTIONS;
 }
 
 sub celestrak {
     my ($self, @args) = @_;
     delete $self->{_pragmata};
 
-    ( my $opt, @args ) = _parse_args( CELESTRAK_API_OPTIONS, @args );
+    ( my $opt, @args ) = _parse_args( CELESTRAK_OPTIONS, @args );
 
     my $name = shift @args;
     defined $name
@@ -1221,7 +1231,91 @@ sets.
 
 These TLE data are B<not> redistributed from Space Track, but are
 derived from publicly available ephemeris data for the satellites in
-question. Valid data set names are:
+question.
+
+As of version 0.158 this version is an interface to the CelesTrak API.
+The argument is the argument of a Celestrak query (see
+L<https://celestrak.org/NORAD/documentation/gp-data-formats.php>).  The
+following options are available:
+
+=over
+
+=item file
+
+ --file my_data.tle
+
+This option specifies the name of an output file for the data.
+
+=item format
+
+ --format json
+
+This option specifies the format of the returned data. Valid values are
+C<'TLE'>, C<'3LE'>, C<'2LE'>, C<'XML'>, C<'KVN'>, C<'JSON'>, or
+C<'CSV'>. See
+L<https://celestrak.org/NORAD/documentation/gp-data-formats.php> for a
+discussion of these. C<'JSON-PRETTY'> is not a valid format option, but
+will be generated if the C<pretty> attribute is true.
+
+The default is C<'TLE'>.
+
+=item match
+
+This Boolean option specifies that match data be returned rather than
+TLE data, if available. This option is valid only on known catalogs that
+actually have match data. If this option is asserted, C<--format> and
+C<--query> are invalid.
+
+=item query
+
+ --query name
+
+This option specifies the type of query to be done. Valid values are
+
+=over
+
+=item CATNR
+
+The argument is a NORAD catalog number (1-9 digits).
+
+=item FILE
+
+The argument is the name of a standard data set.
+
+=item INTDES
+
+The argument is an international launch designator of the form yyyy-nnn,
+where the C<yyyy> is the Gregorian year, and the C<nnn> is the launch
+number in the year.
+
+=item NAME
+
+The argument is a satellite name or a portion thereof.
+
+=item SOURCE
+
+The argument specifies a data source as specified at
+L<https://celestrak.org/NORAD/documentation/sup-gp-queries.php>.
+
+=item SPECIAL
+
+The argument specifies a special data set.
+
+=back
+
+The default is C<'CATNR'> if the argument is numeric, C<'INTDES'> if the
+argument looks like an international designator, or C<'FILE'> otherwise.
+
+=item rms
+
+This Boolean option specifies that RMS data be returned rather than TLE
+data, if available. This option is valid only on known catalogs that
+actually have RMS data. If this option is asserted, C<--format> and
+C<--query> are invalid.
+
+=back
+
+Valid catalog names are:
 
  cpf: CPF TLEs
  glonass: Glonass satellites
@@ -1243,28 +1337,9 @@ options.  If you specify command-type options, they may be abbreviated,
 as long as the abbreviation is unique. Errors in either sort result in
 an exception being thrown.
 
-The legal options are:
-
- -file
-   specifies the name of the cache file. If the data
-   on line are newer than the modification date of
-   the cache file, the cache file will be updated.
-   Otherwise the data will be returned from the file.
-   Either way the content of the file and the content
-   of the returned HTTP::Response object end up the
-   same.
- -rms
-   specifies that RMS data be returned rather than TLE
-   data, if available. If RMS data are not available
-   for the data set, an error is returned.
- -match
-   specifies that match data be returned rather than TLE
-   data, if available. If match data are not available
-   for the data set, an error is returned.
-
-A list of valid names and brief descriptions can be obtained by calling
-C<< $st->names( 'celestrak_supplemental' ) >>. If you have set the
-C<verbose> attribute true (e.g. C<< $st->set (verbose => 1) >>), the
+A list of valid catalog names and brief descriptions can be obtained by
+calling C<< $st->names( 'celestrak_supplemental' ) >>. If you have set
+the C<verbose> attribute true (e.g. C<< $st->set (verbose => 1) >>), the
 content of the error response will include this list. Note, however,
 that this list does not determine what can be retrieved; if Dr. Kelso
 adds a data set, it can be retrieved even if it is not on the list, and
@@ -1279,6 +1354,10 @@ This can be accessed by the C<cache_hit()> method. If this pragma is
 true, the C<Last-Modified> header of the response will contain the
 modification time of the file.
 
+B<Note> that it is my belief that the current Celestrak API (as of
+September 26 2022) does not support this kind of functionality, so
+C<cache_hit()> will always return false.
+
 For more information, see
 L<https://celestrak.org/NORAD/elements/supplemental/>.
 
@@ -1287,6 +1366,7 @@ L<https://celestrak.org/NORAD/elements/supplemental/>.
 # Called dynamically
 sub _celestrak_supplemental_opts {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
     return [
+	@{ CELESTRAK_API_OPTIONS() },
 	'file=s'	=> 'Name of cache file',
 	'rms!'		=> 'Return RMS data',
 	'match!'	=> 'Return match data',
@@ -1296,46 +1376,74 @@ sub _celestrak_supplemental_opts {	## no critic (Subroutines::ProhibitUnusedPriv
 sub celestrak_supplemental {
     my ( $self, @args ) = @_;
     ( my $opt, @args ) = _parse_args( @args );
+
     $opt->{rms}
 	and $opt->{match}
 	and return HTTP::Response->new(
 	HTTP_PRECONDITION_FAILED,
-	'You may not assert both -rms and -match',
+	'You may not assert both --rms and --match',
     );
+
+    if ( $opt->{rms} || $opt->{match} ) {
+	foreach my $key ( qw{ query format } ) {
+	    defined $opt->{$key}
+		and return HTTP::Response->new(
+		HTTP_PRECONDITION_FAILED,
+		"You may not assert --$key with --rms or --match",
+	    );
+	}
+    }
+
     my $name = $args[0];
+
+    my $info = $catalogs{celestrak_supplemental}{$name};
+
+    foreach my $key ( qw{ rms match } ) {
+	not $opt->{$key}
+	    or $info->{$key}
+	    or return HTTP::Response->new(
+	    HTTP_PRECONDITION_FAILED,
+	    "$name does not take the --$key option" );
+    }
+
+    my $base_url = 'https://celestrak.org/NORAD/elements/supplemental';
+
+    my ( $spacetrack_type, $uri );
+
+    if ( $opt->{rms} ) {
+	$spacetrack_type = 'rms';
+	$uri = URI->new( "$base_url/$name.rms.txt" );
+    } elsif ( $opt->{match} ) {
+	$spacetrack_type = 'match';
+	$uri = URI->new( "$base_url/$name.match.txt" );
+    } else {
+	$spacetrack_type = 'orbit';
+
+	my $source = $info->{source};
+	defined $source
+	    or $source = $name;
+
+	my $query;
+	ref( $query = $self->_celestrak_validate_query( $opt, $name,
+		CELESTRAK_SUPPLEMENTAL_VALID_QUERY, 'FILE' ) )
+	    and return $query;
+
+	my $format;
+	ref( $format = $self->_celestrak_validate_format( $opt ) )
+	    and return $format;
+
+	$uri = URI->new( "$base_url/sup-gp.php" );
+	$uri->query_form(
+	    $query	=> $source,
+	    FORMAT	=> $format,
+	);
+    }
+
     return $self->_get_from_net(
 	%{ $opt },
-	catalog		=> $name,
-	pre_process	=> sub {
-	    my ( undef, $arg, $info ) = @_;	# Invocant not used
-	    foreach my $key ( qw{ rms match } ) {
-		not $arg->{$key}
-		    or $info->{$key}
-		    or return HTTP::Response->new(
-		    HTTP_PRECONDITION_FAILED,
-		    "$name does not take the -$key option" );
-	    }
-	    my $source = $catalogs{celestrak_supplemental}{$name}{source}
-		|| $name;
-		my $base_url = 'https://celestrak.org/NORAD/elements/supplemental';
-	    if ( $arg->{rms} ) {
-		$info->{spacetrack_type} = 'rms';
-		$info->{url} = "$base_url/$name.rms.txt";
-	    } elsif ( $arg->{match} ) {
-		$info->{spacetrack_type} = 'match';
-		$info->{url} = "$base_url/$name.match.txt";
-
-	    } else {
-		$info->{spacetrack_type} = 'orbit';
-		my $uri = URI->new( "$base_url/sup-gp.php" );
-		$uri->query_form(
-		    FILE	=> $source,
-		    FORMAT	=> 'tle',
-		);
-		$info->{url} = $uri;
-	    }
-	    return;
-	},
+	# method		=> 'celestrak_supplemental',	# TODO delete
+	# catalog		=> $name,
+	url		=> $uri,
 	post_process	=> sub {
 	    my ( $self, $resp ) = @_;
 	    my $check;
@@ -1345,66 +1453,88 @@ sub celestrak_supplemental {
 	    return $resp;
 	},
 	spacetrack_source	=> 'celestrak',
+	spacetrack_type		=> $spacetrack_type,
     );
 }
 
 {
     my %valid_format = map { $_ => 1 } qw{ TLE 3LE 2LE XML KVN JSON CSV };
-    my %valid_query = map { $_ => 1 } qw{ CATNR INTDES GROUP NAME SPECIAL };
 
-    sub _celestrak_direct {
-	my ( $self, $opt, $name ) = @_;
-	delete $self->{_pragmata};
-
-	my $query = uc( defined $opt->{query} ? $opt->{query} :
-	    $name =~ m/ \A [0-9]+ \z /smx ? 'CATNR' :
-	    $name =~ m/ \A [0-9]{4}-[0-9]+ \z /smx ? 'INTDES' :
-	    'GROUP' );
-	$valid_query{$query}
-	    or return HTTP::Response->new(
-	    HTTP_NOT_ACCEPTABLE,
-	    "Query '$query' is not valid" );
+    sub _celestrak_validate_format {
+	my ( $self, $opt ) = @_;
 	my $format = uc( defined $opt->{format} ? $opt->{format} : 'TLE' );
 	$valid_format{$format}
 	    or return HTTP::Response->new(
-	    HTTP_NOT_ACCEPTABLE,
+	    HTTP_PRECONDITION_FAILED,
 	    "Format '$format' is not valid" );
 	$format eq 'JSON'
 	    and $self->getv( 'pretty' )
 	    and $format = 'JSON-PRETTY';
-	my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
-	$uri->query_form(
-	    $query	=> $name,
-	    FORMAT	=> $format,
-	);
+	return $format;
+    }
+}
 
-	if ( my $resp = $self->_dump_request(
-		args	=> [ $name ],
-		method	=> 'GET',
-		url	=> $uri,
-		version	=> 2,
-	    ) ) {
-	    return $resp;
-	}
+sub _celestrak_validate_query {
+    my ( undef, $opt, $name, $valid, $dflt ) = @_;
+    my $query = defined $opt->{query} ? uc( $opt->{query} ) :
+	$name =~ m/ \A [0-9]+ \z /smx ? 'CATNR' :
+	$name =~ m/ \A [0-9]{4}-[0-9]+ \z /smx ? 'INTDES' :
+	defined $dflt ? uc( $dflt ) : $dflt;
+    defined $query
+	or return $query;
+    $valid->{$query}
+	or return HTTP::Response->new(
+	HTTP_PRECONDITION_FAILED,
+	"Query '$query' is not valid" );
+    return $query;
+}
 
-	my $resp = $self->_get_agent()->get ( $uri->as_string() );
+sub _celestrak_direct {
+    my ( $self, $opt, $name ) = @_;
+    delete $self->{_pragmata};
 
-	if (my $check = $self->_response_check(
-		$resp, celestrak => $name, 'direct' )
-	) {
-	    return $check;
-	}
-	$self->_convert_content ($resp);
-	if ($name eq 'iridium') {
-	    _celestrak_repack_iridium( $resp );
-	}
-	$self->_add_pragmata($resp,
-	    'spacetrack-type' => 'orbit',
-	    'spacetrack-source' => 'celestrak',
-	);
-	$self->__dump_response( $resp );
+    my $query;
+    ref( $query = $self->_celestrak_validate_query( $opt, $name,
+	    CELESTRAK_VALID_QUERY, 'GROUP' ) )
+	and return $query;
+
+    my $format;
+    ref( $format = $self->_celestrak_validate_format( $opt ) )
+	and return $format;
+
+    my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
+    $uri->query_form(
+	$query	=> $name,
+	FORMAT	=> $format,
+    );
+
+    if ( my $resp = $self->_dump_request(
+	    args	=> [ $name ],
+	    method	=> 'GET',
+	    url	=> $uri,
+	    version	=> 2,
+	) ) {
 	return $resp;
     }
+
+    my $resp = $self->_get_agent()->get ( $uri->as_string() );
+
+    if (my $check = $self->_response_check(
+	    $resp, celestrak => $name, 'direct' )
+    ) {
+	return $check;
+    }
+
+    $self->_convert_content ($resp);
+    if ($name eq 'iridium') {
+	_celestrak_repack_iridium( $resp );
+    }
+    $self->_add_pragmata($resp,
+	'spacetrack-type' => 'orbit',
+	'spacetrack-source' => 'celestrak',
+    );
+    $self->__dump_response( $resp );
+    return $resp;
 }
 
 sub _celestrak_repack_iridium {
@@ -1421,7 +1551,7 @@ sub _celestrak_repack_iridium {
 {	# Local symbol block.
 
     my %valid_type = map { $_ => 1 }
-	qw{ text/plain text/text application/json };
+	qw{ text/plain text/text application/json application/xml };
 
     sub _response_check {
 	my ($self, $resp, $source, $name, @args) = @_;
@@ -5052,7 +5182,7 @@ sub _accumulate_tle_data {	## no critic (ProhibitUnusedPrivateSubroutines)
 # Accessed via __PACKAGE__->can( "accumulate_${name}_data" ) in
 # _accumulator_for(), above
 sub _accumulate_xml_data {	## no critic (ProhibitUnusedPrivateSubroutines)
-    my ( undef, $content, $context ) = @_;	# Invocant unused
+    my ( undef, $content, $context ) = @_;
     if ( defined $context->{data} ) {
 	$context->{data} =~ s{ \s* </xml> \s* \z }{}smx;
 	$content =~ s{ .* <xml> \s* }{}smx;

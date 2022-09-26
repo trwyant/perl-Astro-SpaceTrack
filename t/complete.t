@@ -62,8 +62,8 @@ complete( 'celestrak -',
 
 complete( 'celestrak o', [ qw{ oneweb orbcomm other other-comm } ] );
 
-complete( 'celestrak_supplemental -', [ qw{ --file --match --no-match
-	--no-rms --rms } ] );
+complete( 'celestrak_supplemental -', [ qw{ --file --format --match --no-match
+	--no-rms --query --rms } ] );
 
 complete( 'celestrak_supplemental o', [ qw{ oneweb orbcomm } ] );
 
@@ -161,7 +161,7 @@ sub complete {
     sub celestrak_direct_retrieve_options {
 	@opt
 	    or @opt = sort +process_options(
-		Astro::SpaceTrack::CELESTRAK_API_OPTIONS() );
+		Astro::SpaceTrack::CELESTRAK_OPTIONS() );
 	return @opt;
     }
 }
