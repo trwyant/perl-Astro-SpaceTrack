@@ -1206,6 +1206,7 @@ sub celestrak {
 	'No catalog name specified' );
 
     $self->_deprecation_notice( celestrak => $name );
+    $self->_deprecation_notice( celestrak => "--$_" ) foreach sort keys %{ $opt };
 
     return $self->_celestrak_direct( $opt, $name );
 }
@@ -5171,9 +5172,14 @@ sub _check_cookie_generic {
 {
 
     my %deprecate = (
-#	celestrak => {
+	celestrak => {
 #	    sts	=> 3,
-#	},
+	    '--descending'	=> 0,
+	    '--end_epoch'	=> 0,
+	    '--last5'		=> 0,
+	    '--sort'		=> 0,
+	    '--start_epoch'	=> 0,
+	},
 	spaceflight => 3,
 	attribute	=> {
 	    url_iridium_status_mccants	=> 3,
