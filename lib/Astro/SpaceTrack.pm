@@ -1218,7 +1218,48 @@ sub celestrak {
     $self->_deprecation_notice( celestrak => $name );
     $self->_deprecation_notice( celestrak => "--$_" ) foreach sort keys %{ $opt };
 
-    return $self->_celestrak_direct( $opt, $name );
+    my $query;
+    ref( $query = $self->_celestrak_validate_query(
+	    delete $opt->{query}, $name,
+	    CELESTRAK_VALID_QUERY, 'GROUP' ) )
+	and return $query;
+
+    my $format;
+    ref( $format = $self->_celestrak_validate_format(
+	    delete $opt->{format} ) )
+	and return $format;
+
+    my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
+    $uri->query_form(
+	$query	=> $name,
+	FORMAT	=> $format,
+    );
+
+    if ( my $resp = $self->_dump_request(
+	    args	=> [ $name ],
+	    method	=> 'GET',
+	    url	=> $uri,
+	    version	=> 2,
+	) ) {
+	return $resp;
+    }
+
+    return $self->_get_from_net(
+	%{ $opt },
+	url		=> $uri,
+	post_process	=> sub {
+	    my ( $self, $resp ) = @_;
+	    my $check;
+	    $check = $self->_response_check( $resp,
+		celestrak => $name )
+		and return $check;
+	    $name eq 'iridium'
+		and _celestrak_repack_iridium( $resp );
+	    return $resp;
+	},
+	spacetrack_source	=> 'celestrak',
+	spacetrack_type		=> 'orbit',
+    );
 }
 
 =for html <a name="celestrak_supplemental"></a>
@@ -1424,12 +1465,14 @@ sub celestrak_supplemental {
 	    or $source = $name;
 
 	my $query;
-	ref( $query = $self->_celestrak_validate_query( $opt, $name,
+	ref( $query = $self->_celestrak_validate_query(
+		delete $opt->{query}, $name,
 		CELESTRAK_SUPPLEMENTAL_VALID_QUERY, 'FILE' ) )
 	    and return $query;
 
 	my $format;
-	ref( $format = $self->_celestrak_validate_format( $opt ) )
+	ref( $format = $self->_celestrak_validate_format(
+		delete $opt->{format} ) )
 	    and return $format;
 
 	$uri = URI->new( "$base_url/sup-gp.php" );
@@ -1441,14 +1484,12 @@ sub celestrak_supplemental {
 
     return $self->_get_from_net(
 	%{ $opt },
-	# method		=> 'celestrak_supplemental',	# TODO delete
-	# catalog		=> $name,
 	url		=> $uri,
 	post_process	=> sub {
 	    my ( $self, $resp ) = @_;
 	    my $check;
 	    $check = $self->_response_check( $resp,
-		celestrak_supplemental => $name, 'direct' )
+		celestrak_supplemental => $name )
 		and return $check;
 	    return $resp;
 	},
@@ -1461,8 +1502,8 @@ sub celestrak_supplemental {
     my %valid_format = map { $_ => 1 } qw{ TLE 3LE 2LE XML KVN JSON CSV };
 
     sub _celestrak_validate_format {
-	my ( $self, $opt ) = @_;
-	my $format = uc( defined $opt->{format} ? $opt->{format} : 'TLE' );
+	my ( $self, $format ) = @_;
+	$format = defined $format ? uc( $format ) : 'TLE';
 	$valid_format{$format}
 	    or return HTTP::Response->new(
 	    HTTP_PRECONDITION_FAILED,
@@ -1475,8 +1516,8 @@ sub celestrak_supplemental {
 }
 
 sub _celestrak_validate_query {
-    my ( undef, $opt, $name, $valid, $dflt ) = @_;
-    my $query = defined $opt->{query} ? uc( $opt->{query} ) :
+    my ( undef, $query, $name, $valid, $dflt ) = @_;
+    $query = defined $query ? uc( $query ) :
 	$name =~ m/ \A [0-9]+ \z /smx ? 'CATNR' :
 	$name =~ m/ \A [0-9]{4}-[0-9]+ \z /smx ? 'INTDES' :
 	defined $dflt ? uc( $dflt ) : $dflt;
@@ -1489,62 +1530,11 @@ sub _celestrak_validate_query {
     return $query;
 }
 
-sub _celestrak_direct {
-    my ( $self, $opt, $name ) = @_;
-    delete $self->{_pragmata};
-
-    my $query;
-    ref( $query = $self->_celestrak_validate_query( $opt, $name,
-	    CELESTRAK_VALID_QUERY, 'GROUP' ) )
-	and return $query;
-
-    my $format;
-    ref( $format = $self->_celestrak_validate_format( $opt ) )
-	and return $format;
-
-    my $uri = URI->new( 'https://celestrak.org/NORAD/elements/gp.php' );
-    $uri->query_form(
-	$query	=> $name,
-	FORMAT	=> $format,
-    );
-
-    if ( my $resp = $self->_dump_request(
-	    args	=> [ $name ],
-	    method	=> 'GET',
-	    url	=> $uri,
-	    version	=> 2,
-	) ) {
-	return $resp;
-    }
-
-    my $resp = $self->_get_agent()->get ( $uri->as_string() );
-
-    if (my $check = $self->_response_check(
-	    $resp, celestrak => $name, 'direct' )
-    ) {
-	return $check;
-    }
-
-    $self->_convert_content ($resp);
-    if ($name eq 'iridium') {
-	_celestrak_repack_iridium( $resp );
-    }
-    $self->_add_pragmata($resp,
-	'spacetrack-type' => 'orbit',
-	'spacetrack-source' => 'celestrak',
-    );
-    $self->__dump_response( $resp );
-    return $resp;
-}
-
 sub _celestrak_repack_iridium {
     my ( $resp ) = @_;
-    my @content;
-    foreach ( split qr{ \n }smx, $resp->content() ) {
-	s/ \s+ [[] . []] \s* \z //smx;
-	push @content, $_;
-    }
-    $resp->content( join "\n", @content );
+    local $_ = $resp->content();
+    s/ \s+ [[] . []] [ \t]* (?= \r? \n | \z ) //smxg;
+    $resp->content( $_ );
     return;
 }
 
