@@ -113,7 +113,7 @@ This package retrieves orbital data from the Space Track web site
 L<https://www.space-track.org> and several others. You must register and
 get a user name and password before you can get data from Space Track.
 
-Other methods (C<celestrak()>, C<amsat()>, C<spaceflight()> ...) have
+Other methods (C<celestrak()>, C<amsat()>, ...) have
 been added to access other repositories of orbital data, and in general
 these do not require a Space Track username and password.
 
@@ -221,12 +221,17 @@ use constant DEFAULT_SPACE_TRACK_VERSION => 2;
 use constant DUMP_NONE => 0;		# No dump
 use constant DUMP_TRACE => 0x01;	# Logic trace
 use constant DUMP_REQUEST => 0x02;	# Request content
-use constant DUMP_NO_EXECUTE => 0x04;	# Do not execute request
+use constant DUMP_DRY_RUN => 0x04;	# Do not execute request
 use constant DUMP_COOKIE => 0x08;	# Dump cookies.
 use constant DUMP_RESPONSE => 0x10;	# Dump response.
-use constant DUMP_RESPONSE_TRUNCATED => 0x20;	# Dump w/ truncated content
-# The following is used to see if we want to dump the response at all.
-use constant _DUMP_RESPONSE => DUMP_RESPONSE | DUMP_RESPONSE_TRUNCATED;
+use constant DUMP_TRUNCATED => 0x20;	# Dump with truncated content
+
+my @dump_options;
+foreach my $key ( sort keys %Astro::SpaceTrack:: ) {
+    $key =~ s/ \A DUMP_ //smx
+	or next;
+    push @dump_options, lc $key;
+}
 
 # Manifest constants for reference types
 use constant ARRAY_REF	=> ref [];
@@ -236,7 +241,7 @@ use constant HASH_REF	=> ref {};
 # These are the Space Track version 1 retrieve Getopt::Long option
 # specifications, and the descriptions of each option. These need to
 # survive the returement of Version 1 as a separate entity because I
-# emulated them in the celestrak() and spaceflight() methods. I'm _NOT_
+# emulated them in the celestrak() method. I'm _NOT_
 # emulating the options added in version 2 because they require parsing
 # the TLE.
 use constant CLASSIC_RETRIEVE_OPTIONS => [
@@ -1617,7 +1622,7 @@ content_source value of C<'mccants'>.
 
 If the C<content_type()> method returns C<'orbit'>, you can expect
 content-source values of C<'amsat'>, C<'celestrak'>, C<'mccants'>,
-C<'spaceflight'>, or C<'spacetrack'>, corresponding to the actual source
+or C<'spacetrack'>, corresponding to the actual source
 of the TLE data.  Note that the C<celestrak()> method may return a
 content_type of C<'spacetrack'> if the C<direct> attribute is false.
 
@@ -1976,13 +1981,32 @@ sub _readline_complete_command_get {	## no critic (Subroutines::ProhibitUnusedPr
 sub get {
     my ( $self, $name ) = @_;
     delete $self->{_pragmata};
-    my $value = $self->getv( $name );
+    my $code = $self->can( "_get_attr_$name" ) || $self->can( 'getv' );
+    my $value = $code->( $self, $name );
     my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef, $value );
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'get',
     );
     $self->__dump_response( $resp );
     return wantarray ? ($resp, $value ) : $resp;
+}
+
+# Called dynamically
+sub _get_attr_dump_headers {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
+    my ( $self, $name ) = @_;
+    my $value = $self->getv( $name );
+    my @opts = ( $value, '#' );
+    if ( $value ) {
+	foreach my $key ( @dump_options ) {
+	    my $const = "DUMP_\U$key";
+	    my $mask = __PACKAGE__->$const();
+	    $value & $mask
+		and push @opts, "--$key";
+	}
+    } else {
+	push @opts, '--none';
+    }
+    return "@opts";
 }
 
 
@@ -2088,10 +2112,8 @@ The following commands are defined:
       cookie_expires = Perl date the session cookie expires;
       direct = true to fetch orbital elements directly
         from a redistributer. Currently this only affects the
-        celestrak() method. The default is false.
-      dump_headers is unsupported, and intended for debugging -
-        don't be suprised at anything it does, and don't rely
-        on anything it does;
+        celestrak() method. The default is true, and it is
+        deprecated.
       filter = true supresses all output to stdout except
         orbital elements;
       identity = load username and password from identity file
@@ -2108,8 +2130,6 @@ The following commands are defined:
     only be set to previously-retrieved, matching values.
   source filename
     Executes the contents of the given file as shell commands.
-  spaceflight
-    Deprecated. Web site http://spaceflight.nasa.gov/ retired.
   spacetrack name
     Retrieves the named catalog of orbital elements from
     Space Track.
@@ -2931,7 +2951,7 @@ sub mccants {
 
 This method retrieves the names of the catalogs for the given source,
 either C<'celestrak'>, C<'celestrak_supplemental'>, C<'iridium_status'>,
-C<'mccants'>, C<'spaceflight'>, or C<'spacetrack'>, in the content of
+C<'mccants'>, or C<'spacetrack'>, in the content of
 the given HTTP::Response object. If the argument is not one of the
 supported values, the C<$resp> object represents a 404 (Not found)
 error.
@@ -3095,7 +3115,7 @@ sub retrieve {
     @args = $self->_expand_oid_list( @args )
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
 
-    my $no_execute = $self->getv( 'dump_headers' ) & DUMP_NO_EXECUTE;
+    my $no_execute = $self->getv( 'dump_headers' ) & DUMP_DRY_RUN;
 
 ##  $rest->{orderby} = 'EPOCH desc';
 
@@ -3838,18 +3858,17 @@ sub _readline_complete_command_set {	## no critic (Subroutines::ProhibitUnusedPr
 sub set {	## no critic (ProhibitAmbiguousNames)
     my ($self, @args) = @_;
     delete $self->{_pragmata};
-    @args % 2
-	and Carp::croak __PACKAGE__, '->set( ',
-	join( ', ', map { "'$_'" } @args ),
-	') requires an even number of arguments';
-    while (@args) {
+    while ( @args > 1 ) {
 	my $name = shift @args;
 	Carp::croak "Attribute $name may not be set. Legal attributes are ",
 		join (', ', sort keys %mutator), ".\n"
 	    unless $mutator{$name};
-	my $value = shift @args;
-	$mutator{$name}->($self, $name, $value);
+	my $value = $args[0];
+	$mutator{$name}->( $self, $name, $value, \@args );
+	shift @args;
     }
+    @args
+	and Carp::croak __PACKAGE__, "->set() specifies no value for @args";
     my $resp = HTTP::Response->new( HTTP_OK, COPACETIC, undef, COPACETIC );
     $self->_add_pragmata( $resp,
 	'spacetrack-type' => 'set',
@@ -4679,7 +4698,7 @@ C<'tle_latest'>,
 	my ( $self ) = @_;
 	$SPACETRACK_DELAY_SECONDS
 	    or return;
-	$self->{dump_headers} & DUMP_NO_EXECUTE
+	$self->{dump_headers} & DUMP_DRY_RUN
 	    and return;
 	if ( defined $spacetrack_delay_until ) {
 	    my $now = _time();
@@ -5375,9 +5394,9 @@ sub _check_cookie_generic {
 sub __dump_response {
     my ( $self, $resp, $message ) = @_;
 
-    if ( $self->{dump_headers} & _DUMP_RESPONSE ) {
+    if ( $self->{dump_headers} & DUMP_RESPONSE ) {
 	my $content = $resp->content();
-	if ( $self->{dump_headers} & DUMP_RESPONSE_TRUNCATED
+	if ( $self->{dump_headers} & DUMP_TRUNCATED
 	    && 61 < length $content ) {
 	    $content = substr( $content, 0, 61 ) . '...';
 	}
@@ -5405,7 +5424,7 @@ sub __dump_response {
 #	_dump_request dumps the request if desired.
 #
 #	If the dump_request attribute has the DUMP_REQUEST bit set, this
-#	routine dumps the request. If the DUMP_NO_EXECUTE bit is set,
+#	routine dumps the request. If the DUMP_DRY_RUN bit is set,
 #	the dump is returned in the content of an HTTP::Response object,
 #	with the response code set to HTTP_I_AM_A_TEAPOT. Otherwise the
 #	request is dumped to STDERR.
@@ -5431,7 +5450,7 @@ sub _dump_request {
 	$args{$key} = $args{$key}->( \%args );
     }
 
-    $self->{dump_headers} & DUMP_NO_EXECUTE
+    $self->{dump_headers} & DUMP_DRY_RUN
 	and return HTTP::Response->new(
 	HTTP_I_AM_A_TEAPOT, undef, undef, $json->encode( [ \%args ] )
     );
@@ -5871,9 +5890,27 @@ sub _mutate_attrib {
 }
 
 sub _mutate_dump_headers {
-    my ( $self, $name, $value ) = @_;
-    $value =~ m/ \A 0 (?: [0-7]+ | x [[:xdigit:]]+ ) \z /smx
-	and $value = oct $value;
+    my ( $self, $name, $value, $args ) = @_;
+    if ( $value =~ m/ \A --? /smx ) {
+	$value = 0;
+	my $go = Getopt::Long::Parser->new();
+	$go->configure( qw{ posix_default } );
+	$go->getoptionsfromarray(
+	    $args,
+	    map {; "$_!" => sub {
+		    $_[1] and do {
+			my $method = "DUMP_\U$_[0]";
+			$value |= $self->$method();
+		    };
+		    return;
+		}
+	    } @dump_options
+	);
+	push @{ $args }, $value;	# Since caller pops it.
+    } else {
+	$value =~ m/ \A 0 (?: [0-7]+ | x [[:xdigit:]]+ ) \z /smx
+	    and $value = oct $value;
+    }
     return ( $self->{$name} = $value );
 }
 
@@ -6880,10 +6917,10 @@ the name of the session cookie you can use this to get you going again.
 =item direct (Boolean)
 
 This attribute specifies that orbital elements should be fetched
-directly from the redistributer if possible. At the moment the only
-methods affected by this are celestrak() and spaceflight().
+directly from the redistributer This attribute is deprecated, and as of
+version 0.150 its value is ignored.
 
-The default is false (i.e. 0).
+The default is true (i.e. 1).
 
 =item domain_space_track (string)
 
