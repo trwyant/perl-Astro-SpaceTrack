@@ -67,6 +67,16 @@ deprecated. Six months from the release of 0.150 this attribute will
 warn on the first use; six months after that it will warn on all uses,
 and six months after that any use will be fatal.
 
+The absence of OID lists also means that the Space Track options on
+Celestrak queries are deprecated. Six months after the release of 0.158
+these will warn on the first use, and so on as for the C<direct>
+attribute.
+
+The absence of OID lists also means that the Space Track options on
+Celestrak queries are deprecated. Six months after the release of 0.158
+these will warn on the first use, and so on as for the C<direct>
+attribute.
+
 =head2 DEPRECATION NOTICE: IRIDIUM STATUS
 
 As of version 0.137, Iridium status format C<'mccants'> is fully
@@ -1126,7 +1136,7 @@ above for details.
 
 As of version 0.158 this version is an interface to the CelesTrak API.
 The argument is the argument of a Celestrak query (see
-L<https://celestrak.org/NORAD/documentation/gp-data-formats.php>).  The
+L<https://celestrak.org/NORAD/documentation/gp-data-formats.php>). The
 following options are available:
 
 =over
@@ -1199,7 +1209,11 @@ These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 You can specify the C<retrieve()> options on this method as well, but
-they will have no effect. The plan is to deprecate and remove them.
+they will have no effect, and are deprecated. Six months after the
+release of version 0.158 these will warn on the first use. Six months
+after that, they will warn on every use, and six months after that they
+will be fatal. After a further six months all related code will be
+removed.
 
 =cut
 
