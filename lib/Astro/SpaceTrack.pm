@@ -1246,7 +1246,7 @@ sub celestrak {
 	post_process	=> sub {
 	    my ( $self, $resp ) = @_;
 	    my $check;
-	    $check = $self->_response_check( $resp,
+	    $check = $self->_celestrak_response_check( $resp,
 		celestrak => $name )
 		and return $check;
 	    $name eq 'iridium'
@@ -1484,7 +1484,7 @@ sub celestrak_supplemental {
 	post_process	=> sub {
 	    my ( $self, $resp ) = @_;
 	    my $check;
-	    $check = $self->_response_check( $resp,
+	    $check = $self->_celestrak_response_check( $resp,
 		celestrak_supplemental => $name )
 		and return $check;
 	    return $resp;
@@ -1539,7 +1539,7 @@ sub _celestrak_repack_iridium {
     my %valid_type = map { $_ => 1 }
 	qw{ text/plain text/text application/json application/xml };
 
-    sub _response_check {
+    sub _celestrak_response_check {
 	my ($self, $resp, $source, $name, @args) = @_;
 	unless ($resp->is_success) {
 	    $resp->code == HTTP_NOT_FOUND
@@ -5607,13 +5607,6 @@ sub _get_agent {
 #      If this is defined, it is the name of the method doing the
 #      catalog lookup. This is unused unless 'catalog' is defined, and
 #      defaults to the name of the calling method.
-#   pre_process => code_reference
-#      If 'catalog' was specified and this is defined, it is called and
-#      passed the invocant, a reference to the %arg hash, and a
-#      reference to the catalog information hash, which it is allowed to
-#      modify. The retrurn is either nothing or an HTTP::Response
-#      object. In the latter case, the HTTP::Response object is returned
-#      to the caller if it does not represent success.
 #   post_process => code reference
 #      If the network operation succeeded and this is defined, it is
 #      called and passed the invocant, the HTTP::Response object, and
@@ -5651,13 +5644,6 @@ sub _get_from_net {
 	    and $info = $catalogs{$method}{$arg{catalog}}
 	    or return $self->_no_such_catalog( $method, $arg{catalog} );
 	$self->_deprecation_notice( $method => $arg{catalog} );
-	if ( defined $arg{pre_process} ) {
-	    $info = { %{ $info } };	# Shallow clone
-	    my $resp = $arg{pre_process}->( $self, \%arg, $info );
-	    $resp
-		and not $resp->is_success()
-		and return $resp;
-	}
 	$url = $info->{url}
 	    or Carp::confess "Bug - No url defined for $method( '$arg{catalog}' )";
     } else {
@@ -5687,7 +5673,7 @@ sub _get_from_net {
     $resp = $self->_dump_request(
 	arg	=> sub {
 	    my %sanitary = %arg;
-	    foreach my $key ( qw{ pre_process post_process } ) {
+	    foreach my $key ( qw{ post_process } ) {
 		delete $sanitary{$key}
 		    and $sanitary{$key} = CODE_REF;
 	    }
@@ -5894,7 +5880,7 @@ sub _mutate_dump_headers {
     if ( $value =~ m/ \A --? /smx ) {
 	$value = 0;
 	my $go = Getopt::Long::Parser->new();
-	$go->configure( qw{ posix_default } );
+	$go->configure( qw{ require_order } );
 	$go->getoptionsfromarray(
 	    $args,
 	    map {; "$_!" => sub {
