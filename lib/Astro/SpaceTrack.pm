@@ -4538,7 +4538,7 @@ HTTP::Response from C<login()>.
     sub _unpack_query {
 	my ( $arg ) = @_;
 	my $code = $unpack_query{ref $arg}
-	    or Carp::confess "Programming error - unexpected query $arg";
+	    or Carp::confess "Bug - unexpected query $arg";
 	return $code->( $arg );
     }
 
@@ -5659,9 +5659,9 @@ sub _get_from_net {
 		and return $resp;
 	}
 	$url = $info->{url}
-	    or Carp::confess "Programming error - No url defined for $method( '$arg{catalog}' )";
+	    or Carp::confess "Bug - No url defined for $method( '$arg{catalog}' )";
     } else {
-	Carp::confess q<Programming error - neither 'url' nor 'catalog' specified>;
+	Carp::confess q<Bug - neither 'url' nor 'catalog' specified>;
     }
 
     if ( my $resp = $self->_dump_request(
@@ -6111,12 +6111,12 @@ sub _mutate_verify_hostname {
 	my ( $self, $source, @args ) = @_;
 
 	my $info = $catalogs{$source}
-	    or Carp::confess "Programming error - No such source as '$source'";
+	    or Carp::confess "Bug - No such source as '$source'";
 
 	if ( ARRAY_REF eq ref $info ) {
 	    my $inx = shift @args;
 	    $info = $info->[$inx]
-		or Carp::confess "Programming error - Illegal index $inx ",
+		or Carp::confess "Bug - Illegal index $inx ",
 		    "for '$source'";
 	}
 
@@ -6126,9 +6126,9 @@ sub _mutate_verify_hostname {
 
 	my $lead = defined $catalog ?
 	    $info->{$catalog} ?
-		"Missing $name catalog '$catalog'" :
-		"No such $name catalog as '$catalog'" :
-	    'Catalog name not defined';
+		"$name '$catalog' missing" :
+		"$name '$catalog' not found" :
+	    "$name item not defined";
 	$lead .= defined $note ? " ($note)." : '.';
 
 	return HTTP::Response->new (HTTP_NOT_FOUND, "$lead\n")
@@ -6366,7 +6366,7 @@ sub _parse_launch_date {
 	    and $opt->{format} ne 'json'
 	    and Carp::croak 'Inconsistent retrieval format specification';
 	$format{$table}
-	    or Carp::confess "Programming error - $table not supported";
+	    or Carp::confess "Bug - $table not supported";
 	defined $opt->{format}
 	    or $opt->{format} = $opt->{json} ? 'json' :
 		$format{$table}{default};
