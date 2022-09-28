@@ -1235,15 +1235,6 @@ sub celestrak {
 	FORMAT	=> $format,
     );
 
-    if ( my $resp = $self->_dump_request(
-	    args	=> [ $name ],
-	    method	=> 'GET',
-	    url	=> $uri,
-	    version	=> 2,
-	) ) {
-	return $resp;
-    }
-
     return $self->_get_from_net(
 	%{ $opt },
 	url		=> $uri,
@@ -5439,8 +5430,6 @@ sub _dump_request {
 	    or next;
 	$args{$key} = $args{$key}->( \%args );
     }
-    ref $args{url}
-	and $args{url} = $args{url}->as_string();
 
     $self->{dump_headers} & DUMP_NO_EXECUTE
 	and return HTTP::Response->new(
@@ -5456,7 +5445,7 @@ sub _get_json_object {
     my ( $self, %arg ) = @_;
     defined $arg{pretty}
 	or $arg{pretty} = $self->{pretty};
-    my $json = JSON->new()->utf8();
+    my $json = JSON->new()->utf8()->convert_blessed();
     $arg{pretty}
 	and $json->pretty()->canonical();
     return $json;
