@@ -1,4 +1,4 @@
-0.157_01	2022-09-28	T. R. Wyant
+0.158		2022-10-05	T. R. Wyant
     Implement new Celestrak API. Add options --format and --query to
     celestrak() and celestrak_supplemental(). Deprecate Space Track
     options on celestrak().
