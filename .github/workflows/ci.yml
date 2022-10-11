@@ -82,11 +82,13 @@ jobs:
       # If running Windows, add LINES and COLUMNS to the environment
       # to keep Term::ReadKey happy. Thanks to Ryo Kuroyanagi's
       # https://dev.to/ku6ryo/how-to-set-env-parameters-conditionally-in-github-actions-1g6a
-      # for pointing me in the right direction. These appear in all
-      # subsequent steps.
+      # for pointing me in the right direction, though since this is
+      # Windows I have to use PowerShell syntax.  These environment
+      # variables appear in all subsequent steps.
       run: |
-        echo "COLUMNS=80" >> $GITHUB_ENV
-        echo "LINES=24"   >> $GITHUB_ENV
+        Add-Content $env:GITHUB_ENV "COLUMNS=80"
+        Add-Content $env:GITHUB_ENV "LINES=24"
+        Get-Content $env:GITHUB_ENV
 
     - name: Run ExtUtils::MakeMaker tests
       # Run the ExtUtils::MakeMaker toolchain
