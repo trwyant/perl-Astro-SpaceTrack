@@ -1,0 +1,92 @@
+# Explicit name of workflow. This is optional.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
+name: Perl CI
+
+# Specify the events that trigger this workflow.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+on:
+  push:
+  pull_request:
+
+
+# Define the jobs that make up the workflow.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobs
+jobs:
+
+  # Define a job called 'test'
+  test:
+
+    # Create a matrix of configurations for the job. It will be run on
+    # the Cartesian product of the resources specified.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategy
+    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+    strategy:
+
+      # Do not cancel other jobs in the matrix if one of them fails
+      fail-fast: false
+
+      # The actual matrix
+      matrix:
+
+        # OS environments under which the job runs.
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+        # Version of Perl to run.
+        perl: [ '5.6.2', '5' ]
+
+        # Exclude Perl 5.6.2 under Windows because it is not available.
+        exclude:
+          - runner: windows-latest
+            perl: '5.6.2'
+
+    # Define where the job runs.
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ${{matrix.runner}}
+
+    # The name of this job
+    name: OS ${{matrix.runner}} Perl ${{matrix.perl}}
+
+    # The individual steps in the job
+    steps:
+
+      # Specify the action performed by this step.
+    - uses: actions/checkout@v2
+
+    - name: Set up perl
+      # Specify the action performed by this step. In this case it is a
+      # custom action residing in repository shogo82148/actions-setup-perl
+      # and tagged v1. Yes, shogo82148 is the user name and
+      # actions-setup-perl is the repository name. See
+      # https://github.com/marketplace/actions/setup-perl-environment
+      # The available Perl versions are in
+      # https://github.com/shogo82148/actions-setup-perl/tree/main/versions
+      uses: shogo82148/actions-setup-perl@v1
+      # Specify variables to the action
+      with:
+          perl-version: ${{ matrix.perl }}
+          distribution: ${{ ( startsWith( matrix.runner, 'windows-' ) && 'strawberry' ) || 'default' }}
+
+    - name: Show Perl Version
+      # Run a command to display the version of Perl being used.
+      run: |
+        perl -v
+
+    - name: Install Modules
+      # Run commands to install the module's declared dependencies.
+      run: |
+        cpanm -v
+        cpanm --installdeps .
+
+    - name: Run ExtUtils::MakeMaker tests
+      # Run the ExtUtils::MakeMaker toolchain
+      run: |
+        perl Makefile.PL
+        make
+        make test
+
+    - name: Run Module::Build tests
+      # Run the Module::Build toolchain
+      run: |
+        perl Build.PL
+        ./Build
+        ./Build test
