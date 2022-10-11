@@ -32,12 +32,12 @@ jobs:
         # OS environments under which the job runs.
         runner: [ubuntu-latest, macos-latest, windows-latest]
         # Version of Perl to run.
-        perl: [ '5.8', '5' ]
+        perl: [ '5.6.2', '5' ]
 
-        # Exclude Perl 5.8 under Windows because it is not available.
+        # Exclude Perl 5.6.2 under Windows because it is not available.
         exclude:
           - runner: windows-latest
-            perl: '5.8'
+            perl: '5.6.2'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -97,9 +97,21 @@ jobs:
         make
         make test
 
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show ExtUtils::MakeMaker errors.
+      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
+      run: cat $HOME/.cpanm/work/*/build.log
+
     - name: Run Module::Build tests
       # Run the Module::Build toolchain
       run: |
         perl Build.PL
         ./Build
         ./Build test
+
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show Module::Build errors.
+      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
+      run: cat $HOME/.cpanm/work/*/build.log
