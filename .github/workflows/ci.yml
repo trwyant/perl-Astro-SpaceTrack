@@ -35,14 +35,13 @@ jobs:
         perl: [ '5' ]
 
         # The actual minimum is 5.6.2, but we can't use that because
-        # cpanm itself requires 5.8.1.
+        # cpanm itself requires 5.8.1. But IO::Uncompress::Unzip fails
+        # under that, so I have to probe further.
         include:
           - runner: ubuntu-latest
-            perl: '5.8.1'
+            perl: '5.8.5'
           - runner: macos-latest
-            perl: '5.8.1'
-          - runner: windows-latest
-            perl: '5.14'
+            perl: '5.8.5'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -118,9 +117,3 @@ jobs:
         perl Build.PL
         ./Build
         ./Build test
-
-    # The following technique from Gabor Szabo. Thanks:
-    # https://perlmaven.com/install-developer-dependencies-first-test-css
-    - name: Show Module::Build errors.
-      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
-      run: cat $HOME/.cpanm/work/*/build.log
