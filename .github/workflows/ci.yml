@@ -132,19 +132,19 @@ jobs:
         use File::Glob qw{ :bsd_glob };
         use File::HomeDir;
         use File::Spec;
-        my $home = File::HomeDir->my_home();
-        print "Home is $home\n";
-        my $glob = File::Spec->catfile( $home, qw{ .cpanm work * build.log } );
-        print "Globbing $glob\n";
-        if ( my @logs = sort bsd_glob( $glob ) ) {
-          foreach my $log ( @logs ) {
-            open my $fh, '<', $log
-              or die "Failed to open $log: $!\n";
-            local $/ = undef;
-            print <$fh>;
-            close $fh;
+        my `$home = File::HomeDir->my_home();
+        print "Home is `$home\n";
+        my `$glob = File::Spec->catfile( `$home, qw{ .cpanm work * build.log } );
+        print "Globbing `$glob\n";
+        if ( my @logs = sort bsd_glob( `$glob ) ) {
+          foreach my `$log ( @logs ) {
+            open my `$fh, '<', `$log
+              or die "Failed to open `$log: `$!\n";
+            local `$/ = undef;
+            print <`$fh>;
+            close `$fh;
           }
         } else {
-          die "$glob did not match any files\n";
+          die "`$glob did not match any files\n";
         }
         "@
