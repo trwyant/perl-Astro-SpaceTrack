@@ -1,4 +1,5 @@
-# Explicit name of workflow. This is optional.
+#
+#Explicit name of workflow. This is optional.
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
 name: Perl CI
 
@@ -47,7 +48,7 @@ jobs:
           - runner: macos-latest
             perl: '5.8.8'
           - runner: windows-latest
-            perl: '5.14'
+            perl: '5.14.4'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -129,7 +130,7 @@ jobs:
         perl -e @"
         use strict;
         use warnings;
-        use File::Glob qw{ :bsd_glob };
+        use File::Glob qw{ bsd_glob };
         use File::HomeDir;
         use File::Spec;
         my `$home = File::HomeDir->my_home();
