@@ -40,11 +40,14 @@ jobs:
         # * ExtUtils::ParseXS fails under 5.8.5
         # * 5.8 (=5.8.9) is OK
         # * ExtUtils::CBuilder fails under 5.8.7
+        # * 5.8.8 is OK for ubuntu and macos, but not available for windows
         include:
           - runner: ubuntu-latest
             perl: '5.8.8'
           - runner: macos-latest
             perl: '5.8.8'
+          - runner: windows-latest
+            perl: '5.14'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
