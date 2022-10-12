@@ -122,4 +122,4 @@ jobs:
 
     - name: Show cpanm errors under Windows
       if: failure() && startsWith( matrix.runner, 'windows-' )
-      run: type $env:USERPROFILE/.cpanm/work/*/build.log
+      run: type $env:HOME/.cpanm/work/*/build.log
