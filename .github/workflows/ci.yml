@@ -87,16 +87,6 @@ jobs:
         cpanm -v
         cpanm --installdeps .
 
-    # The following technique from Gabor Szabo. Thanks:
-    # https://perlmaven.com/install-developer-dependencies-first-test-css
-    - name: Show cpanm errors under macOS or Ubuntu
-      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
-      run: cat $HOME/.cpanm/work/*/build.log
-
-    - name: Show cpanm errors under Windows
-      if: failure() && startsWith( matrix.runner, 'windows-' )
-      run: type $snv:USERPROFILE/.cpanm/work/*/build.log
-
     - name: Adjust environment for Win32
       if: startsWith( matrix.runner, 'windows-' )
       # If running Windows, add LINES and COLUMNS to the environment
@@ -123,3 +113,13 @@ jobs:
         perl Build.PL
         ./Build
         ./Build test
+
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show cpanm errors under macOS or Ubuntu
+      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
+      run: cat $HOME/.cpanm/work/*/build.log
+
+    - name: Show cpanm errors under Windows
+      if: failure() && startsWith( matrix.runner, 'windows-' )
+      run: type $snv:USERPROFILE/.cpanm/work/*/build.log
