@@ -48,7 +48,7 @@ jobs:
           - runner: macos-latest
             perl: '5.8.8'
           - runner: windows-latest
-            perl: '5.18'
+            perl: '5.26'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
