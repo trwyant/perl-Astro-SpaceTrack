@@ -32,7 +32,7 @@ jobs:
 
         # OS environments under which the job runs.
         runner: [ubuntu-latest, macos-latest, windows-latest]
-        # Version of Perl to run. This specifies the most-recent version.
+        # Version of Perl to run. This specifies the most-recent Perl 5.
         perl: [ '5' ]
 
         # The actual minimum is 5.6.2, but we can't use that because
@@ -48,7 +48,7 @@ jobs:
           - runner: macos-latest
             perl: '5.8.8'
           - runner: windows-latest
-            perl: '5.22'
+            perl: '5.24'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
