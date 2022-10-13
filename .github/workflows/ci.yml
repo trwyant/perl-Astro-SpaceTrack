@@ -48,7 +48,7 @@ jobs:
           - runner: macos-latest
             perl: '5.8.8'
           - runner: windows-latest
-            perl: '5.14.4'
+            perl: '5.16'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -120,32 +120,3 @@ jobs:
     - name: Show cpanm errors under macOS or Ubuntu
       if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
       run: cat $HOME/.cpanm/work/*/build.log
-
-    - name: Show cpanm errors under Windows
-      if: failure() && startsWith( matrix.runner, 'windows-' )
-      # I can't figure out how to get PowerShell to do what I want, but
-      # maybe Perl will.
-      run: |
-        cpanm File::Glob File::HomeDir File::Spec;
-        perl -e @"
-        use strict;
-        use warnings;
-        use File::Glob qw{ bsd_glob };
-        use File::HomeDir;
-        use File::Spec;
-        my `$home = File::HomeDir->my_home();
-        print "Home is `$home\n";
-        my `$glob = File::Spec->catfile( `$home, qw{ .cpanm work * build.log } );
-        print "Globbing `$glob\n";
-        if ( my @logs = sort bsd_glob( `$glob ) ) {
-          foreach my `$log ( @logs ) {
-            open my `$fh, '<', `$log
-              or die "Failed to open `$log: `$!\n";
-            local `$/ = undef;
-            print <`$fh>;
-            close `$fh;
-          }
-        } else {
-          die "`$glob did not match any files\n";
-        }
-        "@
