@@ -415,6 +415,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    rms		=> 1,
 	    match	=> 1,
 	},
+	ast		=> {
+	    name	=> 'AST Space Mobile',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	# Project Kuiper Internet
     },
     iridium_status => {
