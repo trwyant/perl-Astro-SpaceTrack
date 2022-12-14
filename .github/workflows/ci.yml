@@ -1,5 +1,4 @@
-#
-#Explicit name of workflow. This is optional.
+# Explicit name of workflow. This is optional.
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#name
 name: Perl CI
 
@@ -35,21 +34,17 @@ jobs:
         # Version of Perl to run. This specifies the most-recent Perl 5.
         perl: [ '5' ]
 
-        # The actual minimum is 5.6.2, but we can't use that because
-        # cpanm itself requires 5.8.1. But:
-        # * IO::Uncompress::Unzip fails under 5.8.1
-        # * ExtUtils::ParseXS fails under 5.8.5
-        # * 5.8 (=5.8.9) is OK
-        # * ExtUtils::CBuilder fails under 5.8.7
-        # * 5.8.8 is OK for ubuntu and macos, but not available for windows
-        # * 5.14 is available for Windows, but I had to go to 5.26 to get
-        #   it to work.
+        # Add minimum Perl versions, which differ among operating
+        # systems
         include:
           - runner: ubuntu-latest
+            # v5.8.8 is the earliest known to work
             perl: '5.8.8'
           - runner: macos-latest
+            # v5.8.8 is the earliest known to work
             perl: '5.8.8'
           - runner: windows-latest
+            # v5.26.8 is the earliest known to work
             perl: '5.26.0'
 
     # Define where the job runs.
@@ -62,8 +57,8 @@ jobs:
     # The individual steps in the job
     steps:
 
-      # Specify the action performed by this step.
-    - uses: actions/checkout@v3
+    - name: Check out code
+      uses: actions/checkout@v3
 
     - name: Set up perl
       # Specify the action performed by this step. In this case it is a
@@ -84,34 +79,40 @@ jobs:
       run: |
         perl -v
 
-    - name: Install Modules
-      # Run commands to install the module's declared dependencies.
+    - name: Customize environment
       run: |
         cpanm -v
-        cpanm --installdeps .
+        cpanm File::HomeDir
+        perl .github/workflows/environment.PL
 
-    - name: Adjust environment for Win32
-      if: startsWith( matrix.runner, 'windows-' )
-      # If running Windows, add LINES and COLUMNS to the environment
-      # to keep Term::ReadKey happy. Thanks to Ryo Kuroyanagi's
-      # https://dev.to/ku6ryo/how-to-set-env-parameters-conditionally-in-github-actions-1g6a
-      # for pointing me in the right direction, though since this is
-      # Windows I have to use PowerShell syntax.  These environment
-      # variables appear in all subsequent steps.
+    - name: Display local envoronment variables
       run: |
-        Add-Content $env:GITHUB_ENV "COLUMNS=80"
-        Add-Content $env:GITHUB_ENV "LINES=24"
-        Get-Content $env:GITHUB_ENV
+        echo MY_HOME=${{ env.MY_HOME }}
+        echo MY_IS_GITHUB_ACTION=${{ env.MY_IS_GITHUB_ACTION }}
+        echo MY_IS_UNIX=${{ env.MY_IS_UNIX }}
+        echo MY_IS_WINDOWS=${{ env.MY_IS_WINDOWS }}
+        echo MY_PERL_IS_5_10=${{ env.MY_PERL_IS_5_10 }}
+
+    # Non-core toolchain Module::Build needs Pod::Man, which is in
+    # distro RRA/podlators. As of podlators-5.00 (2022-11-25) this
+    # requires Perl 5.10. If we are on Perl 5.8 we need to pre-emptively
+    # install the next-older version of podlators.
+    - name: Install old podlators distro if on old Perl
+      if: "! env.MY_PERL_IS_5_10"
+      run: cpanm RRA/podlators-4.14.tar.gz
+
+    - name: Install module dependencies
+      run: |
+        cpanm Module::Build
+        cpanm --with-configure --notest --installdeps .
 
     - name: Run ExtUtils::MakeMaker tests
-      # Run the ExtUtils::MakeMaker toolchain
       run: |
         perl Makefile.PL
         make
         make test
 
     - name: Run Module::Build tests
-      # Run the Module::Build toolchain
       run: |
         perl Build.PL
         ./Build
@@ -119,6 +120,17 @@ jobs:
 
     # The following technique from Gabor Szabo. Thanks:
     # https://perlmaven.com/install-developer-dependencies-first-test-css
-    - name: Show cpanm errors under macOS or Ubuntu
-      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
-      run: cat $HOME/.cpanm/work/*/build.log
+    - name: Show cpanm install log under Unix
+      if: failure() && env.MY_IS_UNIX
+      run: cat $MY_HOME/.cpanm/work/*/build.log
+
+    - name: Show cpanm install log under Windows
+      if: failure() && env.MY_IS_WINDOWS
+      run: |
+        $dirs = Get-ChildItem "$env:MY_HOME\\.cpanm\\work\\"
+        foreach ( $d in $dirs ) {
+            $file = $d.FullName + "\\build.log"
+            echo ""
+            echo $file
+            type $file
+        }
