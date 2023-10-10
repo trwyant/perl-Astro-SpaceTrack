@@ -1660,7 +1660,7 @@ If the response object B<is> provided, you can call this as a static
 method (i.e. as Astro::SpaceTrack->content_type($response)).
 
 For the format of the magnitude data, see
-L<https://www.prismnet.com/~mmccants/tles/index.html>.
+L<https://www.mmccants.org//tles/index.html>.
 
 =cut
 
@@ -5077,11 +5077,11 @@ sub _check_cookie_generic {
     my %deprecate = (
 	celestrak => {
 #	    sts	=> 3,
-	    '--descending'	=> 1,
-	    '--end_epoch'	=> 1,
-	    '--last5'		=> 1,
-	    '--sort'		=> 1,
-	    '--start_epoch'	=> 1,
+	    '--descending'	=> 2,
+	    '--end_epoch'	=> 2,
+	    '--last5'		=> 2,
+	    '--sort'		=> 2,
+	    '--start_epoch'	=> 2,
 	},
 	attribute	=> {
 	    url_iridium_status_mccants	=> 3,

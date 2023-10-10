@@ -195,7 +195,8 @@ sub not_defined {
 		url	=> 'https://celestrak.org/',
 	    },
 	    'mike.mccants'	=> {
-		url	=> 'http://www.prismnet.com/~mmccants/',
+		# url	=> 'http://www.prismnet.com/~mmccants/',
+		url	=> 'https://www.mmccants.org/',
 	    },
 	    'rod.sladen'	=> {
 		url	=> 'http://www.rod.sladen.org.uk/iridium.htm',
