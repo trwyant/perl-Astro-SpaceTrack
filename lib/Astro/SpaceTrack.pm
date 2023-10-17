@@ -154,6 +154,7 @@ use HTTP::Request;
 use HTTP::Response;
 use HTTP::Status qw{
     HTTP_PAYMENT_REQUIRED
+    HTTP_BAD_REQUEST
     HTTP_NOT_FOUND
     HTTP_I_AM_A_TEAPOT
     HTTP_INTERNAL_SERVER_ERROR
@@ -1525,12 +1526,29 @@ sub _celestrak_repack_iridium {
 
     sub _celestrak_response_check {
 	my ($self, $resp, $source, $name, @args) = @_;
-	unless ($resp->is_success) {
+
+	$DB::single = 1;
+	# As of 2023-10-17, celestrak( 'fubar' ) gives 200 OK, with
+	# content
+	# Invalid query: "GROUP=fubar&FORMAT=TLE" (GROUP=fubar not found)
+
+	unless ( $resp->is_success() ) {
 	    $resp->code == HTTP_NOT_FOUND
 		and return $self->_no_such_catalog(
 		$source => $name, @args);
 	    return $resp;
 	}
+
+	my $content = $resp->decoded_content();
+
+	if ( $content =~ m/ \A Invalid \s+ query: /smx ) {
+	    $content =~ m/ \b GROUP=\Q$name\E \s not \s found \b /smx
+		and return $self->_no_such_catalog(
+		$source => $name, @args);
+	    $resp->code( HTTP_BAD_REQUEST );
+	    return $resp;
+	}
+
 	if (my $loc = $resp->header('Content-Location')) {
 	    if ($loc =~ m/ redirect [.] htm [?] ( \d{3} ) ; /smx) {
 		my $msg = "redirected $1";
