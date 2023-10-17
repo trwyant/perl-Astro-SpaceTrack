@@ -1,5 +1,8 @@
+0.162_02	2023-10-17	T. R. Wyant
+    Track Celestrak response to non-existent catalogs.
+
 0.162_01	2023-10-09	T. R. Wyant
-    Space Track options to celestrak() warn on every use.
+    Space Track options to celestrak() now warn on every use.
 
     Fix missed changes to Mike McCants' new web site.
 

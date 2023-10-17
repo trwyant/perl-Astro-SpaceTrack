@@ -128,7 +128,7 @@ use Exporter;
 
 our @ISA = qw{ Exporter };
 
-our $VERSION = '0.162_01';
+our $VERSION = '0.162_02';
 our @EXPORT_OK = qw{
     shell
 
