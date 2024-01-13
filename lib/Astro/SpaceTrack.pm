@@ -326,12 +326,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    rms		=> 1,
 	    match	=> 1,
 	},
-	meteosat	=> {
-	    name	=> 'METEOSAT',
-	    # source	=> 'METEOSAT-SV',
-	    rms		=> 1,
-	    match	=> 1,
-	},
+	# Removed 2024-01-12
+	#meteosat	=> {
+	#    name	=> 'METEOSAT',
+	#    # source	=> 'METEOSAT-SV',
+	#    rms		=> 1,
+	#    match	=> 1,
+	#},
 	intelsat	=> {
 	    name	=> 'Intelsat',
 	    # source	=> 'Intelsat-11P',
