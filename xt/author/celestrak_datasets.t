@@ -22,9 +22,9 @@ $rslt->is_success()
 
 my %got = parse_string( $rslt->content(), source => 'celestrak' );
 
-my $st = Astro::SpaceTrack->new (direct => 1);
+my $st = Astro::SpaceTrack->new();
 
-(undef, my $names) = $st->names ('celestrak');
+(undef, my $names) = $st->names( 'celestrak' );
 my %expect;
 foreach (@$names) {
     $expect{$_->[1]} = {
