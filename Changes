@@ -1,4 +1,4 @@
-0.163_01	2024-01-20	T. R. Wyant
+0.164		2024-01-31	T. R. Wyant
     Deprecate iridium_status() and associated attributes
 
     Further deprecate 'direct', which now warns on first use.
