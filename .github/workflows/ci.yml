@@ -111,8 +111,8 @@ jobs:
     - name: Run ExtUtils::MakeMaker tests
       run: |
         perl Makefile.PL
-        make
-        make test
+        perl .github/workflows/make.PL
+        perl .github/workflows/make.PL test
 
     - name: Run Module::Build tests
       run: |
