@@ -84,12 +84,34 @@ jobs:
         cpanm File::HomeDir Getopt::Long version
         perl .github/workflows/environment.PL
 
+    # The following two steps were inserted in an attempt tp figure out
+    # why MacOS could not install File::HomeDir. They can be removed once
+    # this is sorted out.
+
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show cpanm install log under Unix
+      if: failure() && env.MY_IS_UNIX
+      run: cat $MY_HOME/.cpanm/work/*/build.log
+
+    - name: Show cpanm install log under Windows
+      if: failure() && env.MY_IS_WINDOWS
+      run: |
+        $dirs = Get-ChildItem "$env:MY_HOME\\.cpanm\\work\\"
+        foreach ( $d in $dirs ) {
+            $file = $d.FullName + "\\build.log"
+            echo ""
+            echo $file
+            type $file
+        }
+
     - name: Display local envoronment variables
       run: |
         echo MY_HOME=${{ env.MY_HOME }}
         echo MY_IS_GITHUB_ACTION=${{ env.MY_IS_GITHUB_ACTION }}
         echo MY_IS_UNIX=${{ env.MY_IS_UNIX }}
         echo MY_IS_WINDOWS=${{ env.MY_IS_WINDOWS }}
+        echo MY_MAKER=${{ env.MY_MAKER }}
         echo MY_WANT_POD_MAN=${{ env.MY_WANT_POD_MAN }}
 
     # Non-core toolchain Module::Build needs Pod::Man, which is in
@@ -111,8 +133,8 @@ jobs:
     - name: Run ExtUtils::MakeMaker tests
       run: |
         perl Makefile.PL
-        make
-        make test
+        ${{ MY_MAKER }}
+        ${{ MY_MAKER }} test
 
     - name: Run Module::Build tests
       run: |

@@ -5,6 +5,7 @@ use 5.006002;
 use strict;
 use warnings;
 
+use Config;
 use File::HomeDir;
 use Getopt::Long;
 use version;
@@ -51,10 +52,16 @@ sub compute_environment {
         MY_IS_UNIX          => $is_unix,
         MY_IS_WINDOWS       => $is_windows,
         MY_WANT_POD_MAN     => want_pod_man(),
+        MY_MAKER            => $Config{make}
     );
 
     $is_windows
         and @env{ qw{ LINES COLUMNS } } = ( 24, 80 );
+
+    print <<"EOD";
+home=$ENV{HOME}
+make=$Config{make}
+EOD
 
     return \%env;
 }
