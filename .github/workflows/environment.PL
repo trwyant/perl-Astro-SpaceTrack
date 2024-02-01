@@ -5,7 +5,6 @@ use 5.006002;
 use strict;
 use warnings;
 
-use File::HomeDir;
 use Getopt::Long;
 use version;
 
@@ -45,8 +44,21 @@ sub compute_environment {
         dos         => 1,
     }->{$^O} || '';
     my $is_unix = $is_windows ? '' : 1;
+    my $my_home;
+    {
+        local $@ = undef;
+        eval {
+            require File::HomeDir;
+            $my_home = File::HomeDir->my_home();
+            print "Home from File::HomeDir\n";
+            1;
+        } or do {
+            $my_home = $ENV{HOME};
+            print "Home from \$HOME\n";
+        };
+    }
     my %env = (
-        MY_HOME             => File::HomeDir->my_home(),
+        MY_HOME             => $my_home,
         MY_IS_GITHUB_ACTION => 1,
         MY_IS_UNIX          => $is_unix,
         MY_IS_WINDOWS       => $is_windows,

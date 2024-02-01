@@ -78,10 +78,14 @@ jobs:
       run: |
         perl -v
 
-    - name: Customize environment
+    - name: Install support modules
+      continue-on-error: true
       run: |
         cpanm -v
         cpanm File::HomeDir Getopt::Long version
+
+    - name: Customize environment
+      run: |
         perl .github/workflows/environment.PL
 
     - name: Display local envoronment variables
