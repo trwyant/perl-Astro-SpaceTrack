@@ -161,11 +161,12 @@ sub parse_string {
 	my $href = $anchor->attr( 'href' )
 	    or next;
 
-	# Exclude pre-launch data sets, which are ephemeral.
+	# Exclude pre-launch and post-deployment data sets, which are
+	# ephemeral.
 	my $parent = $anchor->parent();
 	my @sibs = $parent->content_list();
 	not ref $sibs[0]
-	    and $sibs[0] =~ m/ \b pre-launch \b /smxi
+	    and $sibs[0] =~ m/ \b (?: pre-launch | post-deployment ) \b /smxi
 	    and next;
 
 	if ( $href =~ m/ \b (?: sup- )? gp\.php \b /smx ) {
