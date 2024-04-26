@@ -308,11 +308,29 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	oneweb		=> { name => 'OneWeb' },
 	swarm		=> { name => 'Swarm' },
 	gnss		=> { name => 'GNSS navigational satellites' },
-	'1982-092'	=> { name => 'Russian ASAT Test Debris (COSMOS 1408)' },
-	'1999-025'	=> { name => 'Fengyun 1C debris' },
+	'1982-092'	=> {
+	    name	=> 'Russian ASAT Test Debris (COSMOS 1408)',
+	    note	=> q/'cosmos-1408-debris' as of April 26 2024/,
+	    ignore	=> 1,	# Ignore in xt/author/celestrak_datasets.t
+	},
+	'cosmos-1408-debris'	=> {
+	    name =>	'Russian ASAT Test Debris (COSMOS 1408)',
+	},
+	'1999-025'	=> {
+	    name	=> 'Fengyun 1C debris',
+	    note	=> q/'fengyun-1c-debris' as of April 26 2024/,
+	    ignore	=> 1,	# Ignore in xt/author/celestrak_datasets.t
+	},
+	'fengyun-1c-debris'	=> {
+	    name	=> 'Fengyun 1C debris',
+	},
 	'cosmos-2251-debris' => { name => 'Cosmos 2251 debris' },
 	'iridium-33-debris' => { name => 'Iridium 33 debris' },
-	'2012-044'	=> { name => 'BREEZE-M R/B Breakup (2012-044C)' },
+	'2012-044'	=> {
+	    name	=> 'BREEZE-M R/B Breakup (2012-044C)',
+	    note => 'Fetchable as of November 16 2021, but not on web page',
+	    ignore	=> 1,	# Ignore in xt/author/celestrak_datasets.t
+	},
 	# Removed 2022-05-12
 	# '2019-006'	=> { name => 'Indian ASAT Test Debris' },
     },
@@ -342,12 +360,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    rms		=> 1,
 	    match	=> 1,
 	},
-	ses		=> {
-	    name	=> 'SES',
-	    # source	=> 'SES-11P',
-	    rms		=> 1,
-	    match	=> 1,
-	},
+	# Removed 2024-04-26
+	#ses		=> {
+	#    name	=> 'SES',
+	#    # source	=> 'SES-11P',
+	#    rms		=> 1,
+	#    match	=> 1,
+	#},
 	telesat		=> {
 	    name	=> 'Telesat',
 	    # source	=> 'Telesat-E',
@@ -1092,14 +1111,17 @@ There are no arguments.
     }
 }
 
+# Given a catalog name, return the catalog, which MUST NOT be modified.
 # UNSUPPORTED AND SUBJECT TO CHANGE OR REMOVAL WITHOUT NOTICE!
 # If you have a use for this information, please let me know and I will
 # see about putting together something I believe I can support.
 sub __catalog {
-    my ( undef, $name ) = @_;
-    $catalogs{$name}
-	or Carp::confess "Bug - catalog $name does not exist";
-    return $catalogs{$name};
+    my ( $self, $name ) = @_;
+    $name = lc $name;
+    my $src = $catalogs{$name};
+    $name eq 'spacetrack'
+	and $src = $src->[ $self->getv( 'space_track_version' ) ];
+    return $src;
 }
 
 =for html <a name="celestrak"></a>
@@ -2983,19 +3005,19 @@ since all it is doing is returning data kept by this module.
 
 sub names {
     my ( $self, $name ) = @_;
-    $name = lc $name;
     delete $self->{_pragmata};
 
-    $catalogs{$name} or return HTTP::Response->new(
+    my $src = $self->__catalog( $name )
+	or return HTTP::Response->new(
 	    HTTP_NOT_FOUND, "Data source '$name' not found.");
-    my $src = $catalogs{$name};
-    $name eq 'spacetrack'
-	and $src = $src->[ $self->getv( 'space_track_version' ) ];
+
     my @list;
     foreach my $cat (sort keys %$src) {
 	push @list, defined ($src->{$cat}{number}) ?
 	    "$cat ($src->{$cat}{number}): $src->{$cat}{name}\n" :
 	    "$cat: $src->{$cat}{name}\n";
+	    defined $src->{$cat}{note}
+		and $list[-1] .= "    $src->{$cat}{note}\n";
     }
     my $resp = HTTP::Response->new (HTTP_OK, undef, undef, join ('', @list));
     return $resp unless wantarray;
@@ -3003,6 +3025,8 @@ sub names {
     foreach my $cat (sort {$src->{$a}{name} cmp $src->{$b}{name}}
 	keys %$src) {
 	push @list, [$src->{$cat}{name}, $cat];
+	defined $src->{$cat}{note}
+	    and push @{ $list[-1] }, $src->{$cat}{note};
     }
     return ($resp, \@list);
 }
