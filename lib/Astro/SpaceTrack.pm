@@ -450,7 +450,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    url		=> 'https://www.mmccants.org/programs/qsmag.zip',
 	},
 	rcs	=> {
-	    name	=> 'McCants-format RCS data',
+	    name	=> 'McCants-format RCS data (404 2024-04-27)',
 	    member	=> undef,	# rcs
 	    spacetrack_type	=> 'rcs.mccants',
 	    url		=> 'https://www.mmccants.org/catalogs/rcs.zip',
@@ -2896,8 +2896,13 @@ catalog names are:
  integrated: Integrated TLE file (inttles.zip)
  mcnames: Molczan-format magnitude file (mcnames.zip)
  quicksat: Quicksat-format magnitude file (qsmag.zip)
- rcs: McCants-format RCS file (rcs.zip)
+ rcs: McCants-format RCS file (rcs.zip) -- 404 as of 2024-04-27
  vsnames: Molczan-format magnitudes of visual bodies (vsnames.zip)
+
+The C<'rcs'> catalog was missing as of April 27 2024. Obviously I can
+not provide missing data. This catalog is deprecated immediately, and
+will be removed in the first release after November 1 2024. On the other
+hand, if it shows up again in that time, forget I said any of this.
 
 You can specify options as either command-type options (e.g. C<<
 mccants( '-file', 'foo.dat', ... ) >>) or as a leading hash reference
