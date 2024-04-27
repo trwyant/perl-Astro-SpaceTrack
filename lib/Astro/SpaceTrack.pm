@@ -226,7 +226,7 @@ use constant HASH_REF	=> ref {};
 
 # These are the Space Track version 1 retrieve Getopt::Long option
 # specifications, and the descriptions of each option. These need to
-# survive the returement of Version 1 as a separate entity because I
+# survive the retirement of Version 1 as a separate entity because I
 # emulated them in the celestrak() method. I'm _NOT_
 # emulating the options added in version 2 because they require parsing
 # the TLE.
@@ -1207,10 +1207,8 @@ These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
 You can specify the C<retrieve()> options on this method as well, but
-they will have no effect, are deprecated, and warn on the first use. Six
-months after the release of version 0.161 these will warn on every use.
-Six months after that they will be fatal. After a further six months all
-related code will be removed.
+they are deprecated and will produce a fatal error if used. In the first
+release after October 27 2024 all code for these will be removed.
 
 =cut
 
@@ -5136,11 +5134,11 @@ sub _check_cookie_generic {
     my %deprecate = (
 	celestrak => {
 #	    sts	=> 3,
-	    '--descending'	=> 2,
-	    '--end_epoch'	=> 2,
-	    '--last5'		=> 2,
-	    '--sort'		=> 2,
-	    '--start_epoch'	=> 2,
+	    '--descending'	=> 3,
+	    '--end_epoch'	=> 3,
+	    '--last5'		=> 3,
+	    '--sort'		=> 3,
+	    '--start_epoch'	=> 3,
 	},
 	attribute	=> {
 	    direct		=> 1,
