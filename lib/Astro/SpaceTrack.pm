@@ -411,12 +411,15 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    rms		=> 1,
 	    match	=> 1,
 	},
+	kuiper		=> {
+	    name	=> 'Project Kuiper (Amazon; no match data)',
+	    rms		=> 1,
+	},
 	ast		=> {
 	    name	=> 'AST Space Mobile',
 	    rms		=> 1,
 	    match	=> 1,
 	},
-	# Project Kuiper Internet
     },
     iridium_status => {
 	kelso => {name => 'Celestrak (Kelso)'},
