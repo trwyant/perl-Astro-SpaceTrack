@@ -1,3 +1,6 @@
+0.165_01	2024-05-19	T. R. Wyant
+    Add Project Kuiper to Celestrak supplemental data.
+
 0.165		2024-05-04	T. R. Wyant
     Space Track options in celestrak() are now fatal.
 
