@@ -1555,7 +1555,6 @@ sub _celestrak_repack_iridium {
     sub _celestrak_response_check {
 	my ($self, $resp, $source, $name, @args) = @_;
 
-	$DB::single = 1;
 	# As of 2023-10-17, celestrak( 'fubar' ) gives 200 OK, with
 	# content
 	# Invalid query: "GROUP=fubar&FORMAT=TLE" (GROUP=fubar not found)
