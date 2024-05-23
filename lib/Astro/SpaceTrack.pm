@@ -361,12 +361,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    match	=> 1,
 	},
 	# Removed 2024-04-26
-	#ses		=> {
-	#    name	=> 'SES',
-	#    # source	=> 'SES-11P',
-	#    rms		=> 1,
-	#    match	=> 1,
-	#},
+	# Added back 2024-05-23
+	ses		=> {
+	    name	=> 'SES',
+	    # source	=> 'SES-11P',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	telesat		=> {
 	    name	=> 'Telesat',
 	    # source	=> 'Telesat-E',
