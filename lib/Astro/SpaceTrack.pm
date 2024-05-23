@@ -1570,10 +1570,12 @@ sub _celestrak_repack_iridium {
 	my $content = $resp->decoded_content();
 
 	if ( $content =~ m/ \A Invalid \s+ query: /smx ) {
-	    $content =~ m/ \b GROUP=\Q$name\E \s not \s found \b /smx
+	    $content =~ m/ \b (?: GROUP | FILE ) =\Q$name\E \s not \s found \b /smx
 		and return $self->_no_such_catalog(
 		$source => $name, @args);
 	    $resp->code( HTTP_BAD_REQUEST );
+	    $resp->message( HTTP::Status::status_message(
+		    HTTP_BAD_REQUEST ) );
 	    return $resp;
 	}
 
