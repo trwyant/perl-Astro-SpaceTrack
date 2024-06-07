@@ -1,3 +1,10 @@
+0.165_02	2024-06-07	T. R. Wyant
+    Correct celestrak_supplemental() bad catalog status. The previous
+    was the oxymoronic '400 OK'. The intended (and now implemented) is
+    404 with a custom error message.
+
+    Add back Celestrak SES supplemental data.
+
 0.165_01	2024-05-19	T. R. Wyant
     Add Project Kuiper to Celestrak supplemental data.
 
