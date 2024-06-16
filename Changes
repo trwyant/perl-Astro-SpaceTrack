@@ -1,11 +1,10 @@
-0.165_02	2024-06-07	T. R. Wyant
-    Correct celestrak_supplemental() bad catalog status. The previous
-    was the oxymoronic '400 OK'. The intended (and now implemented) is
-    404 with a custom error message.
+0.166		2024-06-16	T. R. Wyant
+    Correct celestrak_supplemental() status when an unknown catalog is
+    specified. The previous was the oxymoronic '400 OK'. The intended
+    (and now implemented) is 404 with a custom error message.
 
     Add back Celestrak SES supplemental data.
 
-0.165_01	2024-05-19	T. R. Wyant
     Add Project Kuiper to Celestrak supplemental data.
 
 0.165		2024-05-04	T. R. Wyant

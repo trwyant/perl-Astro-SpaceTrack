@@ -19,7 +19,7 @@ our @ISA = qw{ Astro::SpaceTrack };
 use Mock::LWP::UserAgent;
 use My::Module::Test;
 
-our $VERSION = '0.165_02';
+our $VERSION = '0.166';
 
 sub new {
     my ( $class, %arg ) = @_;
