@@ -1,3 +1,6 @@
+0.166_02	2024-09-06	T. R. Wyant
+    Add celestrak catalog 'eutelsat'.
+
 0.166_01	2024-08-18	T. R. Wyant
     Further deprecate Iridium status, 'direct' attribute.
 
