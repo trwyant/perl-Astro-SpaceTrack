@@ -88,7 +88,7 @@ foreach my $key (sort keys %expect) {
 }
 
 ok ( ! keys %got, 'The above is all there is' ) or do {
-    diag( 'The following have been added:' );
+    diag( 'The following primary data sets have been added:' );
     foreach (sort keys %got) {
 	diag( "    $_ => '$got{$_}{name}'" );
     }
@@ -141,7 +141,7 @@ foreach my $key (sort keys %expect) {
 }
 
 ok ( ! keys %got, 'The above is all there is' ) or do {
-    diag( 'The following have been added:' );
+    diag( 'The following supplemental data sets have been added:' );
     foreach (sort keys %got) {
 	diag( "    $got{$_}{source} $_ => '$got{$_}{name}'" );
     }

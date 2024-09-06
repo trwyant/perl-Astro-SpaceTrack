@@ -333,6 +333,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	},
 	# Removed 2022-05-12
 	# '2019-006'	=> { name => 'Indian ASAT Test Debris' },
+	eutelsat	=> { name => 'Eutelsat' },
     },
     celestrak_supplemental => {
 	gps		=> {
