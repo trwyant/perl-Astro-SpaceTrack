@@ -157,10 +157,18 @@ sub parse_string {
 	my $href = $anchor->attr( 'href' )
 	    or next;
 
-	# Exclude pre-launch and post-deployment data sets, which are
-	# ephemeral.
 	my $parent = $anchor->parent();
 	my @sibs = $parent->content_list();
+
+	# Handle the case where the name of the data set is an anchor.
+	ref $sibs[0]
+	    and $sibs[0] == $anchor
+	    and next;
+	ref $sibs[0]
+	    and $sibs[0] = $sibs[0]->as_trimmed_text();
+
+	# Exclude pre-launch and post-deployment data sets, which are
+	# ephemeral.
 	not ref $sibs[0]
 	    and $sibs[0] =~ m/ \b (?:
 		pre-launch | post-deployment |
