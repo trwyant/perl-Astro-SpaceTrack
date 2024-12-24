@@ -384,6 +384,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    # source	=> 'ISS-E',
 	    rms		=> 1,
 	},
+	css		=> {
+	    name	=> 'CSS (no match data)',
+	    rms		=> 1,
+	},
 	cpf		=> {
 	    name	=> 'CPF (no match data)',
 	    # source	=> 'CPF',
