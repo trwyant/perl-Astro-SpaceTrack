@@ -375,10 +375,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    rms		=> 1,
 	    match	=> 1,
 	},
-	orbcomm		=> {
-	    name	=> 'Orbcomm (no RMS or match data)',
-	    # source	=> 'Orbcomm-TLE',
-	},
+	# Removed 2024-12-25
+	#orbcomm		=> {
+	#    name	=> 'Orbcomm (no RMS or match data)',
+	#    # source	=> 'Orbcomm-TLE',
+	#},
 	iss		=> {
 	    name	=> 'ISS (from NASA, no match data)',
 	    # source	=> 'ISS-E',
@@ -1372,15 +1373,20 @@ C<--query> are invalid.
 
 Valid catalog names are:
 
- cpf: CPF TLEs
- glonass: Glonass satellites
- gps: GPS satellites
- intelsat: Intelsat satellites
- iss: ISS (from NASA, no rms data
- meteosat: Meteosat satellites
- orbcomm: Orbcomm satellites (no RMS data)
- ses: SES satellites
- starlink Starlink TLEs
+ ast      AST Space Mobile
+ cpf      CPF (no match data)
+ css      CSS (no match data)
+ glonass  Glonass satellites
+ gps      GPS satellites
+ intelsat Intelsat satellites
+ iridium  Iridium Next
+ iss      ISS (from NASA, no match data)
+ kuiper   Project Kuiper (Amazon; no match data)
+ oneweb   OneWeb
+ planet   Planet (no, not Mercury etc.)
+ ses      SES satellites
+ starlink Starlink
+ telesat  Telesat
 
 You can specify options as either command-type options (e.g.
 C<< celestrak_supplemental( '-file', 'foo.dat' ) >>) or as a leading
