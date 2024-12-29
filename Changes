@@ -1,3 +1,13 @@
+0.167_01	2024-12-29	T. R. Wyant
+    Remove McCants' 'rcs' catalog.
+
+    Remove all code for Space Track options to celestrak(). These have
+    been put through a deprecation cycle and were already fatal.
+
+    Drop 'orbcomm' from Celestrak supplemental data.
+
+    Add 'css' to Celestrak supplemental data.
+
 0.167		2024-09-15	T. R. Wyant
     Add celestrak catalog 'eutelsat'.
 
