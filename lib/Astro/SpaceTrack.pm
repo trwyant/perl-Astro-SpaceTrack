@@ -337,22 +337,25 @@ my %catalogs = (	# Catalog names (and other info) for each source.
     },
     celestrak_supplemental => {
 	# Removed 2024-12-27
-	#ast		=> {
-	#    name	=> 'AST Space Mobile',
-	#    rms		=> 1,
-	#    match	=> 1,
-	#},
+	# Added back 2024-12-29
+	ast		=> {
+	    name	=> 'AST Space Mobile',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	# Removed 2024-12-27
-	#cpf		=> {
-	#    name	=> 'CPF (no match data)',
-	#    # source	=> 'CPF',
-	#    rms		=> 1,
-	#},
+	# Added back 2024-12-29
+	cpf		=> {
+	    name	=> 'CPF (no match data)',
+	    # source	=> 'CPF',
+	    rms		=> 1,
+	},
 	# Removed 2024-12-27
-	#css		=> {
-	#    name	=> 'CSS (no match data)',
-	#    rms		=> 1,
-	#},
+	# Added back 2024-12-29
+	css		=> {
+	    name	=> 'CSS (no match data)',
+	    rms		=> 1,
+	},
 	gps		=> {
 	    name	=> 'GPS Operational',
 	    # source	=> 'GPS-A',
@@ -372,11 +375,12 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    match	=> 1,
 	},
 	# Removed 2024-12-27
-	#iss		=> {
-	#    name	=> 'ISS (from NASA, no match data)',
-	#    # source	=> 'ISS-E',
-	#    rms		=> 1,
-	#},
+	# Added back 2024-12-29
+	iss		=> {
+	    name	=> 'ISS (from NASA, no match data)',
+	    # source	=> 'ISS-E',
+	    rms		=> 1,
+	},
 	# Removed 2024-01-12
 	#meteosat	=> {
 	#    name	=> 'METEOSAT',
@@ -391,10 +395,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    match	=> 1,
 	},
 	# Removed 2024-12-27
-	#kuiper		=> {
-	#    name	=> 'Project Kuiper (Amazon; no match data)',
-	#    rms		=> 1,
-	#},
+	# Added back 2024-12-29
+	kuiper		=> {
+	    name	=> 'Project Kuiper (Amazon; no match data)',
+	    rms		=> 1,
+	},
 	oneweb		=> {
 	    name	=> 'OneWeb',
 	    # source	=> 'OneWeb-E',
