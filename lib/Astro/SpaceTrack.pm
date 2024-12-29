@@ -245,7 +245,7 @@ use constant CELESTRAK_API_OPTIONS	=> [
 ];
 
 use constant CELESTRAK_OPTIONS	=> [
-    @{ CLASSIC_RETRIEVE_OPTIONS() },	# TODO deprecate and remove
+    # @{ CLASSIC_RETRIEVE_OPTIONS() },	# TODO deprecate and remove
     @{ CELESTRAK_API_OPTIONS() },
 ];
 
@@ -1226,10 +1226,6 @@ If this method succeeds, the response will contain headers
 These can be accessed by C<< $st->content_type( $resp ) >> and
 C<< $st->content_source( $resp ) >> respectively.
 
-You can specify the C<retrieve()> options on this method as well, but
-they are deprecated and will produce a fatal error if used. In the first
-release after October 27 2024 all code for these will be removed.
-
 =cut
 
 # Called dynamically
@@ -1249,8 +1245,8 @@ sub celestrak {
 	HTTP_PRECONDITION_FAILED,
 	'No catalog name specified' );
 
-    $self->_deprecation_notice( celestrak => $name );
-    $self->_deprecation_notice( celestrak => "--$_" ) foreach sort keys %{ $opt };
+    # $self->_deprecation_notice( celestrak => $name );
+    # $self->_deprecation_notice( celestrak => "--$_" ) foreach sort keys %{ $opt };
 
     my $query;
     ref( $query = $self->_celestrak_validate_query(
@@ -5160,11 +5156,11 @@ sub _check_cookie_generic {
     my %deprecate = (
 	celestrak => {
 #	    sts	=> 3,
-	    '--descending'	=> 3,
-	    '--end_epoch'	=> 3,
-	    '--last5'		=> 3,
-	    '--sort'		=> 3,
-	    '--start_epoch'	=> 3,
+#	    '--descending'	=> 3,
+#	    '--end_epoch'	=> 3,
+#	    '--last5'		=> 3,
+#	    '--sort'		=> 3,
+#	    '--start_epoch'	=> 3,
 	},
 	attribute	=> {
 	    direct		=> 2,
