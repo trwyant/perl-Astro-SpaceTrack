@@ -152,6 +152,11 @@ done_testing;
 sub parse_string {
     my ( $string, @extra ) = @_;
 
+=begin comment
+
+    # The following horrible hack became unnecessary as of December 30
+    # 2024.
+
     # The following horrible hack is because as of December 28 2024 the
     # Celestrak supplemental dataset ends in an un-terminated comment
     # which HTML::TreeBuilder 5.07 handles incorrectly (IM(NS)HO). So:
@@ -165,6 +170,10 @@ sub parse_string {
     # I wish I could capture the HTML::Parser events corresponding to
     # the above, but it looks like there are none, so I have to hack it
     # with regexen. GAH!
+
+=end comment
+
+=cut
 
     my $tree = HTML::TreeBuilder->new_from_content( $string );
     my %data;
