@@ -273,10 +273,14 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	tdrss => {name => 'Tracking and Data Relay Satellite System (TDRSS)'},
 	geo => {name => 'Geostationary'},
 	intelsat => {name => 'Intelsat'},
-	gorizont => {name => 'Gorizont'},
-	raduga => {name => 'Raduga'},
-	molniya => {name => 'Molniya'},
-	iridium => {name => 'Iridium'},
+	# Removed May 8 2025
+	# gorizont => {name => 'Gorizont'},
+	# Removed May 8 2025
+	# raduga => {name => 'Raduga'},
+	# Removed May 8 2025
+	# molniya => {name => 'Molniya'},
+	# Removed May 8 2025
+	# iridium => {name => 'Iridium'},
 	'iridium-NEXT' => { name => 'Iridium NEXT' },
 	ses	=> { name => 'SES communication satellites' },
 	orbcomm => {name => 'Orbcomm'},
@@ -306,7 +310,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	satnogs	=> { name => 'SatNOGS' },
 	starlink	=> { name => 'Starlink' },
 	oneweb		=> { name => 'OneWeb' },
-	swarm		=> { name => 'Swarm' },
+	# Removed May 8 2025
+	# swarm		=> { name => 'Swarm' },
 	gnss		=> { name => 'GNSS navigational satellites' },
 	'1982-092'	=> {
 	    name	=> 'Russian ASAT Test Debris (COSMOS 1408)',
@@ -334,6 +339,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	# Removed 2022-05-12
 	# '2019-006'	=> { name => 'Indian ASAT Test Debris' },
 	eutelsat	=> { name => 'Eutelsat' },
+	kuiper		=> { name => 'Kuiper' },
+	telesat		=> { name => 'Telesat' },
     },
     celestrak_supplemental => {
 	# Removed 2024-12-27
