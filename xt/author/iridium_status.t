@@ -345,6 +345,7 @@ foreach my $id ( @keys ) {
 	    BODY_STATUS_IS_TUMBLING
 	    }
 	) {
+	    no warnings qw{ deprecated };
 	    my $inx = Astro::SpaceTrack->$st();
 	    ( my $name = $st ) =~ s/ .* _ //smx;
 	    $name = lc $name;
