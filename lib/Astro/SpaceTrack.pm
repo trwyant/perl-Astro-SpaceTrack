@@ -343,6 +343,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	eutelsat	=> { name => 'Eutelsat' },
 	kuiper		=> { name => 'Kuiper' },
 	telesat		=> { name => 'Telesat' },
+	hulianwang	=> { name => 'Hulianwang' },
+	qianfan		=> { name => 'Qianfan' },
     },
     celestrak_supplemental => {
 	# Removed 2024-12-27
