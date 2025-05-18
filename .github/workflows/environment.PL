@@ -63,7 +63,8 @@ sub compute_environment {
         MY_IS_UNIX          => $is_unix,
         MY_IS_WINDOWS       => $is_windows,
         MY_WANT_EXTUTILS_PARSEXS    => want_extutils_parsexs(),
-        MY_WANT_POD_MAN     => want_pod_man(),
+        MY_WANT_HTML_TAGSET         => want_html_tagset(),
+        MY_WANT_POD_MAN             => want_pod_man(),
     );
 
     $is_windows
@@ -81,6 +82,18 @@ sub want_extutils_parsexs {
     # Perl, the github-actions script needs to be modified too,
     $perl_ver < PERL_5_10
         and return 'SMUELLER/ExtUtils-ParseXS-3.30.tar.gz';
+    return '';
+}
+
+sub want_html_tagset {
+    my ( $perl_ver ) = @_;
+    defined $perl_ver
+        or $perl_ver = THIS_PERL;
+
+    # NOTE that if we need to play this game with higher versions of
+    # Perl, the github-actions script needs to be modified too,
+    $perl_ver < PERL_5_10
+        and return 'PETDANCE/HTML-Tagset-3.20.tar.gz';
     return '';
 }
 
@@ -174,6 +187,12 @@ returns the computed value of the C<MY_WANT_EXTUTILS_PARSEXS>
 environment variable. If no argument is given, the computation is for
 the running Perl.
 
+=head2 want_html_tagset
+
+This subroutine takes as its argument a L<version|version> object. It
+returns the computed value of the C<MY_WANT_HTML_TAGSET> environment
+variable. If no argument is given, the computation is for the running
+Perl.
 
 =head2 want_pod_man
 

@@ -95,6 +95,7 @@ jobs:
         echo MY_IS_UNIX=${{ env.MY_IS_UNIX }}
         echo MY_IS_WINDOWS=${{ env.MY_IS_WINDOWS }}
         echo MY_WANT_EXTUTILS_PARSEXS=${{ env.MY_WANT_EXTUTILS_PARSEXS }}
+        echo MY_WANT_HTML_TAGSET=${{ env.MY_WANT_HTML_TAGSET }}
         echo MY_WANT_POD_MAN=${{ env.MY_WANT_POD_MAN }}
 
     # Non-core toolchain Module::Build needs Pod::Man, which is in
@@ -111,6 +112,10 @@ jobs:
     - name: Install old XS parser if on old Perl
       if: env.MY_WANT_EXTUTILS_PARSEXS
       run: cpanm ${{ env.MY_WANT_EXTUTILS_PARSEXS }}
+
+    - name: Install old HTML::Tagset if on old Perl
+      if: env.MY_WANT_HTML_TAGSET
+      run: cpanm ${{ env.MY_WANT_HTML_TAGSET }}
 
     - name: Install module dependencies
       run: |
