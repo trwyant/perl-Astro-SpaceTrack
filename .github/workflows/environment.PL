@@ -8,14 +8,6 @@ use warnings;
 use Getopt::Long;
 use version;
 
-BEGIN {
-    use constant HAVE_CPAN_META => eval{
-        require CPAN::Meta;
-        CPAN::Meta->import();
-        1;
-    } || 0;
-}
-
 use constant THIS_PERL  => version->parse( $] );
 use constant PERL_5_10  => version->parse( 'v5.10.0' );
 use constant PERL_5_12  => version->parse( 'v5.12.0' );
