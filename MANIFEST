@@ -23,6 +23,7 @@ MANIFEST
 META.json
 META.yml
 README
+SECURITY
 script/SpaceTrack
 t/basic.t
 t/complete.t
