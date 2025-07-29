@@ -418,10 +418,13 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    match	=> 1,
 	},
 	# Removed 2024-12-25
-	#orbcomm		=> {
-	#    name	=> 'Orbcomm (no RMS or match data)',
-	#    # source	=> 'Orbcomm-TLE',
-	#},
+	# Added back 2025-07-28, with RMS and match data
+	orbcomm		=> {
+	    name	=> 'Orbcomm (no RMS or match data)',
+	    # source	=> 'Orbcomm-TLE',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	planet		=> {
 	    name	=> 'Planet (no, not Mercury etc)',
 	    # source	=> 'Planet-E',
