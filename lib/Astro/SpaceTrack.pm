@@ -852,6 +852,11 @@ sub new {
 
 =item $resp = $st->amsat ()
 
+B<Note> that this method is non-functional as of September 8 2025
+(probably earlier), because Amsat has gone to a "humans-only" policy for
+their web site. It will be put through the usual deprecation cycle and
+removed.
+
 This method downloads current orbital elements from the Radio Amateur
 Satellite Corporation's web page, L<https://www.amsat.org/>. This lists
 satellites of interest to radio amateurs, and appears to be updated
@@ -911,6 +916,8 @@ sub _amsat_opts {	## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 
 sub amsat {
     my ( $self, @args ) = @_;
+
+    $self->_deprecation_notice( 'amsat' );
 
     ( my $opt, @args ) = _parse_args( @args );
 
@@ -5163,6 +5170,7 @@ sub _check_cookie_generic {
 #	    '--sort'		=> 3,
 #	    '--start_epoch'	=> 3,
 	},
+	amsat		=> 0,
 	attribute	=> {
 #	    direct		=> 3,
 	    url_iridium_status_kelso	=> 3,
