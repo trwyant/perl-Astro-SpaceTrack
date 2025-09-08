@@ -5159,7 +5159,7 @@ sub _check_cookie_generic {
 
 {
 
-    use constant _MASTER_IRIDIUM_DEPRECATION_LEVEL	=> 1;
+    use constant _MASTER_IRIDIUM_DEPRECATION_LEVEL	=> 2;
 
     my %deprecate = (
 	celestrak => {
