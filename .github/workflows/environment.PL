@@ -7,7 +7,7 @@ use warnings;
 
 use Config;
 
-our $VERSION = '2.000001';
+our $VERSION = '2.000004';
 
 use constant THIS_PERL  => "$]";
 
@@ -38,6 +38,32 @@ sub compute_environment {
         MY_WANT_MODULES     => join( ' ', want_modules() ),
     );
 
+    {
+        # Finding the actual cpanm logs under Windows is a pain. $HOME
+        # does not point to the right place, but
+        # File::HomeDir->my_home() does. It turns out that under
+        # Windows, the Portable module (another Adam Kennedy creation)
+        # hooks itself into File::HomeDir. I don't know how it does its
+        # magic, but it is NOT equivalent to File::HomeDir::Windows.
+        local $@ = undef;
+        my $src;
+        eval {
+            require File::HomeDir;
+            $env{MY_PORTABLE_HOME} = File::HomeDir->my_home();
+            # Windows seems to need a Posix path or bash glob doesn't
+            # work.
+            $is_windows
+                and $env{MY_PORTABLE_HOME} =~ tr|\\|/|;
+            no warnings qw{ once };
+            $src = $File::HomeDir::IMPLEMENTED_BY;
+            1;
+        } or do {
+            $env{MY_PORTABLE_HOME} = $ENV{HOME};
+            $src = '$HOME';
+        };
+        print "MY_PORTABLE_HOME from $src is $env{MY_PORTABLE_HOME}\n";
+    }
+
     $is_windows
         and @env{ qw{ LINES COLUMNS } } = ( 24, 80 );
 
@@ -53,9 +79,9 @@ sub want_modules {
         or $perl_ver = THIS_PERL;
     foreach (
 	[ qw{ 5.012000  } ],
-	[ qw{ 5.010001 Pod::Text@4.14 } ],
-	[ qw{ 5.010000 HTML::Tagset@3.20 Pod::Text@4.14 XSLoader@0.10 } ],
-	[ qw{ 5.000000 ExtUtils::ParseXS@3.30 HTML::Tagset@3.20 Pod::Text@4.14 XSLoader@0.10 } ],
+	[ qw{ 5.010001 Test::Deep@0.119 Pod::Text@4.14 } ],
+	[ qw{ 5.010000 HTML::Tagset@3.20 Test::Deep@0.119 Pod::Text@4.14 XSLoader@0.10 } ],
+	[ qw{ 5.000000 HTML::Tagset@3.20 Test::Deep@0.119 Pod::Text@4.14 ExtUtils::ParseXS@3.30 XSLoader@0.10 } ],
     ) {
         my ( $version, @want ) = @{ $_ };
         $perl_ver >= $version
