@@ -1,4 +1,4 @@
-0.169_01	2025-09-08	T. R. Wyant
+0.170		2025-09-18	T. R. Wyant
     All iridium functionality now warns (at least) on all uses.
 
     Deprecate amsat(), since they have gone to "humans-only".
