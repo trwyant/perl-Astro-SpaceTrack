@@ -1,4 +1,4 @@
-0.170_01	2025-09-28	T. R. Wyant
+0.171		2025-10-06	T. R. Wyant
     Deprecate mccants() arguments 'mcnames' and 'vsnames'. The
     underlying files have been removed from the web site. This is an
     accellerated deprecation. This commit causes the arguments to warn
