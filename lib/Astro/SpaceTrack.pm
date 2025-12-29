@@ -474,6 +474,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    spacetrack_type	=> 'molczan',
 	    url		=> 'https://www.mmccants.org/tles/mcnames.zip',
 	},
+	# Removed 2025-12-15 or thereabouts
 	quicksat	=> {
 	    name	=> 'Quicksat-format magnitude file',
 	    member	=> undef,	# qs.mag
@@ -2927,7 +2928,7 @@ catalog names are:
  classified: Classified TLE file (classfd.zip)
  integrated: Integrated TLE file (inttles.zip)
  mcnames: Molczan-format magnitude file (mcnames.zip) REMOVED
- quicksat: Quicksat-format magnitude file (qsmag.zip)
+ quicksat: Quicksat-format magnitude file (qsmag.zip) REMOVED
  vsnames: Molczan-format mags of visual bodies (vsnames.zip) REMOVED
 
 The files marked B<REMOVED> have been removed from Mike McCants' web
@@ -5191,6 +5192,7 @@ sub _check_cookie_generic {
 	},
 	mccants	=> {
 	    mcnames	=> 2,
+	    quicksat	=> 1,
 	    vsnames	=> 2,
 	},
 	BODY_STATUS_IS_OPERATIONAL	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
