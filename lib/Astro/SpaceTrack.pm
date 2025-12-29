@@ -1014,7 +1014,7 @@ Copyright 2005-2022 by T. R. Wyant (wyant at cpan dot org).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
-of the licenses in the directory LICENSES.
+of the licenses in the files F<LICENSE-Artistic> and F<LICENSE-GPL>.
 
 This program is distributed in the hope that it will be useful, but
 without any warranty; without even the implied warranty of
@@ -7213,7 +7213,7 @@ Copyright 2005-2025 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
-of the licenses in the directory LICENSES.
+of the licenses in the files F<LICENSE-Artistic> and F<LICENSE-GPL>.
 
 This program is distributed in the hope that it will be useful, but
 without any warranty; without even the implied warranty of
