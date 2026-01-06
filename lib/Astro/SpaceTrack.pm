@@ -7207,7 +7207,7 @@ Thomas R. Wyant, III (F<wyant at cpan dot org>)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005-2025 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
+Copyright 2005-2026 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
 
 =head1 LICENSE
 
