@@ -26,6 +26,7 @@ note 'Space Track v2 interface';
 
 my $st = Astro::SpaceTrack->new(
     space_track_version	=> 2,
+    space_track_version_minor	=> 0,
     dump_headers => DUMP_REQUEST,
     username	=> 'Yehudi',
     password	=> 'Menuhin',

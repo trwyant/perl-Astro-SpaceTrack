@@ -49,6 +49,8 @@ EOD
 }
 
 $st->set( space_track_version => $desired_content_interface );
+$desired_content_interface == 2
+    and $st->set( space_track_version_minor => 1 );
 
 ## my $username = $st->getv( 'username' );
 ## my $password = $st->getv( 'password' );
@@ -299,7 +301,7 @@ SKIP: {
 
     SKIP: {
 	is_success_or_skip( $st, spacetrack_query_v2 =>
-	    qw{ basicspacedata query class tle_latest NORAD_CAT_ID 25544 },
+	    qw{ basicspacedata query class gp NORAD_CAT_ID 25544 },
 	    'Get ISS data via general query', 3 );
 
 	is $st->content_type(), 'orbit',
@@ -314,8 +316,8 @@ SKIP: {
 
     SKIP: {
 	is_success_or_skip( $st, spacetrack_query_v2 =>
-	    qw{ basicspacedata modeldef class tle_latest },
-	    'Get tle_latest model definition', 3 );
+	    qw{ basicspacedata modeldef class gp },
+	    'Get gp model definition', 3 );
 
 	is $st->content_type(), 'modeldef',
 	    "Content type is 'modeldef'";

@@ -32,8 +32,10 @@ t/file.dat
 t/query_celestrak.t
 t/query_mccants.t
 t/query_misc.t
-t/query_spacetrack.t
-t/spacetrack_request.t
+t/query_spacetrack_v2.0.t
+t/query_spacetrack_v2.1.t
+t/spacetrack_request_v2.0.t
+t/spacetrack_request_v2.1.t
 tools/all_iridium_classic
 tools/capture
 tools/celestrak-availability

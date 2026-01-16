@@ -49,6 +49,8 @@ EOD
 }
 
 $st->set( space_track_version => $desired_content_interface );
+$desired_content_interface == 2
+    and $st->set( space_track_version_minor => 0 );
 
 ## my $username = $st->getv( 'username' );
 ## my $password = $st->getv( 'password' );
