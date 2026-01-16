@@ -1,3 +1,13 @@
+0.179_001	2026-01-16	T. R. Wyant
+commit f37871788974beff2914a515b06616bbf1859863
+Author: Tom Wyant <wyant@cpan.org>
+Date:   Fri Jan 16 12:38:49 2026 -0500
+
+    EMERGENCY Convert Space Track interface to new data classes.
+    Space Track has removed classes 'tle_latest' and 'tle' in favor of 'gp'
+    and 'gp_history'. They also removed legacy datum OBJECT_NUMBER, so
+    queries have to use NORAD_CAT_ID now.
+
 0.172		2026-01-06	T. R. Wyant
     Repackage licenses so that GitHub can find them (maybe). Thanks to
     Mikko Koivunalho (specifically his blog post
