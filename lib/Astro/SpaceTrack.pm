@@ -3399,41 +3399,58 @@ sub _convert_retrieve_options_to_rest {
 }
 
 {
+    # Indexed by space_track_version_minor
     my @heading_info = (
-	[ undef,	OBJECT_NUMBER	=> 'Catalog Number' ],
-	[ undef,	OBJECT_NAME	=> 'Common Name' ],
-	[ undef,	OBJECT_ID	=> 'International Designator' ],
-	[ undef,	COUNTRY		=> 'Country' ],
-	[ undef,	LAUNCH		=> 'Launch Date' ],
-	[ undef,	SITE		=> 'Launch Site' ],
-	[ undef,	DECAY		=> 'Decay Date' ],
-	[ undef,	PERIOD		=> 'Period' ],
-	[ undef,	APOGEE		=> 'Apogee' ],
-	[ undef,	PERIGEE		=> 'Perigee' ],
-	[ 'comment',	COMMENT		=> 'Comment' ],
-	[ undef,	RCSVALUE	=> 'RCS' ],
+	[
+	    [ undef,	OBJECT_NUMBER	=> 'Catalog Number' ],
+	    [ undef,	OBJECT_NAME	=> 'Common Name' ],
+	    [ undef,	OBJECT_ID	=> 'International Designator' ],
+	    [ undef,	COUNTRY		=> 'Country' ],
+	    [ undef,	LAUNCH		=> 'Launch Date' ],
+	    [ undef,	SITE		=> 'Launch Site' ],
+	    [ undef,	DECAY		=> 'Decay Date' ],
+	    [ undef,	PERIOD		=> 'Period' ],
+	    [ undef,	APOGEE		=> 'Apogee' ],
+	    [ undef,	PERIGEE		=> 'Perigee' ],
+	    [ 'comment',	COMMENT		=> 'Comment' ],
+	    [ undef,	RCSVALUE	=> 'RCS' ],
+	],
+	[
+	    [ undef,	NORAD_CAT_ID	=> 'Catalog Number' ],
+	    [ undef,	OBJECT_NAME	=> 'Common Name' ],
+	    [ undef,	OBJECT_ID	=> 'International Designator' ],
+	    [ undef,	COUNTRY		=> 'Country' ],
+	    [ undef,	LAUNCH		=> 'Launch Date' ],
+	    [ undef,	SITE		=> 'Launch Site' ],
+	    [ undef,	DECAY		=> 'Decay Date' ],
+	    [ undef,	PERIOD		=> 'Period' ],
+	    [ undef,	APOGEE		=> 'Apogee' ],
+	    [ undef,	PERIGEE		=> 'Perigee' ],
+	    [ 'comment',	COMMENT		=> 'Comment' ],
+	    [ undef,	RCSVALUE	=> 'RCS' ],
+	],
     );
 
     sub _search_heading_order {
-	my ( $opt ) = @_;
+	my ( $self, $opt ) = @_;
 	return ( map { $_->[1] }
-	    _search_heading_relevant( $opt )
+	    $self->_search_heading_relevant( $opt )
 	);
     }
 
     sub _search_heading_relevant {
-	my ( $opt ) = @_;
+	my ( $self, $opt ) = @_;
 	return (
 	    grep { ! defined $_->[0] || $opt->{$_->[0]} }
-	    @heading_info
+	    @{ $heading_info[ $self->getv( 'space_track_version_minor' ) ] }
 	);
     }
 
     sub _search_heading_hash_ref {
-	my ( $opt ) = @_;
+	my ( $self, $opt ) = @_;
 	return {
 	    map { $_->[1] => $_->[2] }
-	    _search_heading_relevant( $opt )
+	    $self->_search_heading_relevant( $opt )
 	};
     }
 
@@ -3444,9 +3461,6 @@ sub _search_rest {
     delete $self->{_pragmata};
 
     ( my $opt, @args ) = $self->_parse_search_args( @args );
-
-    my $headings = _search_heading_hash_ref( $opt );
-    my @heading_order = _search_heading_order( $opt );
 
     if ( $pred eq $self->_spacetrack_catnum() ) {
 
@@ -3503,14 +3517,19 @@ sub _search_rest {
 	    or Carp::croak "Format $rest_args->{format} does not support TLE retrieval";
 	my $ropt = _remove_search_options( $opt );
 
+	my $catnum = $self->_spacetrack_catnum();
 	my $rslt = $self->retrieve( $ropt,
-	    map { $_->{OBJECT_NUMBER} } @{ $data } );
+	    map { $_->{$catnum} } @{ $data } );
 
 	return $rslt;
 
     } else {
 
 	if ( 'legacy' eq $opt->{format} ) {
+
+	    my $headings = $self->_search_heading_hash_ref( $opt );
+	    my @heading_order = $self->_search_heading_order( $opt );
+
 	    $content = '';
 	    foreach my $datum (
 		$headings,
@@ -3536,7 +3555,7 @@ sub _search_rest {
     }
 
     # Note - if we're doing the tab output, the names and order are:
-    # Catalog Number: OBJECT_NUMBER
+    # Catalog Number: NORAD_CAT_ID
     # Common Name: OBJECT_NAME
     # International Designator: OBJECT_ID
     # Country: COUNTRY
@@ -3554,7 +3573,6 @@ sub _search_rest {
 sub __search_rest_raw {
     my ( $self, %args ) = @_;
     delete $self->{_pragmata};
-    # https://beta.space-track.org/basicspacedata/query/class/satcat/CURRENT/Y/OBJECT_NUMBER/25544/predicates/all/limit/10,0/metadata/true
 
     %args
 	or return HTTP::Response->new( HTTP_PRECONDITION_FAILED, NO_CAT_ID );
