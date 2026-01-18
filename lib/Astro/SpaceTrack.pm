@@ -41,12 +41,31 @@ Track deprecating and ultimately revoking the C<'tle_latest'> and
 C<'tle'> data classes in favor of C<'gp'> and C<'gp_history'>
 respectively, and me being oblivious until the revocation occurred.
 
-Unlike the previous release (v0.172) this release will actually return
+Unlike the previous release (v0.172) release 0.180 will actually return
 Space Track data, but it may be a bit ragged around the edges.
 Specifically it contains artifacts of the conversion process (including
 but not limited to the C<'space_track_version_minor'> attribute) which
 B<will> be revoked once the conversion to the new data classes is
 complete.
+
+Known changes:
+
+=over
+
+=item The --last5 option is ignored.
+
+It is also deprecated, will warn on every use, and will be removed in a
+future release. This functionality relied on a datum (C<ORDINAL>) that
+Space Track no longer provides.
+
+=item The C<OBJECT_NUMBER> datum is missing from JSON data.
+
+This datum is no longer provided by Space Track, and I am not minded to
+fudge it in. C<NORAD_CAT_ID> has the same value.
+S
+=item 
+
+=back
 
 =head1 LEGAL NOTICE
 
@@ -247,7 +266,7 @@ use constant HASH_REF	=> ref {};
 use constant CLASSIC_RETRIEVE_OPTIONS => [
     descending => '(direction of sort)',
     'end_epoch=s' => 'date',
-    last5 => '(ignored if -start_epoch or -end_epoch specified)',
+    last5 => '(ignored and deprecated)',
     'sort=s' =>
 	"type ('catnum' or 'epoch', with 'catnum' the default)",
     'start_epoch=s' => 'date',
@@ -3112,8 +3131,8 @@ Number ranges are represented as 'start-end', where both 'start' and
 taken in the reverse order. Non-numeric ranges are ignored.
 
 You can specify options for the retrieval as either command-type options
-(e.g. C<< retrieve ('-last5', ...) >>) or as a leading hash reference
-(e.g. C<< retrieve ({last5 => 1}, ...) >>). If you specify the hash
+(e.g. C<< retrieve ('-json', ...) >>) or as a leading hash reference
+(e.g. C<< retrieve ({json => 1}, ...) >>). If you specify the hash
 reference, option names must be specified in full, without the leading
 '-', and the argument list will not be parsed for command-type options.
 If you specify command-type options, they may be abbreviated, as long as
@@ -3131,9 +3150,7 @@ The legal options are:
  -json
    specifies the TLE be returned in JSON format.
  -last5
-   specifies the last 5 element sets be retrieved.
-   Ignored if start_epoch, end_epoch or since_file is
-   specified.
+   Ignored and deprecated.
  -start_epoch date
    specifies the start epoch for the desired data.
  -since_file number
@@ -3163,7 +3180,7 @@ non-numeric string. It is an error to specify an end_epoch before the
 start_epoch.
 
 If you are passing the options as a hash reference, you must specify
-a value for the Boolean options 'descending' and 'last5'. This value is
+a value for Boolean options like 'descending' and 'json'. This value is
 interpreted in the Perl sense - that is, undef, 0, and '' are false,
 and anything else is true.
 
@@ -3331,7 +3348,7 @@ sub _convert_retrieve_options_to_rest {
 	}
 
 	$rest{class} eq 'tle_latest'
-	    and $rest{ORDINAL} = $opt->{last5} ? '1--5' : 1;
+	    and $rest{ORDINAL} = $opt->{last5} ? '1--5' : 1;	# v2.0
 
 	return \%rest;
     }
@@ -3390,8 +3407,8 @@ sub _convert_retrieve_options_to_rest {
 		$rest{format} = 'tle';
 	    }
 	}
-	$opt->{last5}
-	    and Carp::carp( 'Option --last5 is ignored' );
+	$opt->{last5}	# TODO deprecation
+	    and $self->_deprecation_notice( qw{ option last5 } ); # v2.1
 
 	return \%rest;
     }
@@ -3653,12 +3670,10 @@ options may be specified:
  -status
    specifies the desired status of the returned body (or
    bodies). Must be 'onorbit', 'decayed', or 'all'.  The
-   default is 'onorbit'. Specifying a value other than the
-   default will cause the -last5 option to be ignored.
-   Note that this option represents status at the time the
-   search was done; you can not combine it with the
-   retrieve() date options to find bodies onorbit as of a
-   given date in the past.
+   default is 'onorbit'. Note that this option represents
+   status at the time the search was done; you can not combine
+   it with the retrieve() date options to find bodies onorbit
+   as of a given date in the past.
  -tle
    specifies that you want TLE data retrieved for all
    bodies that satisfy the search criteria. This is
@@ -3681,7 +3696,7 @@ C<'legacy'>, or C<'json'>.
 Examples:
 
  search_date (-status => 'onorbit', -exclude =>
-    'debris,rocket', -last5 '2005-12-25');
+    'debris,rocket', '2005-12-25');
  search_date (-exclude => 'debris',
     -exclude => 'rocket', '2005/12/25');
  search_date ({exclude => ['debris', 'rocket']},
@@ -5309,6 +5324,9 @@ sub _check_cookie_generic {
 	    kelso	=> 3,
 	    mccants	=> 3,
 	    sladen	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
+	},
+	option => {
+	    last5	=> 2,
 	},
 	mccants	=> {
 	    mcnames	=> 2,
