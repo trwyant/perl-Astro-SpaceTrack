@@ -10,6 +10,8 @@ CVS/
 ^.git/
 ^.github/
 ^.gitignore$
+^gp\.(expect|got)$
+^gp_history\.(expect|got)$
 ^html/
 ^kelso\.(expect|got)$
 ^launch_site\.(expect|got)$
