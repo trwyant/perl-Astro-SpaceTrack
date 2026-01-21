@@ -533,8 +533,12 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	undef,	# No interface version 0
 	undef,	# No interface version 1 any more
 	{	# Interface version 2 (REST)
+
+	    # On Space Track "Recent ELSETs" tab
 	    full => {
 		name	=> 'Full catalog',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/orderby/NORAD_CAT_ID,EPOCH/format/3le
 		# We have to go through satcat to eliminate bodies that
 		# are not on orbit, since tle_latest includes bodies
 		# decayed in the last two years or so
@@ -544,14 +548,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		},
 #		number	=> 1,
 	    },
-	    payloads	=> {
-		name	=> 'All payloads',
-		satcat	=> {
-		    OBJECT_TYPE	=> 'PAYLOAD',
-		},
-	    },
 	    geosynchronous => {		# GEO
 		name	=> 'Geosynchronous satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/MEAN_MOTION/0.99--1.01/ECCENTRICITY/%3C0.01/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
 #		number	=> 3,
 		# We have to go through satcat to eliminate bodies that
 		# are not on orbit, since tle_latest includes bodies
@@ -577,18 +577,22 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    medium_earth_orbit => {	# MEO
 		name	=> 'Medium Earth Orbit',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/MEAN_MOTION/1.8--2.39/ECCENTRICITY/%3C0.25/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
 		tle	=> {
 		    ECCENTRICITY	=> '<0.25',
 		    EPOCH		=> '>now-30',
 		    # The web page says '600 minutes <= Period <= 800
 		    # minutes', but the query is in terms of mean
 		    # motion.
-		    MEAN_MOTION		=> '1.8--2.30',
+		    MEAN_MOTION		=> '1.8--2.39',
 		    OBJECT_TYPE		=> 'payload',
 		},
 	    },
 	    low_earth_orbit => {	# LEO
 		name	=> 'Low Earth Orbit',
+		# As of 2026-01-19https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/ECCENTRICITY/%3E0.25/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/MEAN_MOTION/%3E11.25/ECCENTRICITY/%3C0.25/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
 		tle	=> {
 		    ECCENTRICITY	=> '<0.25',
 		    EPOCH		=> '>now-30',
@@ -598,12 +602,88 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    },
 	    highly_elliptical_orbit => {	# HEO
 		name	=> 'Highly Elliptical Orbit',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/ECCENTRICITY/%3E0.25/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
 		tle	=> {
 		    ECCENTRICITY	=> '>0.25',
 		    EPOCH		=> '>now-30',
 		    OBJECT_TYPE		=> 'payload',
 		},
 	    },
+	    globalstar => {
+		name	=> 'Globalstar satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le/OBJECT_NAME/globalstar~~/
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    OBJECT_NAME	=> 'globalstar~~',
+		    OBJECT_TYPE	=> 'payload',
+		},
+#		number	=> 13,
+	    },
+	    inmarsat => {
+		name	=> 'Inmarsat satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le/OBJECT_NAME/inmarsat~~/
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    OBJECT_NAME	=> 'inmarsat~~',
+		    OBJECT_TYPE	=> 'payload',
+		},
+#		number	=> 17,
+	    },
+	    intelsat => {
+		name	=> 'Intelsat satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le/OBJECT_NAME/intelsat~~/
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    OBJECT_NAME	=> 'intelsat~~',
+		    OBJECT_TYPE	=> 'payload',
+		},
+#		number	=> 15,
+	    },
+	    iridium => {
+		name	=> 'Iridium satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le/OBJECT_NAME/iridium~~/
+		tle => {
+		    EPOCH	=> '>now-30',
+		    OBJECT_NAME	=> 'iridium~~',
+		    OBJECT_TYPE	=> 'payload',
+		},
+#		number	=> 9,
+	    },
+	    orbcomm	=> {
+		name	=> 'OrbComm satellites',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/OBJECT_NAME/~~orbcomm,~~VESSELSAT/OBJECT_TYPE/payload/orderby/NORAD_CAT_ID,EPOCH/format/3le
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    OBJECT_NAME	=> 'ORBCOMM~~,VESSELSAT~~',
+		    OBJECT_TYPE	=> 'payload',
+		},
+#		number	=> 11,
+	    },
+	    well_tracked_objects	=> {
+		name	=> 'Well-Tracked Objects',
+		# As of 2026-01-19
+		# https://www.space-track.org/basicspacedata/query/class/gp/EPOCH/%3Enow-30/NORAD_CAT_ID/80000--89999/orderby/NORAD_CAT_ID/format/tle/emptyresult/show
+#		satcat	=> {
+#		    COUNTRY	=> 'UNKN',
+#		    SITE	=> 'UNKN',
+#		},
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    NORAD_CAT_ID	=> '80000--89999',
+		    format	=> 'tle',
+		    epmtyresult	=> 'show',
+		},
+	    },
+
+	    # Favorites (whatever that means). As of 2026-01-19 these
+	    # are specific to the individual user, and therefore
+	    # useless.
 	    navigation => {
 		name => 'Navigation satellites',
 		favorite	=> 'Navigation',
@@ -619,51 +699,6 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		    EPOCH	=> '>now-30',
 		},
 #		number => 7,
-	    },
-	    iridium => {
-		name	=> 'Iridium satellites',
-		tle => {
-		    EPOCH	=> '>now-30',
-		    OBJECT_NAME	=> 'iridium~~',
-		    OBJECT_TYPE	=> 'payload',
-		},
-#		number	=> 9,
-	    },
-	    orbcomm	=> {
-		name	=> 'OrbComm satellites',
-		tle	=> {
-		    EPOCH	=> '>now-30',
-		    OBJECT_NAME	=> 'ORBCOMM~~,VESSELSAT~~',
-		    OBJECT_TYPE	=> 'payload',
-		},
-#		number	=> 11,
-	    },
-	    globalstar => {
-		name	=> 'Globalstar satellites',
-		tle	=> {
-		    EPOCH	=> '>now-30',
-		    OBJECT_NAME	=> 'globalstar~~',
-		    OBJECT_TYPE	=> 'payload',
-		},
-#		number	=> 13,
-	    },
-	    intelsat => {
-		name	=> 'Intelsat satellites',
-		tle	=> {
-		    EPOCH	=> '>now-30',
-		    OBJECT_NAME	=> 'intelsat~~',
-		    OBJECT_TYPE	=> 'payload',
-		},
-#		number	=> 15,
-	    },
-	    inmarsat => {
-		name	=> 'Inmarsat satellites',
-		tle	=> {
-		    EPOCH	=> '>now-30',
-		    OBJECT_NAME	=> 'inmarsat~~',
-		    OBJECT_TYPE	=> 'payload',
-		},
-#		number	=> 17,
 	    },
 	    amateur => {
 		favorite	=> 'Amateur',
@@ -703,11 +738,16 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 		    EPOCH	=> '>now-30',
 		},
 	    },
-	    well_tracked_objects	=> {
-		name	=> 'Well-Tracked Objects',
-		satcat	=> {
-		    COUNTRY	=> 'UNKN',
-		    SITE	=> 'UNKN',
+
+	    # Added by TRW
+	    payloads	=> {
+		name	=> 'All payloads',
+#		satcat	=> {
+#		    OBJECT_TYPE	=> 'PAYLOAD',
+#		},
+		tle	=> {
+		    EPOCH	=> '>now-30',
+		    OBJECT_TYPE	=> 'payload',
 		},
 	    },
 	},
@@ -4457,24 +4497,27 @@ The following catalogs are available:
     Name            Description
     full            Full catalog
     payloads        All payloads
-    navigation      Navigation satellites
-    weather         Weather satellites
+  * navigation      Navigation satellites
+  * weather         Weather satellites
     geosynchronous  Geosynchronous bodies
     iridium         Iridium satellites
     orbcomm         OrbComm satellites
     globalstar      Globalstar satellites
     intelsat        Intelsat satellites
     inmarsat        Inmarsat satellites
-    amateur         Amateur Radio satellites
-    visible         Visible satellites
-    special         Special satellites
-    bright_geosynchronous
+  * amateur         Amateur Radio satellites
+  * visible         Visible satellites
+  * special         Special satellites
+  * bright_geosynchronous
                     Bright Geosynchronous satellites
-    human_spaceflight
+  * human_spaceflight
                     Human Spaceflight
     well_tracked_objects
-                    Well-Tracked Objects having
-		    unknown country and launch point
+                    Well-Tracked Objects not associated
+		    with a specific launch
+
+The starred items are 404 as of 2026-01-19. They are deprecated and will
+be removed.
 
 The following option is supported:
 
@@ -4569,8 +4612,10 @@ sub spacetrack {
     defined $info->{deprecate}
 	and Carp::croak "Catalog '$catalog' is deprecated in favor of '$info->{deprecate}'";
 
-    defined $info->{favorite}
-	and return $self->favorite( $opt, $info->{favorite} );
+    if ( defined $info->{favorite} ) {
+	$self->_deprecation_notice( spacetrack => $info->{favorite} );
+	return $self->favorite( $opt, $info->{favorite} );
+    }
 
     my %retrieve_opt = %{
 	$self->_convert_retrieve_options_to_rest( $opt )
@@ -5302,6 +5347,7 @@ sub _check_cookie_generic {
 {
 
     use constant _MASTER_IRIDIUM_DEPRECATION_LEVEL	=> 2;
+    use constant _MASTER_FAVORITE_DEPRECATION_LEVEL	=> 2;
 
     my %deprecate = (
 	celestrak => {
@@ -5337,6 +5383,15 @@ sub _check_cookie_generic {
 	BODY_STATUS_IS_SPARE	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	BODY_STATUS_IS_TUMBLING	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	BODY_STATUS_IS_DECAYED	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
+	spacetrack => {
+	    navigation => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    weather => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    amateur => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    visible => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    special => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    bright_geosynchronous => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	    human_spaceflight => _MASTER_FAVORITE_DEPRECATION_LEVEL,
+	},
     );
 
     sub _deprecation_notice {
