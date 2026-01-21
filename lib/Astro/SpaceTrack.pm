@@ -42,11 +42,7 @@ C<'tle'> data classes in favor of C<'gp'> and C<'gp_history'>
 respectively, and me being oblivious until the revocation occurred.
 
 Unlike the previous release (v0.172) release 0.180 will actually return
-Space Track data, but it may be a bit ragged around the edges.
-Specifically it contains artifacts of the conversion process (including
-but not limited to the C<'space_track_version_minor'> attribute) which
-B<will> be revoked once the conversion to the new data classes is
-complete.
+Space Track data.
 
 Known changes:
 
@@ -62,8 +58,13 @@ Space Track no longer provides.
 
 This datum is no longer provided by Space Track, and I am not minded to
 fudge it in. C<NORAD_CAT_ID> has the same value.
-S
-=item 
+
+=item Favorites do not work
+
+In the previous release C<spacetrack()> would fetch canned favorites
+curated by Space Track. As of January 21 2026 these are 404. If I find
+these data sets I will restore them. I also plan to support the existing
+favorites by a new mechanism (i.e. not via C<spacetrack()>).
 
 =back
 
@@ -234,7 +235,6 @@ use constant SESSION_PATH => '/';
 
 use constant DEFAULT_SPACE_TRACK_REST_SEARCH_CLASS => 'satcat';
 use constant DEFAULT_SPACE_TRACK_VERSION => 2;
-use constant DEFAULT_SPACE_TRACK_VERSION_MINOR	=> 1;
 
 # dump_headers constants.
 use constant DUMP_NONE => 0;		# No dump
@@ -772,7 +772,6 @@ my %mutator = (	# Mutators for the various attributes.
     scheme_space_track => \&_mutate_attrib,
     session_cookie => \&_mutate_spacetrack_interface,
     space_track_version => \&_mutate_space_track_version,
-    space_track_version_minor => \&_mutate_space_track_version_minor,
     url_iridium_status_kelso => \&_mutate_attrib,
     url_iridium_status_mccants => \&_mutate_attrib,
     url_iridium_status_sladen => \&_mutate_attrib,
@@ -881,7 +880,6 @@ sub new {
 	    },
 	],
 	space_track_version	=> DEFAULT_SPACE_TRACK_VERSION,
-	space_track_version_minor	=> DEFAULT_SPACE_TRACK_VERSION_MINOR,
 	url_iridium_status_kelso =>
 	    'https://celestrak.org/SpaceTrack/query/iridium.txt',
 	url_iridium_status_sladen =>
@@ -2771,13 +2769,12 @@ This method and the associated manifest constants are B<deprecated>.
 	    }, 'iridium' );
 	$resp->is_success()
 	    or return $resp;
-	my $catnum = $self->_spacetrack_catnum();
 	foreach my $body ( @{ $data } ) {
 	    # Starting in 2017, the launches were Iridium Next
 	    # satellites, which do not flare.
 	    $body->{LAUNCH_YEAR} < 2017
 		or next;
-	    my $oid = $body->{$catnum};
+	    my $oid = $body->{NORAD_CAT_ID};
 	    $rslt->{$oid}
 		and not $body->{DECAY}
 		and next;
@@ -3280,13 +3277,10 @@ sub retrieve {
 	    )
     );
 
-    my $catnum = $self->_spacetrack_catnum();
-
-	# TODO convert {OBJECT_NUMBER} to {NORAD_CAT_ID}.
     while ( @args ) {
 
 	my @batch = splice @args, 0, $RETRIEVAL_SIZE;
-	$rest->{$catnum} = _stringify_oid_list( {
+	$rest->{NORAD_CAT_ID} = _stringify_oid_list( {
 		separator	=> ',',
 		range_operator	=> '--',
 	    }, @batch );
@@ -3328,71 +3322,10 @@ sub retrieve {
 
 sub _convert_retrieve_options_to_rest {
     my ( $self ) = @_;
-    my $method = "_convert_retrieve_options_to_rest_v$self->{space_track_version}_$self->{space_track_version_minor}";
+    my $method = "_convert_retrieve_options_to_rest_v$self->{space_track_version}";
     my $code = $self->can( $method )
 	or Carp::confess( "Bug - method $method() not found" );
     goto $code;
-}
-
-{
-
-    my %rest_sort_map = (
-	catnum	=> 'OBJECT_NUMBER',
-	epoch	=> 'EPOCH',
-    );
-
-    # Called dynamically
-    sub _convert_retrieve_options_to_rest_v2_0 { ## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
-
-	my ( $self, $opt ) = @_;
-
-	my %rest = (
-	    class	=> 'tle_latest',
-	);
-
-	if ( $opt->{start_epoch} || $opt->{end_epoch} ) {
-	    $rest{EPOCH} = join '--', map { _rest_date( $opt->{$_} ) }
-	    qw{ _start_epoch _end_epoch };
-	    $rest{class} = 'tle';
-	}
-
-	$rest{orderby} = ( $rest_sort_map{$opt->{sort} || 'catnum' } ||
-	    'OBJECT_NUMBER' )
-	.  ( $opt->{descending} ? ' desc' : ' asc' );
-
-	if ( $opt->{since_file} ) {
-	    $rest{FILE} = ">$opt->{since_file}";
-	    $rest{class} = 'tle';
-	}
-
-	if ( $opt->{status} && $opt->{status} ne 'onorbit' ) {
-	    $rest{class} = 'tle';
-	}
-
-	foreach my $name (
-	    qw{ class format },
-	    qw{ ECCENTRICITY FILE MEAN_MOTION OBJECT_NAME },
-	) {
-	    defined $opt->{$name}
-		and $rest{$name} = $opt->{$name};
-	}
-
-	if ( 'legacy' eq $rest{format} ) {
-	    if ( $self->{with_name} ) {
-		$rest{format} = '3le';
-		defined $rest{predicates}
-		    or $rest{predicates} = 'OBJECT_NAME,TLE_LINE1,TLE_LINE2';
-	    } else {
-		$rest{format} = 'tle';
-	    }
-	}
-
-	$rest{class} eq 'tle_latest'
-	    and $rest{ORDINAL} = $opt->{last5} ? '1--5' : 1;	# v2.0
-
-	return \%rest;
-    }
-
 }
 
 {
@@ -3403,7 +3336,7 @@ sub _convert_retrieve_options_to_rest {
     );
 
     # Called dynamically
-    sub _convert_retrieve_options_to_rest_v2_1 { ## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
+    sub _convert_retrieve_options_to_rest_v2 { ## no critic (Subroutines::ProhibitUnusedPrivateSubroutines)
 
 	my ( $self, $opt ) = @_;
 
@@ -3447,7 +3380,7 @@ sub _convert_retrieve_options_to_rest {
 		$rest{format} = 'tle';
 	    }
 	}
-	$opt->{last5}	# TODO deprecation
+	$opt->{last5}
 	    and $self->_deprecation_notice( qw{ option last5 } ); # v2.1
 
 	return \%rest;
@@ -3456,58 +3389,41 @@ sub _convert_retrieve_options_to_rest {
 }
 
 {
-    # Indexed by space_track_version_minor
     my @heading_info = (
-	[
-	    [ undef,	OBJECT_NUMBER	=> 'Catalog Number' ],
-	    [ undef,	OBJECT_NAME	=> 'Common Name' ],
-	    [ undef,	OBJECT_ID	=> 'International Designator' ],
-	    [ undef,	COUNTRY		=> 'Country' ],
-	    [ undef,	LAUNCH		=> 'Launch Date' ],
-	    [ undef,	SITE		=> 'Launch Site' ],
-	    [ undef,	DECAY		=> 'Decay Date' ],
-	    [ undef,	PERIOD		=> 'Period' ],
-	    [ undef,	APOGEE		=> 'Apogee' ],
-	    [ undef,	PERIGEE		=> 'Perigee' ],
-	    [ 'comment',	COMMENT		=> 'Comment' ],
-	    [ undef,	RCSVALUE	=> 'RCS' ],
-	],
-	[
-	    [ undef,	NORAD_CAT_ID	=> 'Catalog Number' ],
-	    [ undef,	OBJECT_NAME	=> 'Common Name' ],
-	    [ undef,	OBJECT_ID	=> 'International Designator' ],
-	    [ undef,	COUNTRY		=> 'Country' ],
-	    [ undef,	LAUNCH		=> 'Launch Date' ],
-	    [ undef,	SITE		=> 'Launch Site' ],
-	    [ undef,	DECAY		=> 'Decay Date' ],
-	    [ undef,	PERIOD		=> 'Period' ],
-	    [ undef,	APOGEE		=> 'Apogee' ],
-	    [ undef,	PERIGEE		=> 'Perigee' ],
-	    [ 'comment',	COMMENT		=> 'Comment' ],
-	    [ undef,	RCSVALUE	=> 'RCS' ],
-	],
+	[ undef,	NORAD_CAT_ID	=> 'Catalog Number' ],
+	[ undef,	OBJECT_NAME	=> 'Common Name' ],
+	[ undef,	OBJECT_ID	=> 'International Designator' ],
+	[ undef,	COUNTRY		=> 'Country' ],
+	[ undef,	LAUNCH		=> 'Launch Date' ],
+	[ undef,	SITE		=> 'Launch Site' ],
+	[ undef,	DECAY		=> 'Decay Date' ],
+	[ undef,	PERIOD		=> 'Period' ],
+	[ undef,	APOGEE		=> 'Apogee' ],
+	[ undef,	PERIGEE		=> 'Perigee' ],
+	[ 'comment',	COMMENT		=> 'Comment' ],
+	[ undef,	RCSVALUE	=> 'RCS' ],
     );
 
     sub _search_heading_order {
-	my ( $self, $opt ) = @_;
+	my ( $opt ) = @_;
 	return ( map { $_->[1] }
-	    $self->_search_heading_relevant( $opt )
+	    _search_heading_relevant( $opt )
 	);
     }
 
     sub _search_heading_relevant {
-	my ( $self, $opt ) = @_;
+	my ( $opt ) = @_;
 	return (
 	    grep { ! defined $_->[0] || $opt->{$_->[0]} }
-	    @{ $heading_info[ $self->getv( 'space_track_version_minor' ) ] }
+	    @heading_info
 	);
     }
 
     sub _search_heading_hash_ref {
-	my ( $self, $opt ) = @_;
+	my ( $opt ) = @_;
 	return {
 	    map { $_->[1] => $_->[2] }
-	    $self->_search_heading_relevant( $opt )
+	    _search_heading_relevant( $opt )
 	};
     }
 
@@ -3519,7 +3435,7 @@ sub _search_rest {
 
     ( my $opt, @args ) = $self->_parse_search_args( @args );
 
-    if ( $pred eq $self->_spacetrack_catnum() ) {
+    if ( $pred eq 'NORAD_CAT_ID' ) {
 
 	@args = $self->_expand_oid_list( @args )
 	    or return HTTP::Response->new(
@@ -3574,9 +3490,8 @@ sub _search_rest {
 	    or Carp::croak "Format $rest_args->{format} does not support TLE retrieval";
 	my $ropt = _remove_search_options( $opt );
 
-	my $catnum = $self->_spacetrack_catnum();
 	my $rslt = $self->retrieve( $ropt,
-	    map { $_->{$catnum} } @{ $data } );
+	    map { $_->{NORAD_CAT_ID} } @{ $data } );
 
 	return $rslt;
 
@@ -3584,8 +3499,8 @@ sub _search_rest {
 
 	if ( 'legacy' eq $opt->{format} ) {
 
-	    my $headings = $self->_search_heading_hash_ref( $opt );
-	    my @heading_order = $self->_search_heading_order( $opt );
+	    my $headings = _search_heading_hash_ref( $opt );
+	    my @heading_order = _search_heading_order( $opt );
 
 	    $content = '';
 	    foreach my $datum (
@@ -3644,7 +3559,7 @@ sub __search_rest_raw {
     exists $args{predicates}
 	or $args{predicates} = 'all';
     exists $args{orderby}
-	or $args{orderby} = sprintf '%s asc', $self->_spacetrack_catnum();
+	or $args{orderby} = 'NORAD_CAT_ID asc';
 #   exists $args{limit}
 #	or $args{limit} = 1000;
 
@@ -4051,10 +3966,7 @@ containing the actual search results.
 
 sub search_oid {	## no critic (RequireArgUnpacking)
 ##  my ( $self, @args ) = @_;
-    my ( $self ) = @_;
-    splice @_, 1, 0,
-	$self->_spacetrack_catnum(),
-	sub { return $_[0] };
+    splice @_, 1, 0, NORAD_CAT_ID => sub { return $_[0] };
     goto &_search_rest;
 }
 
@@ -4196,7 +4108,6 @@ my %known_meta = (
 		and 'orbit' eq ( $self->content_type( $rslt ) || '' )
 		or return;
 
-	    my $catnum = $self->_spacetrack_catnum();
 	    my $content = $rslt->content();
 	    my @lines;
 
@@ -4204,7 +4115,7 @@ my %known_meta = (
 		my $data = $self->_get_json_object()->decode( $content );
 		foreach my $datum ( @{ $data } ) {
 		    push @lines, [
-			sprintf '%05d', $datum->{$catnum},
+			sprintf '%05d', $datum->{NORAD_CAT_ID},
 			defined $datum->{OBJECT_NAME} ? $datum->{OBJECT_NAME} :
 			(),
 		    ];
@@ -4593,11 +4504,6 @@ sub _spacetrack_catalog_version {	## no critic (Subroutines::ProhibitUnusedPriva
     return $_[0]->getv( 'space_track_version' );
 }
 
-sub _spacetrack_catnum {
-    return [ qw{ OBJECT_NUMBER NORAD_CAT_ID } ]->[ $_[0]->getv(
-	    'space_track_version_minor' ) ];
-}
-
 sub spacetrack {
     my ( $self, @args ) = @_;
 
@@ -4625,7 +4531,6 @@ sub spacetrack {
 	and @retrieve_opt{ keys %{ $info->{tle} } } =
 	    values %{ $info->{tle} };
 
-    my $catnum = $self->_spacetrack_catnum();
     my $rslt;
 
     if ( $info->{satcat} ) {
@@ -4638,7 +4543,7 @@ sub spacetrack {
 		basicspacedata	=> 'query',
 		class		=> 'satcat',
 		format		=> 'json',
-		predicates	=> $catnum,
+		predicates	=> 'NORAD_CAT_ID',
 		CURRENT		=> 'Y',
 		DECAY		=> 'null-val',
 		_sort_rest_arguments( $query ),
@@ -4650,7 +4555,7 @@ sub spacetrack {
 	    foreach my $body ( @{
 		$self->_get_json_object()->decode( $rslt->content() )
 	    } ) {
-		$oid{ $body->{$catnum} + 0 } = 1;
+		$oid{ $body->{NORAD_CAT_ID} + 0 } = 1;
 	    }
 
 	}
@@ -4955,11 +4860,10 @@ lost as the individual OIDs are updated.
 	    close $fh;
 	}
 
-	my $catnum = $self->_spacetrack_catnum();
 	my $file = -1;
 	my @oids;
 	foreach my $datum ( @{ $data } ) {
-	    push @oids, $datum->{$catnum};
+	    push @oids, $datum->{NORAD_CAT_ID};
 	    my $ff = defined $datum->{_file_of_record} ?
 		delete $datum->{_file_of_record} :
 		$datum->{FILE};
@@ -4990,10 +4894,10 @@ lost as the individual OIDs are updated.
 	    $resp->is_success()
 		or return $resp;
 
-	    my %merge = map { $_->{$catnum} => $_ } @{ $data };
+	    my %merge = map { $_->{NORAD_CAT_ID} => $_ } @{ $data };
 
 	    foreach my $datum ( @{ $json->decode( $resp->content() ) } ) {
-		%{ $merge{$datum->{$catnum}} } = %{ $datum };
+		%{ $merge{$datum->{NORAD_CAT_ID}} } = %{ $datum };
 	    }
 
 	    {
@@ -6140,24 +6044,6 @@ sub _mutate_space_track_version {
 ##  $self->_deprecation_notice( $name => $value );
     $value == 1
 	and Carp::croak 'The version 1 SpaceTrack interface stopped working July 16 2013 at 18:00 UT';
-    $self->{$name} == $value
-	or $self->{space_track_version_minor} =
-	    DEFAULT_SPACE_TRACK_VERSION_MINOR;
-    return ( $self->{$name} = $value );
-}
-
-# _mutate_space_track_version_minor() mutates the minor version of the
-# interface used to retrieve date from Space Track. Valid versions
-# depend on the value of space_track_version,
-# TODO the only valid value should be 1
-
-sub _mutate_space_track_version_minor {
-    my ( $self, $name, $value ) = @_;
-    defined $value
-	or $value = DEFAULT_SPACE_TRACK_VERSION_MINOR;
-    $value =~ m/ \A [0-9]+ \z /smx
-	and [ 1, 1 ]->[ $value ]
-	or Carp::croak( 'space_track_version_minor must be 0 or 1' );
     return ( $self->{$name} = $value );
 }
 
@@ -7111,17 +6997,6 @@ false value (i.e. C<undef>, C<0>, or C<''>) it will be set to the
 default.
 
 The default is C<2>.
-
-=item space_track_version_minor (integer)
-
-B<This attribute is unsupported and temporary. It exists solely for the
-convenience of the author, and will be revoked without notice.>
-
-This attribute specifies the minor version of the Space Track interface
-to use to retrieve data. The only valid values are C<0> and C<1>. The
-only supported value is C<1>.
-
-The default is C<1>.
 
 =item url_iridium_status_kelso (text)
 
