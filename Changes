@@ -1,3 +1,18 @@
+0.179_002	2026-01-21	T. R. Wyant
+    Drop Astro::SpaceTrack::BulkData POD. This was relevant to the API
+    v1 to V2 transition, which is long past.
+
+    Drop Space-Track-curated favorites, because they have. These are
+    deprecated and will be removed. TODO: a mechanism for fetching
+    favorites.
+
+    Deprecate the -last5 option; it does not work anyway since Space
+    Track dropped the 'tle' and 'tle_latest' data classes.
+
+    Remove --last5 support from eg/SpaceTrackTk
+
+    Credit Leonard Garcia with alerting me to the problem.
+
 0.179_001	2026-01-16	T. R. Wyant
     EMERGENCY Convert Space Track interface to new data classes.
     Space Track has removed classes 'tle_latest' and 'tle' in favor of 'gp'
