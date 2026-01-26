@@ -1,4 +1,4 @@
-0.179_002	2026-01-21	T. R. Wyant
+0.180		2026-01-26	T. R. Wyant
     Drop Astro::SpaceTrack::BulkData POD. This was relevant to the API
     v1 to V2 transition, which is long past.
 
@@ -11,9 +11,6 @@
 
     Remove --last5 support from eg/SpaceTrackTk
 
-    Credit Leonard Garcia with alerting me to the problem.
-
-0.179_001	2026-01-16	T. R. Wyant
     EMERGENCY Convert Space Track interface to new data classes.
     Space Track has removed classes 'tle_latest' and 'tle' in favor of 'gp'
     and 'gp_history'. They also removed legacy datum OBJECT_NUMBER, so
