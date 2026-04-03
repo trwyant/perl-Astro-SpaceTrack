@@ -298,8 +298,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	active => { name => 'Active Satellites' },
 	analyst => { name => 'Analyst Satellites' },
 	weather => {name => 'Weather'},
-	noaa => {name => 'NOAA'},
-	goes => {name => 'GOES'},
+	# Removed April 1 2026
+	# noaa => {name => 'NOAA'},
+	# Removed April 1 2026
+	# goes => {name => 'GOES'},
 	resource => {name => 'Earth Resources'},
 	sarsat => {name => 'Search and Rescue (SARSAT)'},
 	dmc => {name => 'Disaster Monitoring'},
@@ -346,14 +348,16 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	# Removed May 8 2025
 	# swarm		=> { name => 'Swarm' },
 	gnss		=> { name => 'GNSS navigational satellites' },
-	'1982-092'	=> {
-	    name	=> 'Russian ASAT Test Debris (COSMOS 1408)',
-	    note	=> q/'cosmos-1408-debris' as of April 26 2024/,
-	    ignore	=> 1,	# Ignore in xt/author/celestrak_datasets.t
-	},
-	'cosmos-1408-debris'	=> {
-	    name =>	'Russian ASAT Test Debris (COSMOS 1408)',
-	},
+	# Removed April 1 2026
+	# '1982-092'	=> {
+	#    name	=> 'Russian ASAT Test Debris (COSMOS 1408)',
+	#    note	=> q/'cosmos-1408-debris' as of April 26 2024/,
+	#    ignore	=> 1,	# Ignore in xt/author/celestrak_datasets.t
+	#},
+	# Removed April 1 2026
+	# 'cosmos-1408-debris'	=> {
+	#    name =>	'Russian ASAT Test Debris (COSMOS 1408)',
+	# },
 	'1999-025'	=> {
 	    name	=> 'Fengyun 1C debris',
 	    note	=> q/'fengyun-1c-debris' as of April 26 2024/,
