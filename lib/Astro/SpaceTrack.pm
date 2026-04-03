@@ -3782,7 +3782,7 @@ sub search_decay {	## no critic (RequireArgUnpacking)
 This method searches the Space Track database for objects having the
 given international IDs. The international ID is the last two digits of
 the launch year (in the range 1957 through 2056), the three-digit
-sequence number of the launch within the year (with leading zeroes as
+sequence number of the launch within the year (with leading zeros as
 needed), and the piece (A through ZZZ, with A typically being the
 payload). You can omit the piece and get all pieces of that launch, or
 omit both the piece and the launch number and get all launches for the
