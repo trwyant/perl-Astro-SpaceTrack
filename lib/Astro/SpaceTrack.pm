@@ -36,7 +36,7 @@ suffices.
 
 =head1 CAVEAT
 
-This is an emergency release of this module. It was caused by Space
+Version 0.180 was an emergency release of this module. It was caused by Space
 Track deprecating and ultimately revoking the C<'tle_latest'> and
 C<'tle'> data classes in favor of C<'gp'> and C<'gp_history'>
 respectively, and me being oblivious until the revocation occurred.
@@ -104,26 +104,10 @@ As of version 0.143, any access of attribute
 C<url_iridium_status_mccants> is fatal.
 
 As of version 0.169, any use of attribute C<url_iridium_status_kelso> is
-fatal. See below for why my normal deprecation procedure was violated.
+fatal.
 
-As of version 0.164 support for Iridium Classic satellites is being
-deprecated and removed. All testing of the iridium_status() method is
-halted as of version 0.164. As of version 0.167, the first use of the
-iridium_status() method will produce a warning. After a further six
-months all uses will warn, and after a further six months use of this
-method will be fatal. Related attributes and manifest constants will be
-deprecated on the same schedule.
-
-Contrary to my normal deprecation procedure (such as it is), the
-Celestrak Iridium catalog is fully deprecated as of version 0.169, and
-will result in a fatal exception. This jump from non-deprecated to fully
-deprecated was triggered by the removal of the Iridium catalog (as
-opposed to Iridium NEXT) from the Celestrak web site May 8 2025.
-
-As of version 0.169, B<any> functionality relating to Iridium status
-will warn on the first use. This includes the C<BODY_STATUS_*> manifest
-constants, which as of 0.169 are no longer manifest constants but simple
-subroutines so that they B<can> warn on the first use.
+As of version 0.181, B<any> remaining functionality relating to Iridium
+Classic satellites is fatal.
 
 =head1 DESCRIPTION
 
@@ -5254,7 +5238,7 @@ sub _check_cookie_generic {
 
 {
 
-    use constant _MASTER_IRIDIUM_DEPRECATION_LEVEL	=> 2;
+    use constant _MASTER_IRIDIUM_DEPRECATION_LEVEL	=> 3;
     use constant _MASTER_FAVORITE_DEPRECATION_LEVEL	=> 2;
 
     my %deprecate = (
