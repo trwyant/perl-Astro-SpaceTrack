@@ -131,7 +131,7 @@ This package retrieves orbital data from the Space Track web site
 L<https://www.space-track.org> and several others. You must register and
 get a user name and password before you can get data from Space Track.
 
-Other methods (C<celestrak()>, C<amsat()>, ...) have
+Other methods (C<celestrak()> ...) have
 been added to access other repositories of orbital data, and in general
 these do not require a Space Track username and password.
 
@@ -5266,7 +5266,7 @@ sub _check_cookie_generic {
 #	    '--sort'		=> 3,
 #	    '--start_epoch'	=> 3,
 	},
-	amsat		=> 0,
+	amsat		=> 1,
 	attribute	=> {
 #	    direct		=> 3,
 	    url_iridium_status_kelso	=> 3,
