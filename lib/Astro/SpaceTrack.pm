@@ -2994,10 +2994,7 @@ catalog names are:
  vsnames: Molczan-format mags of visual bodies (vsnames.zip) REMOVED
 
 The files marked B<REMOVED> have been removed from Mike McCants' web
-site. The associated arguments are deprecated, will warn on every use,
-and return a C<404> error. Six months after the release of
-C<Astro-SpaceTrack> version 0.171, these arguments will produce a fatal
-error.
+site. As of version 0.181, use of the associated arguments is fatal.
 
 You can specify options as either command-type options (e.g. C<<
 mccants( '-file', 'foo.dat', ... ) >>) or as a leading hash reference
@@ -3032,10 +3029,6 @@ fetched, as follows:
 
  classified: 'orbit'
  integrated: 'orbit'
- mcnames:    'molczan'
- quicksat:   'quicksat'
- rcs:        'rcs.mccants'
- vsnames:    'molczan'
 
 If the C<file> option was passed, the following additional header will
 be provided:
@@ -5267,9 +5260,9 @@ sub _check_cookie_generic {
 	    last5	=> 2,
 	},
 	mccants	=> {
-	    mcnames	=> 2,
-	    quicksat	=> 1,
-	    vsnames	=> 2,
+	    mcnames	=> 3,
+	    quicksat	=> 3,
+	    vsnames	=> 3,
 	},
 	BODY_STATUS_IS_OPERATIONAL	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	BODY_STATUS_IS_SPARE	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
