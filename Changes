@@ -1,3 +1,11 @@
+0.180_02	2026-04-08	T. R. Wyant
+    Correct documentation on the removal of "canned" favorites.
+
+    Don't include fatalozed attributes in attribute_names() output.
+    
+    Deprecate attribute iridium_status_format, which was missed in the
+    previous "remove Iridium functionality" sweep.
+
 0.180_01	2026-04-06	T. R. Wyant
     Fully deprecates mccants() mcnames, quicksat, and vsnames. Any use
     of thses is now fatal.
