@@ -63,8 +63,8 @@ fudge it in. C<NORAD_CAT_ID> has the same value.
 
 In the previous release C<spacetrack()> would fetch canned favorites
 curated by Space Track. As of January 21 2026 these are 404. If I find
-these data sets I will restore them. I also plan to support the existing
-favorites by a new mechanism (i.e. not via C<spacetrack()>).
+these data sets I will restore them. Favorites can still be retrieved
+via the C<favorite()> method.
 
 =back
 
