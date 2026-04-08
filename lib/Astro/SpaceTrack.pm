@@ -107,7 +107,10 @@ As of version 0.169, any use of attribute C<url_iridium_status_kelso> is
 fatal.
 
 As of version 0.181, B<any> remaining functionality relating to Iridium
-Classic satellites is fatal.
+Classic satellites is fatal, except for attribute iridium_status_format,
+which I missed, and which warns on the first use. This will be put
+through the usual deprecation cycle. Six months after it becomes fatal,
+all Iridium functionality will be dropped.
 
 =head1 DESCRIPTION
 
@@ -1024,7 +1027,9 @@ This method returns a list of legal attribute names.
 sub attribute_names {
     my ( $self ) = @_;
     my @keys = grep { ! {
+	    url_iridium_status_kelso	=> 1,
 	    url_iridium_status_mccants	=> 1,
+	    url_iridium_status_sladen	=> 1,
 	}->{$_} } sort keys %mutator;
     ref $self
 	or return wantarray ? @keys : \@keys;
@@ -5246,9 +5251,10 @@ sub _check_cookie_generic {
 	amsat		=> 1,
 	attribute	=> {
 #	    direct		=> 3,
-	    url_iridium_status_kelso	=> 3,
-	    url_iridium_status_mccants	=> 3,
+	    url_iridium_status_kelso	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
+	    url_iridium_status_mccants	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	    url_iridium_status_sladen	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
+	    iridium_status_format	=> 1,
 	},
 	iridium_status	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	iridium_status_format	=> {
