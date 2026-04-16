@@ -315,8 +315,10 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	galileo => {name => 'Galileo'},
 	sbas => {name =>
 	    'Satellite-Based Augmentation System (WAAS/EGNOS/MSAS)'},
-	nnss => {name => 'Navy Navigation Satellite System (NNSS)'},
-	musson => {name => 'Russian LEO Navigation'},
+	# Removed April 16 2026
+	# nnss => {name => 'Navy Navigation Satellite System (NNSS)'},
+	# Removed April 16 2026
+	# musson => {name => 'Russian LEO Navigation'},
 	science => {name => 'Space and Earth Science'},
 	geodetic => {name => 'Geodetic'},
 	engineering => {name => 'Engineering'},
@@ -324,7 +326,8 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	military => {name => 'Miscellaneous Military'},
 	radar => {name => 'Radar Calibration'},
 	cubesat => {name => 'CubeSats'},
-	other => {name => 'Other'},
+	# Removed April 16 2026
+	# other => {name => 'Other'},
 	beidou => { name => 'Beidou navigational satellites' },
 	argos	=> { name => 'ARGOS Data Collection System' },
 	planet	=> { name => 'Planet Labs (Rapideye, Flock)' },
