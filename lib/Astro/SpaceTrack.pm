@@ -2311,7 +2311,7 @@ results is determined by the optional $format argument, which defaults
 to the value of the C<iridium_status_format> attribute.
 
 If the format is 'kelso', only Dr. Kelso's Celestrak web site
-(L<https://celestrak.org/SpaceTrack/query/iridium.txt>) is queried for
+(C<https://celestrak.org/SpaceTrack/query/iridium.txt>) is queried for
 the data. The possible status values are documented at
 L<https://celestrak.org/satcat/status.php>, and repeated here for
 convenience:
