@@ -1,3 +1,12 @@
+0.180_03	2026-04-16	T. R. Wyant
+    Drop Celestrak catalogs 'musson', 'nnss', and 'other' because they
+    were dropped from the Celestrak web site itself.
+
+    Don't test celestrak('iridium'). No idea why this wasn't failing on
+    my box. Thanks to CPAN Testers for catching this.
+
+    Correct Chages file.
+
 0.180_02	2026-04-08	T. R. Wyant
     Correct documentation on the removal of "canned" favorites.
 

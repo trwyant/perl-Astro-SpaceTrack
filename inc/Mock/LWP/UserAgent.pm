@@ -13,7 +13,7 @@ use HTTP::Response;
 use LWP::UserAgent;
 use JSON;
 
-our $VERSION = '0.180_02';
+our $VERSION = '0.180_03';
 
 our $CANNED_RESPONSE_FILE;
 
