@@ -210,10 +210,6 @@
 
     Use https: for Celestrak.
 
-commit 64bce81410add91be6b014cda3b39cd8b18871a2
-Author: Tom Wyant <wyant@cpan.org>
-Date:   Tue Nov 16 10:48:11 2021 -0500
-
     Add file CONTRIBUTING
 
 0.147		2021-09-08	T. R. Wyant

@@ -1085,7 +1085,7 @@ Space Track ($url/) you must register and
 get a username and password, and you may not make the data available to
 a third party without prior permission from Space Track.
 
-Copyright 2005-2022 by T. R. Wyant (wyant at cpan dot org).
+Copyright 2005-2022 by T. R. Wyant (harryfmudd at comcast dot net).
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
@@ -7295,11 +7295,11 @@ assistance and encouragement.
 
 =head1 AUTHOR
 
-Thomas R. Wyant, III (F<wyant at cpan dot org>)
+Thomas R. Wyant, III (F<harryfmudd at comcast dot net>)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005-2026 by Thomas R. Wyant, III (F<wyant at cpan dot org>).
+Copyright 2005-2026 by Thomas R. Wyant, III (F<harryfmudd at comcast dot net>).
 
 =head1 LICENSE
 
