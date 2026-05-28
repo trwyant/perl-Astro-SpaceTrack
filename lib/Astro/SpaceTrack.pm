@@ -392,6 +392,11 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	    name	=> 'CSS (no match data)',
 	    rms		=> 1,
 	},
+	eumetsat	=> {
+	    name	=> 'EUMETSAT',
+	    rms		=> 1,
+	    match	=> 1,
+	},
 	gps		=> {
 	    name	=> 'GPS Operational',
 	    # source	=> 'GPS-A',
