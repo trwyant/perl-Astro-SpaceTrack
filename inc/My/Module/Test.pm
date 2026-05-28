@@ -121,7 +121,6 @@ sub is_success_or_skip {	## no critic (RequireArgUnpacking)
     return 1;
 }
 
-
 sub last_modified {
     $rslt
 	or return;
@@ -182,7 +181,6 @@ sub not_defined {
     }
 
 }
-
 
 # Determine whether a given web site is to be skipped.
 
@@ -420,7 +418,6 @@ sub throws_exception {	## no critic (RequireArgUnpacking)
     goto &like;
 }
 
-
 1;
 
 __END__
@@ -597,8 +594,7 @@ the exception text.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack>,
-L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues/>, or in
+L<https://github.com/trwyant/perl-Astro-UTDF/issues> or in
 electronic mail to the author.
 
 =head1 AUTHOR
