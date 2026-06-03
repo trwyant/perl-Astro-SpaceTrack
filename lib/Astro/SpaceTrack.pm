@@ -7246,8 +7246,7 @@ for example, that the module will die horribly if run with an
 insufficiently-up-to-date version of LWP.
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-SpaceTrack>,
-L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues/>, or in
+L<https://github.com/trwyant/perl-Astro-SpaceTrack/issues/> or in
 electronic mail to the author.
 
 =head1 MODIFICATIONS OF HISTORICAL INTEREST
