@@ -313,6 +313,7 @@ my %catalogs = (	# Catalog names (and other info) for each source.
 	'gps-ops' => {name => 'GPS Operational'},
 	'glo-ops' => {name => 'Glonass Operational'},
 	galileo => {name => 'Galileo'},
+	sar	=> { name => 'Synthetic Aperture Radar' },
 	sbas => {name =>
 	    'Satellite-Based Augmentation System (WAAS/EGNOS/MSAS)'},
 	# Removed April 16 2026
