@@ -1,8 +1,6 @@
-0.181_02	2026-06-03	T. R. Wyant
-    Correct GitHub bug reporting link. Missed a spot in the mass change
-    in the previous development release.
+0.182		2026-06-10	T. R. Wyant
+    Add Celestrak primary catalog 'sar', Synthetic Aperture Radar.
 
-0.181_01	2026-05-28	T. R. Wyant
     Remove references to the RT bug tracking system.
 
     Replace wyant@cpan.org with harryfmudd@comcast.net.
