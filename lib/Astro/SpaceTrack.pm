@@ -106,9 +106,9 @@ fatal.
 
 As of version 0.181, B<any> remaining functionality relating to Iridium
 Classic satellites is fatal, except for attribute iridium_status_format,
-which I missed, and which warns on the first use. This will be put
-through the usual deprecation cycle. Six months after it becomes fatal,
-all Iridium functionality will be dropped.
+which I missed, and which warns on every use as of version 0.183. Six
+months after this release it will become fatal, and six months after
+that all Iridium functionality will be dropped.
 
 =head1 DESCRIPTION
 
@@ -5256,7 +5256,7 @@ sub _check_cookie_generic {
 	    url_iridium_status_kelso	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	    url_iridium_status_mccants	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	    url_iridium_status_sladen	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
-	    iridium_status_format	=> 1,
+	    iridium_status_format	=> 2,
 	},
 	iridium_status	=> _MASTER_IRIDIUM_DEPRECATION_LEVEL,
 	iridium_status_format	=> {
