@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.183_01';
+our $VERSION = '0.184';
 
 sub new {
     my ( $class ) = @_;
@@ -177,7 +177,7 @@ sub provides {
     return ( provides => $provides );
 }
 
-sub release_status {'testing' }
+sub release_status { 'stable' }
 
 sub requires {
     my ( undef, @extra ) = @_;		# Invocant unused

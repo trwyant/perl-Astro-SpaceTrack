@@ -1,4 +1,4 @@
-0.183_01	2026-10-01	T. R. Wyant
+0.184		2026-10-08	T. R. Wyant
     Fix handling of configuration and build requirements in Makefile.PL.
 
     Further deprecate attribute iridium_status_format. It now warns on
